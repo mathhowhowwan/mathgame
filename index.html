@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數學小遊戲樂園</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@700&display=swap');
+
+        body {
+            background-color: #f0f4c3; /* 柔和的背景色 */
+            font-family: 'Zen Maru Gothic', '微軟正黑體', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: #558b2f;
+            width: 100%;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            color: #fff;
+            margin: 0;
+            font-size: 2.5em;
+            letter-spacing: 2px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            padding-bottom: 50px;
+        }
+
+        /* 遊戲卡片樣式 */
+        .game-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid #e0e0e0;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+            border-color: #a5d6a7;
+        }
+
+        .card-icon {
+            background-color: #e8f5e9;
+            height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5em;
+        }
+
+        .card-content {
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 1.5em;
+            margin: 0 0 10px 0;
+            color: #2e7d32;
+        }
+
+        .card-desc {
+            font-size: 1rem;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .tag {
+            display: inline-block;
+            background-color: #ffcc80;
+            color: #e65100;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-top: 15px;
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🎮 數學小遊戲樂園</h1>
+    </header>
+
+    <div class="container">
+        
+        <!-- 這是第一個遊戲連結 -->
+        <!-- 注意：href="algebra.html" 代表它會連到同一個資料夾著名為 algebra.html 的檔案 -->
+        <a href="algebra.html" class="game-card">
+            <div class="card-icon">🧮</div>
+            <div class="card-content">
+                <h3 class="card-title">用符號列式大挑戰</h3>
+                <p class="card-desc">
+                    練習將文字敘述轉換成代數符號。包含基礎加減、倍數與打折問題。
+                </p>
+                <span class="tag">七年級數學</span>
+                <span class="tag">代數</span>
+            </div>
+        </a>
+
+        <!-- 這是第二個遊戲範例 (尚未製作) -->
+        <a href="#" class="game-card" style="opacity: 0.6; cursor: not-allowed;">
+            <div class="card-icon">📐</div>
+            <div class="card-content">
+                <h3 class="card-title">幾何圖形拼拼看</h3>
+                <p class="card-desc">
+                    (即將推出) 認識各種多邊形與角度計算。
+                </p>
+                <span class="tag">開發中...</span>
+            </div>
+        </a>
+
+        <!-- 您可以隨時複製上面的區塊來新增更多遊戲 -->
+
+    </div>
+
+    <footer>
+        Happy Learning! 快樂學數學
+    </footer>
+
+</body>
+</html>
