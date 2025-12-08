@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>用符號列式大挑戰</title>
+    <title>代數應用高手</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Kalam:wght@700&family=Zen+Maru+Gothic:wght@700&display=swap');
 
@@ -35,7 +35,7 @@
             box-shadow: 0 15px 30px rgba(0,0,0,0.5);
             padding: 30px;
             position: relative;
-            min-height: 550px;
+            min-height: 600px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -58,8 +58,7 @@
         .question-area {
             margin-top: 60px;
             text-align: center;
-            width: 100%;
-            transition: opacity 0.3s;
+            width: 90%;
         }
 
         .level-tag {
@@ -69,47 +68,30 @@
             padding: 2px 10px;
             border-radius: 15px;
             display: inline-block;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         /* 題目文字顯示區 */
         .question-text {
-            font-size: 2.2em;
-            margin: 20px 0;
+            font-size: 1.8em;
+            margin: 15px 0;
             font-family: 'Zen Maru Gothic', '微軟正黑體', sans-serif;
             font-weight: bold;
             text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
-            min-height: 80px;
-            letter-spacing: 2px;
-            line-height: 1.4;
+            min-height: 100px;
+            letter-spacing: 1px;
+            line-height: 1.6;
             color: #fff;
+            text-align: left;
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 10px;
         }
         
         .highlight {
             color: #ffcc80;
-            margin: 0 5px;
-        }
-
-        /* 分數顯示優化 */
-        .fraction {
-            display: inline-flex;
-            flex-direction: column;
-            align-items: center;
-            vertical-align: -0.4em;
-            margin: 0 0.2em;
-            font-size: 0.9em;
-        }
-        .numerator {
-            border-bottom: 2px solid currentColor;
-            padding: 0 2px 1px 2px;
-            text-align: center;
-            width: 100%;
-            line-height: 1;
-        }
-        .denominator {
-            padding-top: 2px;
-            text-align: center;
-            line-height: 1;
+            margin: 0 3px;
+            border-bottom: 2px dashed rgba(255, 204, 128, 0.5);
         }
 
         .options-grid {
@@ -119,7 +101,6 @@
             width: 100%;
             max-width: 600px;
             margin-top: 20px;
-            transition: opacity 0.3s;
         }
 
         .option-btn {
@@ -127,7 +108,7 @@
             border: 2px solid rgba(255,255,255,0.2);
             border-radius: 10px;
             padding: 15px;
-            font-size: 1.6em;
+            font-size: 1.5em;
             color: white;
             cursor: pointer;
             font-family: 'Zen Maru Gothic', sans-serif;
@@ -137,7 +118,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 80px;
+            min-height: 70px;
         }
 
         .option-btn:hover {
@@ -164,12 +145,12 @@
         }
 
         .feedback-area {
-            margin-top: 30px;
+            margin-top: 20px;
             height: 60px;
             text-align: center;
-            font-size: 1.4em;
+            font-size: 1.3em;
             color: #ffeb3b;
-            font-family: 'Zen Maru Gothic', 'Kalam', sans-serif;
+            font-family: 'Zen Maru Gothic', sans-serif;
             width: 100%;
         }
 
@@ -184,13 +165,14 @@
             font-weight: bold;
             display: none;
             box-shadow: 0 4px 0 #fbc02d;
-            margin-top: 10px;
+            margin-top: 5px;
             font-family: 'Zen Maru Gothic', sans-serif;
+            text-decoration: none; /* 移除連結下底線 */
         }
         
         .next-btn:active, .restart-btn:active {
-            box-shadow: 0 0 0 #fbc02d;
             transform: translateY(4px);
+            box-shadow: none;
         }
 
         /* 遊戲結束畫面 */
@@ -205,7 +187,7 @@
             top: 0;
             left: 0;
             z-index: 10;
-            background: rgba(38, 62, 46, 0.95);
+            background: rgba(38, 62, 46, 0.98);
             border-radius: 6px;
         }
 
@@ -214,12 +196,6 @@
             color: #ffeb3b;
             margin: 20px 0;
             text-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
-        }
-
-        .final-comment {
-            font-size: 1.8em;
-            color: #fff;
-            margin-bottom: 30px;
         }
 
         .chalk-tray {
@@ -232,47 +208,45 @@
         }
         
         @media (max-width: 600px) {
-            .question-text { font-size: 1.6em; }
-            .option-btn { font-size: 1.3em; padding: 10px; }
+            .question-text { font-size: 1.4em; }
+            .option-btn { font-size: 1.2em; }
             .options-grid { grid-template-columns: 1fr; gap: 10px; }
             .blackboard { padding: 15px; }
             .header-info { font-size: 1.2em; padding: 0 10px; }
         }
-
     </style>
 </head>
 <body>
 
 <div id="game-container">
     <div class="blackboard">
-        <!-- 頂部資訊欄：進度與分數 -->
         <div class="header-info">
             <div>題數: <span id="q-progress">1 / 10</span></div>
             <div>得分: <span id="score">0</span></div>
         </div>
         
-        <div id="game-content">
+        <div id="game-content" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
             <div class="question-area">
-                <div id="level-indicator" class="level-tag">Level 1: 基礎加減</div>
+                <div id="level-indicator" class="level-tag">Level 1</div>
                 <div id="question-text" class="question-text">
-                    載入中...
+                    題目載入中...
                 </div>
             </div>
 
             <div id="options-container" class="options-grid">
-                <!-- Options generated here -->
+                <!-- 選項按鈕 -->
             </div>
         </div>
 
         <!-- 遊戲結束畫面 -->
         <div id="game-over-screen" class="game-over-screen">
-            <h2 style="color: #a5d6a7; font-size: 2em; margin-bottom: 0;">挑戰完成！</h2>
+            <h2 style="color: #a5d6a7; font-size: 2em; margin-bottom: 0;">任務完成！</h2>
             <div class="final-score" id="final-score-display">100</div>
-            <div class="final-comment" id="final-comment">太厲害了！</div>
+            <div style="font-size: 1.5em; color: #fff; margin-bottom: 20px;">太棒了！</div>
             <button class="restart-btn" style="display: inline-block;" onclick="restartGame()">再玩一次 ↻</button>
             <br>
-            <!-- 增加返回首頁的按鈕，方便學生切換 -->
-            <button class="restart-btn" style="display: inline-block; margin-top: 10px; background-color: #a5d6a7;" onclick="window.location.href='index.html'">回遊戲大廳 🏠</button>
+            <!-- 修改處：使用 a 標籤替代 button onclick 跳轉，更加穩定 -->
+            <a href="index.html" class="restart-btn" style="display: inline-flex; justify-content: center; align-items: center; margin-top: 15px; background-color: #a5d6a7; color: #3e2723;">回遊戲大廳 🏠</a>
         </div>
 
         <div class="feedback-area">
@@ -288,8 +262,6 @@
     let currentScore = 0;
     let currentQuestion = null;
     let isAnswering = true;
-    
-    // 遊戲控制變數
     const TOTAL_QUESTIONS = 10;
     let questionCount = 0;
 
@@ -297,144 +269,106 @@
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    // 格式化數學式
-    function renderMath(text) {
-        return text.replace(/(\d+)\/(\d+)/g, function(match, num, den) {
-            return `<span class="fraction"><span class="numerator">${num}</span><span class="denominator">${den}</span></span>`;
-        });
-    }
-
+    // 產生題庫
     const generators = [
-        // Level 1: 基礎加減
+        // Level 1: 買東西算總價 (類似 3巧 + 2運)
         {
-            level: "Level 1: 基礎加減",
+            level: "Level 1: 購物總價",
             gen: () => {
-                const x = "x";
-                const num = rand(3, 15);
-                const type = rand(0, 3);
+                const items = [
+                    { name: "巧克力", price: "x" },
+                    { name: "原子筆", price: "y" },
+                    { name: "筆記本", price: "a" },
+                    { name: "奶茶", price: "x" }
+                ];
+                const fixedItems = [
+                    { name: "運動飲料", price: 25 },
+                    { name: "橡皮擦", price: 10 },
+                    { name: "科學麵", price: 8 },
+                    { name: "洋芋片", price: 30 }
+                ];
+
+                const item1 = items[rand(0, items.length - 1)];
+                const item2 = fixedItems[rand(0, fixedItems.length - 1)];
                 
-                let qText, ans, wrongs = [];
+                const num1 = rand(2, 5); // 變數物品的數量
+                const num2 = rand(2, 4); // 固定價格物品的數量
+                const totalFixed = num2 * item2.price;
+
+                const qText = `弘宇去超商買了 <span class="highlight">${num1}</span> 個${item1.name} (每個 <span class="highlight">${item1.price}</span> 元)，<br>還有 <span class="highlight">${num2}</span> 個${item2.name} (每個 <span class="highlight">${item2.price}</span> 元)。<br>請問他總共要付多少錢？`;
                 
-                if (type === 0 || type === 2) {
-                    qText = (type === 0) ? `比 <span class="highlight">${x}</span> 多 <span class="highlight">${num}</span>` : `<span class="highlight">${x}</span> 加 <span class="highlight">${num}</span>`;
-                    ans = `${x} + ${num}`;
-                    wrongs = [`${x} - ${num}`, `${num}${x}`, `${x}${num}`, `${num} - ${x}`];
-                } else {
-                    qText = (type === 1) ? `比 <span class="highlight">${x}</span> 少 <span class="highlight">${num}</span>` : `<span class="highlight">${x}</span> 減去 <span class="highlight">${num}</span>`;
-                    ans = `${x} - ${num}`;
-                    wrongs = [`${x} + ${num}`, `${num} - ${x}`, `${num}${x}`, `${x} ÷ ${num}`];
-                }
-
-                return {
-                    q: qText,
-                    a: ans,
-                    wrongs: wrongs,
-                    hint: "「多」或「加」通常用 + ，「少」或「減」通常用 - ，注意誰減誰喔！"
-                };
-            }
-        },
-        // Level 2: 基礎倍數與分數
-        {
-            level: "Level 2: 倍數與分數",
-            gen: () => {
-                const vars = ["x", "y", "a"];
-                const v = vars[rand(0, 2)];
-                const num = rand(2, 9);
-                const type = rand(0, 2);
+                const ans = `${num1}${item1.price} + ${totalFixed}`;
                 
-                let qText, ans, wrongs = [];
-
-                if (type === 0) {
-                    qText = `<span class="highlight">${v}</span> 的 <span class="highlight">${num}</span> 倍`;
-                    ans = `${num}${v}`;
-                    // 確保沒有 a9 這種選項，改為 9 - a 或 9 ÷ a
-                    wrongs = [`${v} + ${num}`, `${num} - ${v}`, `${v} ÷ ${num}`, `${num} ÷ ${v}`];
-                } else if (type === 1) {
-                    qText = `<span class="highlight">${v}</span> 的 <span class="highlight">1/${num}</span>`;
-                    ans = `\\frac{1}{${num}}${v}`; // 僅為標記
-                    const ansBtn = `${1}/${num}${v}`; // renderMath 會處理這個格式
-                    wrongs = [`${num}${v}`, `${v} - ${1}/${num}`, `${num}/${1}${v}`, `${v} + ${1}/${num}`];
-                    
-                    return {
-                        q: qText,
-                        a: ansBtn, 
-                        wrongs: wrongs,
-                        hint: "「的」通常代表乘法，分數寫在變數前面。"
-                    };
-                } else {
-                    const discount = rand(5, 9);
-                    qText = `<span class="highlight">${v}</span> 打 <span class="highlight">${discount}</span> 折`;
-                    ans = `0.${discount}${v}`;
-                    wrongs = [`${discount}${v}`, `${v} - ${discount}`, `1.${discount}${v}`, `${v} ÷ 0.${discount}`];
-                    
-                    return {
-                        q: qText,
-                        a: ans,
-                        wrongs: wrongs,
-                        hint: `${discount} 折就是乘以 0.${discount} 喔！`
-                    };
-                }
-
-                return {
-                    q: qText,
-                    a: ans,
-                    wrongs: wrongs,
-                    hint: "數字（係數）要寫在符號的前面，乘號通常省略。"
-                };
-            }
-        },
-        // Level 3: 兩步驟運算
-        {
-            level: "Level 3: 兩步驟運算",
-            gen: () => {
-                const v = "y";
-                const n1 = rand(2, 5);
-                const n2 = rand(1, 9);
-                const type = rand(0, 1);
-
-                let qText, ans, wrongs = [];
-
-                if (type === 0) {
-                    qText = `比 <span class="highlight">${v}</span> 的 <span class="highlight">${n1}</span> 倍多 <span class="highlight">${n2}</span>`;
-                    ans = `${n1}${v} + ${n2}`;
-                    wrongs = [`${n1}${v} - ${n2}`, `${n1}(${v} + ${n2})`, `${v} + ${n1*n2}`, `${n2}${v} + ${n1}`];
-                } else {
-                    qText = `比 <span class="highlight">${v}</span> 的 <span class="highlight">${n1}</span> 倍少 <span class="highlight">${n2}</span>`;
-                    ans = `${n1}${v} - ${n2}`;
-                    wrongs = [`${n1}${v} + ${n2}`, `${n2} - ${n1}${v}`, `${n1}(${v} - ${n2})`, `${n1} - ${n2}${v}`];
-                }
-
-                return {
-                    q: qText,
-                    a: ans,
-                    wrongs: wrongs,
-                    hint: "先處理「倍數」，再處理「多或少」。"
-                };
-            }
-        },
-        // Level 4: 分數進階
-        {
-            level: "Level 4: 分數進階",
-            gen: () => {
-                const v = "x";
-                const n1 = rand(3, 5);
-                const n2 = rand(1, 9);
-                
-                const qText = `比 <span class="highlight">${v}</span> 的 <span class="highlight">1/${n1}</span> 倍少 <span class="highlight">${n2}</span>`;
-                const ansBtn = `1/${n1}${v} - ${n2}`; 
-
                 const wrongs = [
-                    `1/${n1}(${v} - ${n2})`,
-                    `${n1}${v} - ${n2}`,
-                    `${n2} - 1/${n1}${v}`,
-                    `1/${n1}${v} + ${n2}`
+                    `${num1}${item1.price} + ${num2}`, // 忘記乘單價
+                    `${num1} + ${num2}${item1.price}`, // 數字亂湊
+                    `${num1 + num2}${item1.price}`,    // 數量全加在一起
+                    `${item1.price} + ${totalFixed}`   // 只有一個x
                 ];
 
                 return {
                     q: qText,
-                    a: ansBtn,
+                    a: ans,
                     wrongs: wrongs,
-                    hint: "看到「的幾倍」先乘起來，再看「少」多少就減多少。"
+                    hint: `總花費 = (${item1.name}數量 × 單價) + (${item2.name}數量 × 單價)`
+                };
+            }
+        },
+        // Level 2: 找錢問題 (付錢 - 花費)
+        {
+            level: "Level 2: 找錢問題",
+            gen: () => {
+                const totalMoney = [100, 200, 500, 1000][rand(0, 3)];
+                const itemNames = ["漢堡", "雞排", "便當", "蛋糕"];
+                const item = itemNames[rand(0, itemNames.length - 1)];
+                const num = rand(2, 6);
+                const variable = ["x", "y"][rand(0, 1)];
+
+                const qText = `小明帶了 <span class="highlight">${totalMoney}</span> 元，買了 <span class="highlight">${num}</span> 個${item}，<br>如果每個${item}賣 <span class="highlight">${variable}</span> 元，<br>請問他還剩下多少錢？`;
+                
+                const ans = `${totalMoney} - ${num}${variable}`;
+                
+                const wrongs = [
+                    `${num}${variable} - ${totalMoney}`, // 減反了
+                    `${totalMoney} - ${variable}`,       // 忘記乘數量
+                    `${totalMoney} + ${num}${variable}`, // 變成加法
+                    `${num}${variable} + ${totalMoney}`
+                ];
+
+                return {
+                    q: qText,
+                    a: ans,
+                    wrongs: wrongs,
+                    hint: "剩下的錢 = 帶去的錢 - 買東西花的總錢數"
+                };
+            }
+        },
+        // Level 3: 分配問題 (散裝 + 盒裝)
+        {
+            level: "Level 3: 數量計算",
+            gen: () => {
+                const container = ["箱", "袋", "盒"][rand(0, 2)];
+                const item = ["橘子", "糖果", "餅乾"][rand(0, 2)];
+                const boxCount = rand(3, 8);
+                const looseCount = rand(1, 9);
+                const v = "x";
+
+                const qText = `桌上有 <span class="highlight">${boxCount}</span> ${container}${item}，每${container}有 <span class="highlight">${v}</span> 個，<br>另外還有 <span class="highlight">${looseCount}</span> 個散的。<br>請問總共有幾個${item}？`;
+                
+                const ans = `${boxCount}${v} + ${looseCount}`;
+                
+                const wrongs = [
+                    `${boxCount}${v} - ${looseCount}`,
+                    `${boxCount} + ${v} + ${looseCount}`,
+                    `${looseCount}${v} + ${boxCount}`,
+                    `${boxCount}(${v} + ${looseCount})`
+                ];
+
+                return {
+                    q: qText,
+                    a: ans,
+                    wrongs: wrongs,
+                    hint: "總數量 = (幾箱 × 每箱個數) + 散的個數"
                 };
             }
         }
@@ -453,27 +387,15 @@
         questionCount = 0;
         document.getElementById('score').innerText = 0;
         document.getElementById('game-over-screen').style.display = 'none';
-        document.getElementById('game-content').style.opacity = '1';
-        document.getElementById('feedback-text').innerText = '';
-        document.getElementById('next-btn').style.display = 'none';
         nextQuestion();
     }
 
     function showGameOver() {
         document.getElementById('game-over-screen').style.display = 'flex';
         document.getElementById('final-score-display').innerText = currentScore;
-        
-        let comment = "";
-        if (currentScore === 100) comment = "太神啦！滿分代數王！👑";
-        else if (currentScore >= 80) comment = "非常優秀！繼續保持！🌟";
-        else if (currentScore >= 60) comment = "不錯喔，再練練會更好！💪";
-        else comment = "別氣餒，多練習幾次就懂了！🌱";
-        
-        document.getElementById('final-comment').innerText = comment;
     }
 
     function nextQuestion() {
-        // 檢查是否結束
         if (questionCount >= TOTAL_QUESTIONS) {
             showGameOver();
             return;
@@ -481,7 +403,6 @@
 
         questionCount++;
         document.getElementById('q-progress').innerText = `${questionCount} / ${TOTAL_QUESTIONS}`;
-
         document.getElementById('feedback-text').innerText = "";
         document.getElementById('next-btn').style.display = "none";
         document.getElementById('options-container').innerHTML = "";
@@ -493,8 +414,7 @@
         const qData = genObj.gen();
         currentQuestion = qData;
         
-        // 渲染題目文字中的分數
-        document.getElementById('question-text').innerHTML = renderMath(qData.q);
+        document.getElementById('question-text').innerHTML = qData.q;
 
         let options = [];
         options.push({ text: qData.a, isCorrect: true });
@@ -508,8 +428,7 @@
         options.forEach(opt => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
-            // 渲染按鈕文字中的分數
-            btn.innerHTML = renderMath(opt.text);
+            btn.innerHTML = opt.text;
             btn.onclick = () => checkAnswer(btn, opt.isCorrect);
             container.appendChild(btn);
         });
@@ -524,7 +443,7 @@
 
         if (isCorrect) {
             btn.classList.add('correct');
-            feedback.innerHTML = "🎉 答對了！完美列式！";
+            feedback.innerHTML = "🎉 正確！完全符合題意！";
             currentScore += 10;
             document.getElementById('score').innerText = currentScore;
         } else {
@@ -533,13 +452,12 @@
             feedback.style.color = "#ff8a80";
             
             allBtns.forEach(b => {
-                if (b.innerHTML === renderMath(currentQuestion.a)) {
+                if (b.innerHTML === currentQuestion.a) {
                     b.classList.add('correct');
                 }
             });
         }
         
-        // 如果是最後一題，按鈕文字改成「看成績」
         const nextBtn = document.getElementById('next-btn');
         if (questionCount >= TOTAL_QUESTIONS) {
             nextBtn.innerText = "看成績 🏆";
@@ -549,7 +467,6 @@
         nextBtn.style.display = "inline-block";
     }
 
-    // 初始化遊戲
     nextQuestion();
 
 </script>
