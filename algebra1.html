@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用符號列式大挑戰</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Kalam:wght@700&family=Zen+Maru+Gothic:wght@700&display=swap');
+
+        body {
+            background-color: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Kalam', '微軟正黑體', sans-serif;
+            color: #eee;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+        }
+
+        /* 黑板風格 */
+        .blackboard {
+            background-color: #263e2e;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, rgba(0, 0, 0, 0.3) 100%),
+                url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.06'/%3E%3C/svg%3E");
+            border: 12px solid #5d4037;
+            border-radius: 8px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+            padding: 30px;
+            position: relative;
+            min-height: 550px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0 20px;
+            box-sizing: border-box;
+            position: absolute;
+            top: 20px;
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-size: 1.5em;
+            color: #ffeb3b;
+            letter-spacing: 1px;
+        }
+
+        .question-area {
+            margin-top: 60px;
+            text-align: center;
+            width: 100%;
+            transition: opacity 0.3s;
+        }
+
+        .level-tag {
+            font-size: 1rem;
+            color: #a5d6a7;
+            border: 1px dashed #a5d6a7;
+            padding: 2px 10px;
+            border-radius: 15px;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        /* 題目文字顯示區 */
+        .question-text {
+            font-size: 2.2em;
+            margin: 20px 0;
+            font-family: 'Zen Maru Gothic', '微軟正黑體', sans-serif;
+            font-weight: bold;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+            min-height: 80px;
+            letter-spacing: 2px;
+            line-height: 1.4;
+            color: #fff;
+        }
+        
+        .highlight {
+            color: #ffcc80;
+            margin: 0 5px;
+        }
+
+        /* 分數顯示優化 */
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: -0.4em;
+            margin: 0 0.2em;
+            font-size: 0.9em;
+        }
+        .numerator {
+            border-bottom: 2px solid currentColor;
+            padding: 0 2px 1px 2px;
+            text-align: center;
+            width: 100%;
+            line-height: 1;
+        }
+        .denominator {
+            padding-top: 2px;
+            text-align: center;
+            line-height: 1;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 600px;
+            margin-top: 20px;
+            transition: opacity 0.3s;
+        }
+
+        .option-btn {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 1.6em;
+            color: white;
+            cursor: pointer;
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-weight: bold;
+            transition: transform 0.1s, background 0.2s;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80px;
+        }
+
+        .option-btn:hover {
+            background: rgba(255,255,255,0.1);
+            transform: scale(1.02);
+            border-color: #ffeb3b;
+        }
+
+        .option-btn:active {
+            transform: scale(0.98);
+        }
+
+        .option-btn.correct {
+            background: rgba(76, 175, 80, 0.3);
+            border-color: #4caf50;
+            color: #a5d6a7;
+        }
+
+        .option-btn.wrong {
+            background: rgba(244, 67, 54, 0.3);
+            border-color: #f44336;
+            color: #ef9a9a;
+            opacity: 0.7;
+        }
+
+        .feedback-area {
+            margin-top: 30px;
+            height: 60px;
+            text-align: center;
+            font-size: 1.4em;
+            color: #ffeb3b;
+            font-family: 'Zen Maru Gothic', 'Kalam', sans-serif;
+            width: 100%;
+        }
+
+        .next-btn, .restart-btn {
+            background-color: #ffeb3b;
+            color: #3e2723;
+            border: none;
+            padding: 10px 30px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            display: none;
+            box-shadow: 0 4px 0 #fbc02d;
+            margin-top: 10px;
+            font-family: 'Zen Maru Gothic', sans-serif;
+        }
+        
+        .next-btn:active, .restart-btn:active {
+            box-shadow: 0 0 0 #fbc02d;
+            transform: translateY(4px);
+        }
+
+        /* 遊戲結束畫面 */
+        .game-over-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10;
+            background: rgba(38, 62, 46, 0.95);
+            border-radius: 6px;
+        }
+
+        .final-score {
+            font-size: 4em;
+            color: #ffeb3b;
+            margin: 20px 0;
+            text-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
+        }
+
+        .final-comment {
+            font-size: 1.8em;
+            color: #fff;
+            margin-bottom: 30px;
+        }
+
+        .chalk-tray {
+            position: absolute;
+            bottom: -12px;
+            width: 50%;
+            height: 12px;
+            background: #4e342e;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        @media (max-width: 600px) {
+            .question-text { font-size: 1.6em; }
+            .option-btn { font-size: 1.3em; padding: 10px; }
+            .options-grid { grid-template-columns: 1fr; gap: 10px; }
+            .blackboard { padding: 15px; }
+            .header-info { font-size: 1.2em; padding: 0 10px; }
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div class="blackboard">
+        <!-- 頂部資訊欄：進度與分數 -->
+        <div class="header-info">
+            <div>題數: <span id="q-progress">1 / 10</span></div>
+            <div>得分: <span id="score">0</span></div>
+        </div>
+        
+        <div id="game-content">
+            <div class="question-area">
+                <div id="level-indicator" class="level-tag">Level 1: 基礎加減</div>
+                <div id="question-text" class="question-text">
+                    載入中...
+                </div>
+            </div>
+
+            <div id="options-container" class="options-grid">
+                <!-- Options generated here -->
+            </div>
+        </div>
+
+        <!-- 遊戲結束畫面 -->
+        <div id="game-over-screen" class="game-over-screen">
+            <h2 style="color: #a5d6a7; font-size: 2em; margin-bottom: 0;">挑戰完成！</h2>
+            <div class="final-score" id="final-score-display">100</div>
+            <div class="final-comment" id="final-comment">太厲害了！</div>
+            <button class="restart-btn" style="display: inline-block;" onclick="restartGame()">再玩一次 ↻</button>
+            <br>
+            <!-- 增加返回首頁的按鈕，方便學生切換 -->
+            <button class="restart-btn" style="display: inline-block; margin-top: 10px; background-color: #a5d6a7;" onclick="window.location.href='index.html'">回遊戲大廳 🏠</button>
+        </div>
+
+        <div class="feedback-area">
+            <div id="feedback-text"></div>
+            <button id="next-btn" class="next-btn" onclick="nextQuestion()">下一題 ➜</button>
+        </div>
+
+        <div class="chalk-tray"></div>
+    </div>
+</div>
+
+<script>
+    let currentScore = 0;
+    let currentQuestion = null;
+    let isAnswering = true;
+    
+    // 遊戲控制變數
+    const TOTAL_QUESTIONS = 10;
+    let questionCount = 0;
+
+    function rand(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // 格式化數學式
+    function renderMath(text) {
+        return text.replace(/(\d+)\/(\d+)/g, function(match, num, den) {
+            return `<span class="fraction"><span class="numerator">${num}</span><span class="denominator">${den}</span></span>`;
+        });
+    }
+
+    const generators = [
+        // Level 1: 基礎加減
+        {
+            level: "Level 1: 基礎加減",
+            gen: () => {
+                const x = "x";
+                const num = rand(3, 15);
+                const type = rand(0, 3);
+                
+                let qText, ans, wrongs = [];
+                
+                if (type === 0 || type === 2) {
+                    qText = (type === 0) ? `比 <span class="highlight">${x}</span> 多 <span class="highlight">${num}</span>` : `<span class="highlight">${x}</span> 加 <span class="highlight">${num}</span>`;
+                    ans = `${x} + ${num}`;
+                    wrongs = [`${x} - ${num}`, `${num}${x}`, `${x}${num}`, `${num} - ${x}`];
+                } else {
+                    qText = (type === 1) ? `比 <span class="highlight">${x}</span> 少 <span class="highlight">${num}</span>` : `<span class="highlight">${x}</span> 減去 <span class="highlight">${num}</span>`;
+                    ans = `${x} - ${num}`;
+                    wrongs = [`${x} + ${num}`, `${num} - ${x}`, `${num}${x}`, `${x} ÷ ${num}`];
+                }
+
+                return {
+                    q: qText,
+                    a: ans,
+                    wrongs: wrongs,
+                    hint: "「多」或「加」通常用 + ，「少」或「減」通常用 - ，注意誰減誰喔！"
+                };
+            }
+        },
+        // Level 2: 基礎倍數與分數
+        {
+            level: "Level 2: 倍數與分數",
+            gen: () => {
+                const vars = ["x", "y", "a"];
+                const v = vars[rand(0, 2)];
+                const num = rand(2, 9);
+                const type = rand(0, 2);
+                
+                let qText, ans, wrongs = [];
+
+                if (type === 0) {
+                    qText = `<span class="highlight">${v}</span> 的 <span class="highlight">${num}</span> 倍`;
+                    ans = `${num}${v}`;
+                    // 確保沒有 a9 這種選項，改為 9 - a 或 9 ÷ a
+                    wrongs = [`${v} + ${num}`, `${num} - ${v}`, `${v} ÷ ${num}`, `${num} ÷ ${v}`];
+                } else if (type === 1) {
+                    qText = `<span class="highlight">${v}</span> 的 <span class="highlight">1/${num}</span>`;
+                    ans = `\\frac{1}{${num}}${v}`; // 僅為標記
+                    const ansBtn = `${1}/${num}${v}`; // renderMath 會處理這個格式
+                    wrongs = [`${num}${v}`, `${v} - ${1}/${num}`, `${num}/${1}${v}`, `${v} + ${1}/${num}`];
+                    
+                    return {
+                        q: qText,
+                        a: ansBtn, 
+                        wrongs: wrongs,
+                        hint: "「的」通常代表乘法，分數寫在變數前面。"
+                    };
+                } else {
+                    const discount = rand(5, 9);
+                    qText = `<span class="highlight">${v}</span> 打 <span class="highlight">${discount}</span> 折`;
+                    ans = `0.${discount}${v}`;
+                    wrongs = [`${discount}${v}`, `${v} - ${discount}`, `1.${discount}${v}`, `${v} ÷ 0.${discount}`];
+                    
+                    return {
+                        q: qText,
+                        a: ans,
+                        wrongs: wrongs,
+                        hint: `${discount} 折就是乘以 0.${discount} 喔！`
+                    };
+                }
+
+                return {
+                    q: qText,
+                    a: ans,
+                    wrongs: wrongs,
+                    hint: "數字（係數）要寫在符號的前面，乘號通常省略。"
+                };
+            }
+        },
+        // Level 3: 兩步驟運算
+        {
+            level: "Level 3: 兩步驟運算",
+            gen: () => {
+                const v = "y";
+                const n1 = rand(2, 5);
+                const n2 = rand(1, 9);
+                const type = rand(0, 1);
+
+                let qText, ans, wrongs = [];
+
+                if (type === 0) {
+                    qText = `比 <span class="highlight">${v}</span> 的 <span class="highlight">${n1}</span> 倍多 <span class="highlight">${n2}</span>`;
+                    ans = `${n1}${v} + ${n2}`;
+                    wrongs = [`${n1}${v} - ${n2}`, `${n1}(${v} + ${n2})`, `${v} + ${n1*n2}`, `${n2}${v} + ${n1}`];
+                } else {
+                    qText = `比 <span class="highlight">${v}</span> 的 <span class="highlight">${n1}</span> 倍少 <span class="highlight">${n2}</span>`;
+                    ans = `${n1}${v} - ${n2}`;
+                    wrongs = [`${n1}${v} + ${n2}`, `${n2} - ${n1}${v}`, `${n1}(${v} - ${n2})`, `${n1} - ${n2}${v}`];
+                }
+
+                return {
+                    q: qText,
+                    a: ans,
+                    wrongs: wrongs,
+                    hint: "先處理「倍數」，再處理「多或少」。"
+                };
+            }
+        },
+        // Level 4: 分數進階
+        {
+            level: "Level 4: 分數進階",
+            gen: () => {
+                const v = "x";
+                const n1 = rand(3, 5);
+                const n2 = rand(1, 9);
+                
+                const qText = `比 <span class="highlight">${v}</span> 的 <span class="highlight">1/${n1}</span> 倍少 <span class="highlight">${n2}</span>`;
+                const ansBtn = `1/${n1}${v} - ${n2}`; 
+
+                const wrongs = [
+                    `1/${n1}(${v} - ${n2})`,
+                    `${n1}${v} - ${n2}`,
+                    `${n2} - 1/${n1}${v}`,
+                    `1/${n1}${v} + ${n2}`
+                ];
+
+                return {
+                    q: qText,
+                    a: ansBtn,
+                    wrongs: wrongs,
+                    hint: "看到「的幾倍」先乘起來，再看「少」多少就減多少。"
+                };
+            }
+        }
+    ];
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function restartGame() {
+        currentScore = 0;
+        questionCount = 0;
+        document.getElementById('score').innerText = 0;
+        document.getElementById('game-over-screen').style.display = 'none';
+        document.getElementById('game-content').style.opacity = '1';
+        document.getElementById('feedback-text').innerText = '';
+        document.getElementById('next-btn').style.display = 'none';
+        nextQuestion();
+    }
+
+    function showGameOver() {
+        document.getElementById('game-over-screen').style.display = 'flex';
+        document.getElementById('final-score-display').innerText = currentScore;
+        
+        let comment = "";
+        if (currentScore === 100) comment = "太神啦！滿分代數王！👑";
+        else if (currentScore >= 80) comment = "非常優秀！繼續保持！🌟";
+        else if (currentScore >= 60) comment = "不錯喔，再練練會更好！💪";
+        else comment = "別氣餒，多練習幾次就懂了！🌱";
+        
+        document.getElementById('final-comment').innerText = comment;
+    }
+
+    function nextQuestion() {
+        // 檢查是否結束
+        if (questionCount >= TOTAL_QUESTIONS) {
+            showGameOver();
+            return;
+        }
+
+        questionCount++;
+        document.getElementById('q-progress').innerText = `${questionCount} / ${TOTAL_QUESTIONS}`;
+
+        document.getElementById('feedback-text').innerText = "";
+        document.getElementById('next-btn').style.display = "none";
+        document.getElementById('options-container').innerHTML = "";
+        isAnswering = true;
+
+        const genObj = generators[rand(0, generators.length - 1)];
+        document.getElementById('level-indicator').innerText = genObj.level;
+        
+        const qData = genObj.gen();
+        currentQuestion = qData;
+        
+        // 渲染題目文字中的分數
+        document.getElementById('question-text').innerHTML = renderMath(qData.q);
+
+        let options = [];
+        options.push({ text: qData.a, isCorrect: true });
+        
+        let wrongs = shuffle(qData.wrongs).slice(0, 3);
+        wrongs.forEach(w => options.push({ text: w, isCorrect: false }));
+        
+        options = shuffle(options);
+
+        const container = document.getElementById('options-container');
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            // 渲染按鈕文字中的分數
+            btn.innerHTML = renderMath(opt.text);
+            btn.onclick = () => checkAnswer(btn, opt.isCorrect);
+            container.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(btn, isCorrect) {
+        if (!isAnswering) return;
+        isAnswering = false;
+
+        const allBtns = document.querySelectorAll('.option-btn');
+        const feedback = document.getElementById('feedback-text');
+
+        if (isCorrect) {
+            btn.classList.add('correct');
+            feedback.innerHTML = "🎉 答對了！完美列式！";
+            currentScore += 10;
+            document.getElementById('score').innerText = currentScore;
+        } else {
+            btn.classList.add('wrong');
+            feedback.innerHTML = `💡 提示：${currentQuestion.hint}`;
+            feedback.style.color = "#ff8a80";
+            
+            allBtns.forEach(b => {
+                if (b.innerHTML === renderMath(currentQuestion.a)) {
+                    b.classList.add('correct');
+                }
+            });
+        }
+        
+        // 如果是最後一題，按鈕文字改成「看成績」
+        const nextBtn = document.getElementById('next-btn');
+        if (questionCount >= TOTAL_QUESTIONS) {
+            nextBtn.innerText = "看成績 🏆";
+        } else {
+            nextBtn.innerText = "下一題 ➜";
+        }
+        nextBtn.style.display = "inline-block";
+    }
+
+    // 初始化遊戲
+    nextQuestion();
+
+</script>
+
+</body>
+</html>
