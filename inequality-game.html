@@ -4,6 +4,35 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>一元一次不等式 數學遊戲</title>
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js';
+  import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp }
+    from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
+
+  const app = initializeApp({
+    apiKey: "AIzaSyCHYtmrbMTxQhsSm9qjspiz-OVs2Jwv9jA",
+    authDomain: "my-teaching-tools-ae1ac.firebaseapp.com",
+    projectId: "my-teaching-tools-ae1ac",
+    storageBucket: "my-teaching-tools-ae1ac.firebasestorage.app",
+    messagingSenderId: "817693080761",
+    appId: "1:817693080761:web:27f1226f1f024713fc6f68"
+  });
+  const db = getFirestore(app);
+  const COL = 'inequality_scores';
+
+  window._fbSaveScore = async (name, score) => {
+    await addDoc(collection(db, COL), {
+      name, score, timestamp: serverTimestamp(),
+      date: new Date().toLocaleDateString('zh-TW')
+    });
+  };
+
+  window._fbLoadScores = async () => {
+    const q = query(collection(db, COL), orderBy('score','desc'), limit(10));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => d.data());
+  };
+</script>
 <style>
   :root {
     --primary: #6C63FF;
@@ -585,40 +614,39 @@ function sfxCorrect() { initAudio(); playBeep(880,0.1); setTimeout(()=>playBeep(
 function sfxWrong()   { initAudio(); playBeep(200,0.25,'sawtooth',0.2); }
 function sfxWin()     { initAudio(); [523,659,784,1046].forEach((f,i)=>setTimeout(()=>playBeep(f,0.2),i*100)); }
 
-/* ── LEADERBOARD (localStorage) ── */
-const LB_KEY = 'inequality_game_scores';
+/* ── LEADERBOARD (Firestore) ── */
 const RANK_ICONS = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
 
-function getScores() {
-  try { return JSON.parse(localStorage.getItem(LB_KEY)) || []; }
-  catch(e) { return []; }
+function escHtml(str) {
+  return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-function saveScore(name, score) {
-  const scores = getScores();
-  scores.push({ name, score, date: new Date().toLocaleDateString('zh-TW') });
-  scores.sort((a,b) => b.score - a.score);
-  localStorage.setItem(LB_KEY, JSON.stringify(scores.slice(0, 20)));
+async function saveScore(name, score) {
+  if (window._fbSaveScore) await window._fbSaveScore(name, score);
 }
 
-function renderLeaderboard(containerId, highlightName) {
+async function renderLeaderboard(containerId, highlightName) {
   const el = document.getElementById(containerId);
-  const scores = getScores().slice(0, 10);
+  el.innerHTML = '<div class="lb-empty">載入中…</div>';
+  let scores = [];
+  if (window._fbLoadScores) {
+    try { scores = await window._fbLoadScores(); } catch(e) { scores = []; }
+  }
   if (!scores.length) {
     el.innerHTML = '<div class="lb-empty">還沒有紀錄，快來挑戰！</div>';
     return;
   }
-  el.innerHTML = scores.map((s, i) => `
-    <div class="lb-row" style="${s.name===highlightName && i===scores.findIndex(x=>x.name===highlightName&&x.score===s.score) ? 'box-shadow:0 0 0 2.5px var(--primary)' : ''}">
+  let highlighted = false;
+  el.innerHTML = scores.map((s, i) => {
+    const isMe = !highlighted && s.name === highlightName;
+    if (isMe) highlighted = true;
+    return `<div class="lb-row" style="${isMe ? 'box-shadow:0 0 0 2.5px var(--primary)' : ''}">
       <span class="lb-rank">${RANK_ICONS[i] || (i+1)}</span>
       <span class="lb-name">${escHtml(s.name)}</span>
       <span class="lb-score">${s.score} 分</span>
-      <span class="lb-date">${s.date}</span>
-    </div>`).join('');
-}
-
-function escHtml(str) {
-  return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      <span class="lb-date">${s.date||''}</span>
+    </div>`;
+  }).join('');
 }
 
 /* ── PLAYER / SCORE STATE ── */
@@ -856,14 +884,14 @@ function nextLevel(n) {
 
 function retryLevel(n) { [retryLevel1,retryLevel2,retryLevel3][n-1](); }
 
-function showFinal() {
-  saveScore(playerName, totalScore);
+async function showFinal() {
   document.getElementById('final-player-label').textContent = `👤 ${playerName} 的成績`;
   document.getElementById('final-score').textContent = totalScore + ' 分';
   document.getElementById('game-area').classList.remove('active');
   document.getElementById('final-screen').style.display='block';
-  renderLeaderboard('lb-final', playerName);
   launchConfetti(); sfxWin();
+  await saveScore(playerName, totalScore);
+  renderLeaderboard('lb-final', playerName);
 }
 
 function restartAll() {
@@ -880,7 +908,7 @@ function restartAll() {
 }
 
 /* ── INIT ── */
-renderLeaderboard('lb-start');
+renderLeaderboard('lb-start', '');
 loadQuestion(0);
 buildLevel3();
 document.getElementById('player-name-input').focus();

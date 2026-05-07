@@ -3,210 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>代數應用高手</title>
+    <title>用符號列式大挑戰</title>
+    <script type="module">
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js';
+      import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp }
+        from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
+      const app = initializeApp({
+        apiKey: "AIzaSyCHYtmrbMTxQhsSm9qjspiz-OVs2Jwv9jA",
+        authDomain: "my-teaching-tools-ae1ac.firebaseapp.com",
+        projectId: "my-teaching-tools-ae1ac",
+        storageBucket: "my-teaching-tools-ae1ac.firebasestorage.app",
+        messagingSenderId: "817693080761",
+        appId: "1:817693080761:web:27f1226f1f024713fc6f68"
+      });
+      const db = getFirestore(app);
+      const COL = 'algebra1_scores';
+      window._fbSave = async (name, score) => {
+        await addDoc(collection(db, COL), { name, score, timestamp: serverTimestamp(), date: new Date().toLocaleDateString('zh-TW') });
+      };
+      window._fbLoad = async () => {
+        const snap = await getDocs(query(collection(db, COL), orderBy('score','desc'), limit(10)));
+        return snap.docs.map(d => d.data());
+      };
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Kalam:wght@700&family=Zen+Maru+Gothic:wght@700&display=swap');
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             background-color: #222;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
-            margin: 0;
             font-family: 'Kalam', '微軟正黑體', sans-serif;
             color: #eee;
+            padding: 20px 16px;
         }
 
-        #game-container {
-            width: 100%;
-            max-width: 800px;
-            padding: 20px;
+        /* ── Start Screen ── */
+        #start-screen {
+            width: 100%; max-width: 480px;
+            display: flex; flex-direction: column; align-items: center; gap: 16px;
+            padding-top: 20px;
         }
+        .start-title { font-family: 'Zen Maru Gothic', sans-serif; font-size: 1.8rem; color: #ffeb3b; text-align: center; letter-spacing: 2px; }
+        .start-subtitle { color: #aaa; font-size: 0.9rem; text-align: center; }
+        .start-card {
+            background: #2a2a2a; border: 2px solid #444; border-radius: 16px;
+            padding: 24px 20px; width: 100%;
+        }
+        .start-card h3 { font-family: 'Zen Maru Gothic', sans-serif; color: #a5d6a7; margin-bottom: 14px; text-align: center; font-size: 1rem; }
+        .name-row { display: flex; gap: 10px; }
+        .name-row input {
+            flex: 1; padding: 12px 14px; border: 2px solid #555; border-radius: 12px;
+            background: #333; color: #fff; font-size: 1rem; font-family: inherit; outline: none;
+            transition: border-color 0.2s;
+        }
+        .name-row input:focus { border-color: #ffeb3b; }
+        .btn-start {
+            padding: 12px 20px; background: #ffeb3b; color: #3e2723;
+            border: none; border-radius: 12px; font-size: 1rem; font-weight: 700;
+            font-family: 'Zen Maru Gothic', sans-serif; cursor: pointer; white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .btn-start:hover { background: #ffe000; transform: translateY(-2px); }
 
-        /* 黑板風格 */
+        /* Leaderboard */
+        .lb-row {
+            display: flex; align-items: center; padding: 9px 10px;
+            border-radius: 10px; margin-bottom: 6px; gap: 8px;
+            background: rgba(255,255,255,0.05);
+        }
+        .lb-row:first-child { background: rgba(255,235,59,0.12); }
+        .lb-row:nth-child(2) { background: rgba(200,200,200,0.08); }
+        .lb-row:nth-child(3) { background: rgba(205,127,50,0.10); }
+        .lb-rank { font-size: 1.1rem; width: 26px; text-align: center; flex-shrink: 0; }
+        .lb-name { flex: 1; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #eee; }
+        .lb-score { font-weight: 900; color: #ffeb3b; font-size: 0.95rem; }
+        .lb-date { font-size: 0.7rem; color: #666; }
+        .lb-empty { text-align: center; color: #555; font-size: 0.9rem; padding: 12px 0; }
+
+        /* ── Game Area ── */
+        #game-area { display: none; width: 100%; max-width: 800px; }
+
+        .hub-link {
+            display: block; width: 100%; text-align: center; padding: 10px;
+            color: #777; border: 1px solid #444; border-radius: 10px;
+            text-decoration: none; font-size: 0.85rem; margin-top: 12px;
+            transition: all 0.2s; font-family: 'Zen Maru Gothic', sans-serif;
+        }
+        .hub-link:hover { border-color: #a5d6a7; color: #a5d6a7; }
+
         .blackboard {
             background-color: #263e2e;
-            background-image: 
-                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, rgba(0, 0, 0, 0.3) 100%),
+            background-image:
+                radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.3) 100%),
                 url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.06'/%3E%3C/svg%3E");
-            border: 12px solid #5d4037;
-            border-radius: 8px;
+            border: 12px solid #5d4037; border-radius: 8px;
             box-shadow: 0 15px 30px rgba(0,0,0,0.5);
-            padding: 30px;
-            position: relative;
-            min-height: 600px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            padding: 30px; position: relative; min-height: 600px;
+            display: flex; flex-direction: column; align-items: center;
         }
-
         .header-info {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            padding: 0 20px;
-            box-sizing: border-box;
-            position: absolute;
-            top: 20px;
-            font-family: 'Zen Maru Gothic', sans-serif;
-            font-size: 1.5em;
-            color: #ffeb3b;
-            letter-spacing: 1px;
+            display: flex; justify-content: space-between; width: 100%;
+            padding: 0 20px; position: absolute; top: 20px;
+            font-family: 'Zen Maru Gothic', sans-serif; font-size: 1.5em;
+            color: #ffeb3b; letter-spacing: 1px;
         }
-
-        .question-area {
-            margin-top: 60px;
-            text-align: center;
-            width: 90%;
-        }
-
+        .header-info .player-tag { font-size: 0.65em; color: #a5d6a7; }
+        .question-area { margin-top: 60px; text-align: center; width: 90%; }
         .level-tag {
-            font-size: 1rem;
-            color: #a5d6a7;
-            border: 1px dashed #a5d6a7;
-            padding: 2px 10px;
-            border-radius: 15px;
-            display: inline-block;
-            margin-bottom: 10px;
+            font-size: 1rem; color: #a5d6a7; border: 1px dashed #a5d6a7;
+            padding: 2px 10px; border-radius: 15px; display: inline-block; margin-bottom: 10px;
         }
-
-        /* 題目文字顯示區 */
         .question-text {
-            font-size: 1.8em;
-            margin: 15px 0;
-            font-family: 'Zen Maru Gothic', '微軟正黑體', sans-serif;
-            font-weight: bold;
-            text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
-            min-height: 100px;
-            letter-spacing: 1px;
-            line-height: 1.6;
-            color: #fff;
-            text-align: left;
-            background: rgba(255,255,255,0.05);
-            padding: 20px;
-            border-radius: 10px;
+            font-size: 1.8em; margin: 15px 0;
+            font-family: 'Zen Maru Gothic', '微軟正黑體', sans-serif; font-weight: bold;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.2); min-height: 100px;
+            letter-spacing: 1px; line-height: 1.6; color: #fff; text-align: left;
+            background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px;
         }
-        
-        .highlight {
-            color: #ffcc80;
-            margin: 0 3px;
-            border-bottom: 2px dashed rgba(255, 204, 128, 0.5);
-        }
-
-        .options-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            width: 100%;
-            max-width: 600px;
-            margin-top: 20px;
-        }
-
+        .highlight { color: #ffcc80; margin: 0 3px; border-bottom: 2px dashed rgba(255,204,128,0.5); }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 600px; margin-top: 20px; }
         .option-btn {
-            background: rgba(255,255,255,0.05);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 10px;
-            padding: 15px;
-            font-size: 1.5em;
-            color: white;
-            cursor: pointer;
-            font-family: 'Zen Maru Gothic', sans-serif;
-            font-weight: bold;
+            background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 10px; padding: 15px; font-size: 1.5em; color: white;
+            cursor: pointer; font-family: 'Zen Maru Gothic', sans-serif; font-weight: bold;
             transition: transform 0.1s, background 0.2s;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 70px;
+            display: flex; justify-content: center; align-items: center; min-height: 70px;
         }
-
-        .option-btn:hover {
-            background: rgba(255,255,255,0.1);
-            transform: scale(1.02);
-            border-color: #ffeb3b;
-        }
-
-        .option-btn:active {
-            transform: scale(0.98);
-        }
-
-        .option-btn.correct {
-            background: rgba(76, 175, 80, 0.3);
-            border-color: #4caf50;
-            color: #a5d6a7;
-        }
-
-        .option-btn.wrong {
-            background: rgba(244, 67, 54, 0.3);
-            border-color: #f44336;
-            color: #ef9a9a;
-            opacity: 0.7;
-        }
-
-        .feedback-area {
-            margin-top: 20px;
-            height: 60px;
-            text-align: center;
-            font-size: 1.3em;
-            color: #ffeb3b;
-            font-family: 'Zen Maru Gothic', sans-serif;
-            width: 100%;
-        }
-
+        .option-btn:hover { background: rgba(255,255,255,0.1); transform: scale(1.02); border-color: #ffeb3b; }
+        .option-btn.correct { background: rgba(76,175,80,0.3); border-color: #4caf50; color: #a5d6a7; }
+        .option-btn.wrong { background: rgba(244,67,54,0.3); border-color: #f44336; color: #ef9a9a; opacity: 0.7; }
+        .feedback-area { margin-top: 20px; height: 60px; text-align: center; font-size: 1.3em; color: #ffeb3b; font-family: 'Zen Maru Gothic', sans-serif; width: 100%; }
         .next-btn, .restart-btn {
-            background-color: #ffeb3b;
-            color: #3e2723;
-            border: none;
-            padding: 10px 30px;
-            font-size: 1.2rem;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-            display: none;
-            box-shadow: 0 4px 0 #fbc02d;
-            margin-top: 5px;
-            font-family: 'Zen Maru Gothic', sans-serif;
-            text-decoration: none; /* 移除連結下底線 */
+            background-color: #ffeb3b; color: #3e2723; border: none;
+            padding: 10px 30px; font-size: 1.2rem; border-radius: 50px; cursor: pointer;
+            font-weight: bold; display: none; box-shadow: 0 4px 0 #fbc02d; margin-top: 5px;
+            font-family: 'Zen Maru Gothic', sans-serif; text-decoration: none;
         }
-        
-        .next-btn:active, .restart-btn:active {
-            transform: translateY(4px);
-            box-shadow: none;
-        }
+        .next-btn:active, .restart-btn:active { transform: translateY(4px); box-shadow: none; }
 
-        /* 遊戲結束畫面 */
+        /* Game Over */
         .game-over-screen {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 10;
-            background: rgba(38, 62, 46, 0.98);
-            border-radius: 6px;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 10;
+            background: rgba(38,62,46,0.98); border-radius: 6px; padding: 20px; overflow-y: auto;
         }
+        .final-score { font-size: 4em; color: #ffeb3b; margin: 10px 0; text-shadow: 0 0 10px rgba(255,235,59,0.5); }
 
-        .final-score {
-            font-size: 4em;
-            color: #ffeb3b;
-            margin: 20px 0;
-            text-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
-        }
+        /* Final leaderboard */
+        .final-lb { width: 100%; max-width: 360px; margin-top: 16px; }
+        .final-lb h3 { font-family: 'Zen Maru Gothic', sans-serif; color: #a5d6a7; text-align: center; margin-bottom: 10px; font-size: 1rem; }
 
-        .chalk-tray {
-            position: absolute;
-            bottom: -12px;
-            width: 50%;
-            height: 12px;
-            background: #4e342e;
-            border-radius: 0 0 4px 4px;
-        }
-        
+        .chalk-tray { position: absolute; bottom: -12px; width: 50%; height: 12px; background: #4e342e; border-radius: 0 0 4px 4px; }
+
         @media (max-width: 600px) {
             .question-text { font-size: 1.4em; }
             .option-btn { font-size: 1.2em; }
@@ -218,189 +171,189 @@
 </head>
 <body>
 
-<div id="game-container">
+<!-- START SCREEN -->
+<div id="start-screen">
+    <div class="start-title">🧮 用符號列式大挑戰</div>
+    <div class="start-subtitle">把文字敘述轉換成代數符號，共 10 題</div>
+
+    <div class="start-card">
+        <h3>✏️ 輸入你的名字，開始挑戰！</h3>
+        <div class="name-row">
+            <input type="text" id="player-name-input" placeholder="你的名字…" maxlength="12"
+                   onkeydown="if(event.key==='Enter') startGame()">
+            <button class="btn-start" onclick="startGame()">開始 🚀</button>
+        </div>
+    </div>
+
+    <div class="start-card">
+        <h3>🏆 排行榜</h3>
+        <div id="lb-start"><div class="lb-empty">載入中…</div></div>
+    </div>
+</div>
+
+<!-- GAME AREA -->
+<div id="game-area">
     <div class="blackboard">
         <div class="header-info">
-            <div>題數: <span id="q-progress">1 / 10</span></div>
+            <div>
+                <div>題數: <span id="q-progress">1 / 10</span></div>
+                <div class="player-tag" id="player-tag"></div>
+            </div>
             <div>得分: <span id="score">0</span></div>
         </div>
-        
-        <div id="game-content" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+
+        <div id="game-content" style="width:100%;display:flex;flex-direction:column;align-items:center;">
             <div class="question-area">
                 <div id="level-indicator" class="level-tag">Level 1</div>
-                <div id="question-text" class="question-text">
-                    題目載入中...
-                </div>
+                <div id="question-text" class="question-text">題目載入中...</div>
             </div>
-
-            <div id="options-container" class="options-grid">
-                <!-- 選項按鈕 -->
-            </div>
+            <div id="options-container" class="options-grid"></div>
         </div>
 
-        <!-- 遊戲結束畫面 -->
+        <!-- Game Over -->
         <div id="game-over-screen" class="game-over-screen">
-            <h2 style="color: #a5d6a7; font-size: 2em; margin-bottom: 0;">任務完成！</h2>
-            <div class="final-score" id="final-score-display">100</div>
-            <div style="font-size: 1.5em; color: #fff; margin-bottom: 20px;">太棒了！</div>
-            <button class="restart-btn" style="display: inline-block;" onclick="restartGame()">再玩一次 ↻</button>
-            <br>
-            <!-- 修改處：使用 a 標籤替代 button onclick 跳轉，更加穩定 -->
-            <a href="index.html" class="restart-btn" style="display: inline-flex; justify-content: center; align-items: center; margin-top: 15px; background-color: #a5d6a7; color: #3e2723;">回遊戲大廳 🏠</a>
+            <h2 style="color:#a5d6a7;font-size:2em;margin-bottom:0;font-family:'Zen Maru Gothic',sans-serif;">任務完成！</h2>
+            <div class="final-score" id="final-score-display">0</div>
+            <div style="font-size:1.3em;color:#fff;margin-bottom:16px;font-family:'Zen Maru Gothic',sans-serif;" id="final-player-name"></div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+                <button class="restart-btn" style="display:inline-block;" onclick="restartGame()">再玩一次 ↻</button>
+                <a href="https://mathhowhowwan.github.io/mathgame/" class="restart-btn"
+                   style="display:inline-flex;justify-content:center;align-items:center;background:#a5d6a7;color:#3e2723;">
+                   🏠 回遊戲主頁
+                </a>
+            </div>
+            <div class="final-lb">
+                <h3>🏆 排行榜</h3>
+                <div id="lb-final"><div class="lb-empty">載入中…</div></div>
+            </div>
         </div>
 
         <div class="feedback-area">
             <div id="feedback-text"></div>
             <button id="next-btn" class="next-btn" onclick="nextQuestion()">下一題 ➜</button>
         </div>
-
         <div class="chalk-tray"></div>
     </div>
+
+    <a href="https://mathhowhowwan.github.io/mathgame/" class="hub-link">🏠 回遊戲主頁</a>
 </div>
 
 <script>
+    const RANK_ICONS = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
+    let playerName = '';
     let currentScore = 0;
     let currentQuestion = null;
     let isAnswering = true;
     const TOTAL_QUESTIONS = 10;
     let questionCount = 0;
 
-    function rand(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
+    function escHtml(s) { return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+    async function renderLb(id, highlight) {
+        const el = document.getElementById(id);
+        let scores = [];
+        if (window._fbLoad) { try { scores = await window._fbLoad(); } catch(e){} }
+        if (!scores.length) { el.innerHTML = '<div class="lb-empty">還沒有紀錄，快來挑戰！</div>'; return; }
+        let hit = false;
+        el.innerHTML = scores.map((s,i) => {
+            const me = !hit && s.name === highlight;
+            if (me) hit = true;
+            return `<div class="lb-row" style="${me?'outline:2px solid #ffeb3b':''}">
+              <span class="lb-rank">${RANK_ICONS[i]||i+1}</span>
+              <span class="lb-name">${escHtml(s.name)}</span>
+              <span class="lb-score">${s.score} 分</span>
+              <span class="lb-date">${s.date||''}</span>
+            </div>`;
+        }).join('');
     }
 
-    // 產生題庫
+    function startGame() {
+        playerName = document.getElementById('player-name-input').value.trim() || '匿名勇者';
+        document.getElementById('player-tag').textContent = '👤 ' + playerName;
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('game-area').style.display = 'block';
+        nextQuestion();
+    }
+
+    function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+    function shuffle(array) {
+        for (let i = array.length-1; i>0; i--) {
+            const j = Math.floor(Math.random()*(i+1));
+            [array[i],array[j]] = [array[j],array[i]];
+        }
+        return array;
+    }
+
     const generators = [
-        // Level 1: 買東西算總價 (類似 3巧 + 2運)
         {
             level: "Level 1: 購物總價",
             gen: () => {
                 const items = [
-                    { name: "巧克力", price: "x" },
-                    { name: "原子筆", price: "y" },
-                    { name: "筆記本", price: "a" },
-                    { name: "奶茶", price: "x" }
+                    {name:"巧克力",price:"x"},{name:"原子筆",price:"y"},
+                    {name:"筆記本",price:"a"},{name:"奶茶",price:"x"}
                 ];
-                const fixedItems = [
-                    { name: "運動飲料", price: 25 },
-                    { name: "橡皮擦", price: 10 },
-                    { name: "科學麵", price: 8 },
-                    { name: "洋芋片", price: 30 }
+                const fixed = [
+                    {name:"運動飲料",price:25},{name:"橡皮擦",price:10},
+                    {name:"科學麵",price:8},{name:"洋芋片",price:30}
                 ];
-
-                const item1 = items[rand(0, items.length - 1)];
-                const item2 = fixedItems[rand(0, fixedItems.length - 1)];
-                
-                const num1 = rand(2, 5); // 變數物品的數量
-                const num2 = rand(2, 4); // 固定價格物品的數量
-                const totalFixed = num2 * item2.price;
-
-                const qText = `弘宇去超商買了 <span class="highlight">${num1}</span> 個${item1.name} (每個 <span class="highlight">${item1.price}</span> 元)，<br>還有 <span class="highlight">${num2}</span> 個${item2.name} (每個 <span class="highlight">${item2.price}</span> 元)。<br>請問他總共要付多少錢？`;
-                
-                const ans = `${num1}${item1.price} + ${totalFixed}`;
-                
-                const wrongs = [
-                    `${num1}${item1.price} + ${num2}`, // 忘記乘單價
-                    `${num1} + ${num2}${item1.price}`, // 數字亂湊
-                    `${num1 + num2}${item1.price}`,    // 數量全加在一起
-                    `${item1.price} + ${totalFixed}`   // 只有一個x
-                ];
-
+                const i1 = items[rand(0,items.length-1)], i2 = fixed[rand(0,fixed.length-1)];
+                const n1 = rand(2,5), n2 = rand(2,4), tf = n2*i2.price;
                 return {
-                    q: qText,
-                    a: ans,
-                    wrongs: wrongs,
-                    hint: `總花費 = (${item1.name}數量 × 單價) + (${item2.name}數量 × 單價)`
+                    q:`弘宇去超商買了 <span class="highlight">${n1}</span> 個${i1.name} (每個 <span class="highlight">${i1.price}</span> 元)，<br>還有 <span class="highlight">${n2}</span> 個${i2.name} (每個 <span class="highlight">${i2.price}</span> 元)。<br>請問他總共要付多少錢？`,
+                    a:`${n1}${i1.price} + ${tf}`,
+                    wrongs:[`${n1}${i1.price} + ${n2}`,`${n1} + ${n2}${i1.price}`,`${n1+n2}${i1.price}`,`${i1.price} + ${tf}`],
+                    hint:`總花費 = (${i1.name}數量 × 單價) + (${i2.name}數量 × 單價)`
                 };
             }
         },
-        // Level 2: 找錢問題 (付錢 - 花費)
         {
             level: "Level 2: 找錢問題",
             gen: () => {
-                const totalMoney = [100, 200, 500, 1000][rand(0, 3)];
-                const itemNames = ["漢堡", "雞排", "便當", "蛋糕"];
-                const item = itemNames[rand(0, itemNames.length - 1)];
-                const num = rand(2, 6);
-                const variable = ["x", "y"][rand(0, 1)];
-
-                const qText = `小明帶了 <span class="highlight">${totalMoney}</span> 元，買了 <span class="highlight">${num}</span> 個${item}，<br>如果每個${item}賣 <span class="highlight">${variable}</span> 元，<br>請問他還剩下多少錢？`;
-                
-                const ans = `${totalMoney} - ${num}${variable}`;
-                
-                const wrongs = [
-                    `${num}${variable} - ${totalMoney}`, // 減反了
-                    `${totalMoney} - ${variable}`,       // 忘記乘數量
-                    `${totalMoney} + ${num}${variable}`, // 變成加法
-                    `${num}${variable} + ${totalMoney}`
-                ];
-
+                const total = [100,200,500,1000][rand(0,3)];
+                const items = ["漢堡","雞排","便當","蛋糕"];
+                const item = items[rand(0,items.length-1)];
+                const n = rand(2,6), v = ["x","y"][rand(0,1)];
                 return {
-                    q: qText,
-                    a: ans,
-                    wrongs: wrongs,
-                    hint: "剩下的錢 = 帶去的錢 - 買東西花的總錢數"
+                    q:`小明帶了 <span class="highlight">${total}</span> 元，買了 <span class="highlight">${n}</span> 個${item}，<br>如果每個${item}賣 <span class="highlight">${v}</span> 元，<br>請問他還剩下多少錢？`,
+                    a:`${total} - ${n}${v}`,
+                    wrongs:[`${n}${v} - ${total}`,`${total} - ${v}`,`${total} + ${n}${v}`,`${n}${v} + ${total}`],
+                    hint:"剩下的錢 = 帶去的錢 - 買東西花的總錢數"
                 };
             }
         },
-        // Level 3: 分配問題 (散裝 + 盒裝)
         {
             level: "Level 3: 數量計算",
             gen: () => {
-                const container = ["箱", "袋", "盒"][rand(0, 2)];
-                const item = ["橘子", "糖果", "餅乾"][rand(0, 2)];
-                const boxCount = rand(3, 8);
-                const looseCount = rand(1, 9);
-                const v = "x";
-
-                const qText = `桌上有 <span class="highlight">${boxCount}</span> ${container}${item}，每${container}有 <span class="highlight">${v}</span> 個，<br>另外還有 <span class="highlight">${looseCount}</span> 個散的。<br>請問總共有幾個${item}？`;
-                
-                const ans = `${boxCount}${v} + ${looseCount}`;
-                
-                const wrongs = [
-                    `${boxCount}${v} - ${looseCount}`,
-                    `${boxCount} + ${v} + ${looseCount}`,
-                    `${looseCount}${v} + ${boxCount}`,
-                    `${boxCount}(${v} + ${looseCount})`
-                ];
-
+                const c = ["箱","袋","盒"][rand(0,2)], item = ["橘子","糖果","餅乾"][rand(0,2)];
+                const b = rand(3,8), l = rand(1,9);
                 return {
-                    q: qText,
-                    a: ans,
-                    wrongs: wrongs,
-                    hint: "總數量 = (幾箱 × 每箱個數) + 散的個數"
+                    q:`桌上有 <span class="highlight">${b}</span> ${c}${item}，每${c}有 <span class="highlight">x</span> 個，<br>另外還有 <span class="highlight">${l}</span> 個散的。<br>請問總共有幾個${item}？`,
+                    a:`${b}x + ${l}`,
+                    wrongs:[`${b}x - ${l}`,`${b} + x + ${l}`,`${l}x + ${b}`,`${b}(x + ${l})`],
+                    hint:"總數量 = (幾箱 × 每箱個數) + 散的個數"
                 };
             }
         }
     ];
 
-    function shuffle(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-        return array;
-    }
-
     function restartGame() {
-        currentScore = 0;
-        questionCount = 0;
+        currentScore = 0; questionCount = 0;
         document.getElementById('score').innerText = 0;
         document.getElementById('game-over-screen').style.display = 'none';
         nextQuestion();
     }
 
-    function showGameOver() {
-        document.getElementById('game-over-screen').style.display = 'flex';
+    async function showGameOver() {
         document.getElementById('final-score-display').innerText = currentScore;
+        document.getElementById('final-player-name').textContent = '👤 ' + playerName;
+        document.getElementById('game-over-screen').style.display = 'flex';
+        if (window._fbSave) { try { await window._fbSave(playerName, currentScore); } catch(e){} }
+        renderLb('lb-final', playerName);
     }
 
     function nextQuestion() {
-        if (questionCount >= TOTAL_QUESTIONS) {
-            showGameOver();
-            return;
-        }
-
+        if (questionCount >= TOTAL_QUESTIONS) { showGameOver(); return; }
         questionCount++;
         document.getElementById('q-progress').innerText = `${questionCount} / ${TOTAL_QUESTIONS}`;
         document.getElementById('feedback-text').innerText = "";
@@ -408,68 +361,46 @@
         document.getElementById('options-container').innerHTML = "";
         isAnswering = true;
 
-        const genObj = generators[rand(0, generators.length - 1)];
+        const genObj = generators[rand(0,generators.length-1)];
         document.getElementById('level-indicator').innerText = genObj.level;
-        
         const qData = genObj.gen();
         currentQuestion = qData;
-        
         document.getElementById('question-text').innerHTML = qData.q;
 
-        let options = [];
-        options.push({ text: qData.a, isCorrect: true });
-        
-        let wrongs = shuffle(qData.wrongs).slice(0, 3);
-        wrongs.forEach(w => options.push({ text: w, isCorrect: false }));
-        
-        options = shuffle(options);
-
-        const container = document.getElementById('options-container');
-        options.forEach(opt => {
+        let opts = [{text:qData.a,isCorrect:true}, ...shuffle(qData.wrongs).slice(0,3).map(w=>({text:w,isCorrect:false}))];
+        opts = shuffle(opts);
+        const cont = document.getElementById('options-container');
+        opts.forEach(opt => {
             const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.innerHTML = opt.text;
+            btn.className = 'option-btn'; btn.innerHTML = opt.text;
             btn.onclick = () => checkAnswer(btn, opt.isCorrect);
-            container.appendChild(btn);
+            cont.appendChild(btn);
         });
     }
 
     function checkAnswer(btn, isCorrect) {
         if (!isAnswering) return;
         isAnswering = false;
-
         const allBtns = document.querySelectorAll('.option-btn');
-        const feedback = document.getElementById('feedback-text');
-
+        const fb = document.getElementById('feedback-text');
         if (isCorrect) {
             btn.classList.add('correct');
-            feedback.innerHTML = "🎉 正確！完全符合題意！";
+            fb.innerHTML = "🎉 正確！完全符合題意！"; fb.style.color = "#ffeb3b";
             currentScore += 10;
             document.getElementById('score').innerText = currentScore;
         } else {
             btn.classList.add('wrong');
-            feedback.innerHTML = `💡 提示：${currentQuestion.hint}`;
-            feedback.style.color = "#ff8a80";
-            
-            allBtns.forEach(b => {
-                if (b.innerHTML === currentQuestion.a) {
-                    b.classList.add('correct');
-                }
-            });
+            fb.innerHTML = `💡 提示：${currentQuestion.hint}`; fb.style.color = "#ff8a80";
+            allBtns.forEach(b => { if (b.innerHTML === currentQuestion.a) b.classList.add('correct'); });
         }
-        
-        const nextBtn = document.getElementById('next-btn');
-        if (questionCount >= TOTAL_QUESTIONS) {
-            nextBtn.innerText = "看成績 🏆";
-        } else {
-            nextBtn.innerText = "下一題 ➜";
-        }
-        nextBtn.style.display = "inline-block";
+        const nb = document.getElementById('next-btn');
+        nb.innerText = questionCount >= TOTAL_QUESTIONS ? "看成績 🏆" : "下一題 ➜";
+        nb.style.display = "inline-block";
     }
 
-    nextQuestion();
-
+    // Init: load leaderboard on start screen
+    renderLb('lb-start', '');
+    document.getElementById('player-name-input').focus();
 </script>
-
 </body>
 </html>
