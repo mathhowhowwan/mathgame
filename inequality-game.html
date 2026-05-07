@@ -18,17 +18,16 @@
     appId: "1:817693080761:web:27f1226f1f024713fc6f68"
   });
   const db = getFirestore(app);
-  const COL = 'inequality_scores';
 
-  window._fbSaveScore = async (name, score) => {
-    await addDoc(collection(db, COL), {
+  window._fbSaveScore = async (name, score, col = 'inequality_scores') => {
+    await addDoc(collection(db, col), {
       name, score, timestamp: serverTimestamp(),
       date: new Date().toLocaleDateString('zh-TW')
     });
   };
 
-  window._fbLoadScores = async () => {
-    const q = query(collection(db, COL), orderBy('score','desc'), limit(10));
+  window._fbLoadScores = async (col = 'inequality_scores', n = 10) => {
+    const q = query(collection(db, col), orderBy('score','desc'), limit(n));
     const snap = await getDocs(q);
     return snap.docs.map(d => d.data());
   };
@@ -51,227 +50,106 @@
 
   body {
     font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 16px;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; padding: 16px;
   }
 
-  /* ── Start Screen ── */
   #start-screen {
-    width: 100%;
-    max-width: 480px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0;
+    width: 100%; max-width: 480px;
+    display: flex; flex-direction: column; align-items: center; gap: 0;
   }
 
-  .start-hero {
-    text-align: center;
-    padding: 32px 20px 24px;
-  }
-
+  .start-hero { text-align: center; padding: 32px 20px 24px; }
   .start-hero .game-emoji { font-size: 4rem; display: block; margin-bottom: 12px; }
-
-  .start-hero h1 {
-    font-size: 1.8rem;
-    color: var(--primary);
-    letter-spacing: 2px;
-    margin-bottom: 8px;
-  }
-
-  .start-hero p {
-    font-size: 0.9rem;
-    color: #888;
-    line-height: 1.6;
-  }
+  .start-hero h1 { font-size: 1.8rem; color: var(--primary); letter-spacing: 2px; margin-bottom: 8px; }
+  .start-hero p { font-size: 0.9rem; color: #888; line-height: 1.6; }
 
   .start-card {
-    background: white;
-    border-radius: 20px;
-    padding: 28px 24px;
-    box-shadow: var(--shadow);
-    width: 100%;
-    margin-bottom: 16px;
+    background: white; border-radius: 20px; padding: 28px 24px;
+    box-shadow: var(--shadow); width: 100%; margin-bottom: 16px;
   }
+  .start-card h3 { font-size: 1rem; color: var(--primary); margin-bottom: 14px; text-align: center; }
 
-  .start-card h3 {
-    font-size: 1rem;
-    color: var(--primary);
-    margin-bottom: 14px;
-    text-align: center;
-  }
-
-  .name-input-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 6px;
-  }
-
+  .name-input-row { display: flex; gap: 10px; margin-bottom: 6px; }
   .name-input-row input {
-    flex: 1;
-    padding: 12px 16px;
-    border: 2.5px solid #ddd;
-    border-radius: 14px;
-    font-size: 1rem;
-    font-family: inherit;
-    outline: none;
-    transition: border-color 0.2s;
-    color: var(--text);
+    flex: 1; padding: 12px 16px; border: 2.5px solid #ddd; border-radius: 14px;
+    font-size: 1rem; font-family: inherit; outline: none; transition: border-color 0.2s; color: var(--text);
   }
-
   .name-input-row input:focus { border-color: var(--primary); }
-
   .btn-start {
-    padding: 12px 24px;
-    background: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 14px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
+    padding: 12px 24px; background: var(--primary); color: white; border: none;
+    border-radius: 14px; font-size: 1rem; font-weight: 700; cursor: pointer;
+    transition: all 0.2s; white-space: nowrap;
   }
-
   .btn-start:hover { background: #5348e0; transform: translateY(-2px); box-shadow: 0 6px 18px rgba(108,99,255,0.4); }
-
   .name-hint { font-size: 0.78rem; color: #bbb; text-align: center; }
 
   /* ── Leaderboard ── */
   .leaderboard { width: 100%; }
-
   .lb-row {
-    display: flex;
-    align-items: center;
-    padding: 10px 12px;
-    border-radius: 12px;
-    margin-bottom: 6px;
-    background: #f8f7ff;
-    gap: 10px;
-    transition: background 0.2s;
+    display: flex; align-items: center; padding: 10px 12px;
+    border-radius: 12px; margin-bottom: 6px; background: #f8f7ff; gap: 10px;
   }
-
-  .lb-row:first-child { background: linear-gradient(135deg, #fff8e1, #fff3cd); }
-  .lb-row:nth-child(2) { background: linear-gradient(135deg, #f0f4f8, #e8edf2); }
-  .lb-row:nth-child(3) { background: linear-gradient(135deg, #fef0ea, #fde8dc); }
-
+  .lb-row:first-child { background: linear-gradient(135deg,#fff8e1,#fff3cd); }
+  .lb-row:nth-child(2) { background: linear-gradient(135deg,#f0f4f8,#e8edf2); }
+  .lb-row:nth-child(3) { background: linear-gradient(135deg,#fef0ea,#fde8dc); }
   .lb-rank { font-size: 1.2rem; width: 28px; text-align: center; flex-shrink: 0; }
   .lb-name { flex: 1; font-weight: 700; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .lb-score { font-size: 1rem; font-weight: 900; color: var(--primary); }
   .lb-date { font-size: 0.72rem; color: #bbb; }
-  .lb-empty { text-align: center; color: #ccc; font-size: 0.9rem; padding: 16px 0; }
+  .lb-empty { text-align: center; color: #ccc; font-size: 0.9rem; padding: 12px 0; }
+
+  /* mini leaderboard inside celebrate */
+  .mini-lb-wrap { margin: 10px 0 16px; text-align: left; }
+  .mini-lb-title { font-size: 0.82rem; color: var(--primary); font-weight: 700; margin-bottom: 6px; text-align: center; }
+  .lb-row.mini { padding: 7px 10px; }
+  .lb-row.mini .lb-name { font-size: 0.82rem; }
+  .lb-row.mini .lb-score { font-size: 0.85rem; }
+  .lb-row.mini .lb-date { display: none; }
+  .level-pts-disp {
+    font-size: 1.05rem; font-weight: 700; color: var(--primary);
+    background: #f0edff; border-radius: 10px; padding: 6px 14px;
+    display: inline-block; margin-bottom: 12px;
+  }
 
   /* ── Game Area ── */
   #game-area { display: none; width: 100%; flex-direction: column; align-items: center; }
   #game-area.active { display: flex; }
 
-  h1 {
-    font-size: 1.6rem;
-    color: var(--primary);
-    text-align: center;
-    margin-bottom: 4px;
-    letter-spacing: 2px;
-  }
+  h1 { font-size: 1.6rem; color: var(--primary); text-align: center; margin-bottom: 4px; letter-spacing: 2px; }
+  .player-name-display { font-size: 0.85rem; color: var(--secondary); text-align: center; margin-bottom: 12px; font-weight: 700; }
 
-  .player-name-display {
-    font-size: 0.85rem;
-    color: var(--secondary);
-    text-align: center;
-    margin-bottom: 12px;
-    font-weight: 700;
-  }
-
-  /* ── Score bar ── */
-  .score-bar {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-    margin-bottom: 18px;
-    font-weight: 700;
-    font-size: 1rem;
-    color: var(--primary);
-  }
-
+  .score-bar { display: flex; gap: 20px; justify-content: center; margin-bottom: 18px; font-weight: 700; font-size: 1rem; color: var(--primary); }
   .score-item span { color: var(--secondary); font-size: 1.3rem; }
 
-  /* ── Tabs ── */
-  .tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
+  .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
   .tab-btn {
-    padding: 10px 18px;
-    border: 2px solid var(--primary);
-    background: white;
-    color: var(--primary);
-    border-radius: 30px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 700;
-    transition: all 0.2s;
-    user-select: none;
+    padding: 10px 18px; border: 2px solid var(--primary); background: white;
+    color: var(--primary); border-radius: 30px; cursor: pointer; font-size: 0.9rem;
+    font-weight: 700; transition: all 0.2s; user-select: none;
   }
-
   .tab-btn.active, .tab-btn:hover {
-    background: var(--primary);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(108,99,255,0.35);
+    background: var(--primary); color: white;
+    transform: translateY(-2px); box-shadow: 0 4px 12px rgba(108,99,255,0.35);
   }
-
   .tab-btn.done::after { content: ' ✅'; }
 
-  /* ── Section containers ── */
   .section { display: none; width: 100%; max-width: 640px; }
   .section.active { display: block; }
 
-  .card {
-    background: var(--card);
-    border-radius: 18px;
-    padding: 22px;
-    box-shadow: var(--shadow);
-    margin-bottom: 16px;
-  }
+  .card { background: var(--card); border-radius: 18px; padding: 22px; box-shadow: var(--shadow); margin-bottom: 16px; }
+  .card h2 { font-size: 1.1rem; color: var(--primary); margin-bottom: 14px; text-align: center; }
 
-  .card h2 {
-    font-size: 1.1rem;
-    color: var(--primary);
-    margin-bottom: 14px;
-    text-align: center;
-  }
-
-  /* ── Back to hub button ── */
   .btn-hub {
-    display: block;
-    width: 100%;
-    max-width: 640px;
-    padding: 12px;
-    text-align: center;
-    background: white;
-    color: #888;
-    border: 2px solid #e0e0e0;
-    border-radius: 14px;
-    font-size: 0.88rem;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    margin-bottom: 20px;
-    transition: all 0.2s;
+    display: block; width: 100%; max-width: 640px; padding: 12px; text-align: center;
+    background: white; color: #888; border: 2px solid #e0e0e0; border-radius: 14px;
+    font-size: 0.88rem; font-weight: 600; cursor: pointer; text-decoration: none;
+    margin-bottom: 20px; transition: all 0.2s;
   }
-
   .btn-hub:hover { border-color: var(--primary); color: var(--primary); background: #f0edff; }
 
-  /* ── Shared MCQ (Levels 1 & 2) ── */
+  /* ── MCQ shared (L1, L2, L4) ── */
   .q-progress { text-align: center; font-size: 0.85rem; color: #aaa; margin-bottom: 10px; }
   .q-text {
     background: #f5f3ff; border-left: 4px solid var(--primary);
@@ -288,23 +166,26 @@
   .q-opt.correct { border-color: var(--accent); background: #e8fff8; color: #1a9c6e; pointer-events: none; }
   .q-opt.wrong { border-color: var(--secondary); background: #fff0f3; color: var(--secondary); animation: shake 0.45s ease; pointer-events: none; }
 
+  /* ── Number-line MCQ options (L4) ── */
+  .nl-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .nl-opt {
+    border: 2.5px solid #ddd; border-radius: 14px; padding: 10px 6px;
+    cursor: pointer; background: white; transition: all 0.18s;
+    text-align: center; user-select: none;
+  }
+  .nl-opt:hover { border-color: var(--primary); background: #f0edff; transform: scale(1.03); }
+  .nl-opt.correct { border-color: var(--accent); background: #e8fff8; pointer-events: none; }
+  .nl-opt.wrong { border-color: var(--secondary); background: #fff0f3; animation: shake 0.45s ease; pointer-events: none; }
+
   /* ── Level 3: Judge ── */
   .judge-ineq {
-    font-size: 2rem; font-weight: 900; text-align: center;
-    color: var(--primary); padding: 16px 12px;
-    background: #f5f3ff; border-radius: 14px; margin-bottom: 10px;
+    font-size: 2rem; font-weight: 900; text-align: center; color: var(--primary);
+    padding: 16px 12px; background: #f5f3ff; border-radius: 14px; margin-bottom: 10px;
     font-family: 'Courier New', monospace; letter-spacing: 2px;
   }
-  .judge-val {
-    font-size: 1.2rem; text-align: center;
-    margin-bottom: 8px; color: var(--text); font-weight: 700;
-  }
-  .judge-question {
-    text-align: center; color: #888; margin-bottom: 16px; font-size: 0.92rem;
-  }
-  .judge-btns {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;
-  }
+  .judge-val { font-size: 1.2rem; text-align: center; margin-bottom: 8px; color: var(--text); font-weight: 700; }
+  .judge-question { text-align: center; color: #888; margin-bottom: 16px; font-size: 0.92rem; }
+  .judge-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
   .judge-btn {
     padding: 20px 10px; border: 2.5px solid #ddd; border-radius: 16px;
     font-size: 1.15rem; font-weight: 700; cursor: pointer; background: white;
@@ -312,51 +193,23 @@
   }
   .judge-btn.yes-btn:hover { border-color: var(--accent); background: #e8fff8; }
   .judge-btn.no-btn:hover  { border-color: var(--secondary); background: #fff0f3; }
-  .judge-btn.correct { border-color: var(--accent); background: #e8fff8; color: #1a9c6e; pointer-events: none; }
-  .judge-btn.wrong   { border-color: var(--secondary); background: #fff0f3; color: var(--secondary); animation: shake 0.45s ease; pointer-events: none; }
+  .judge-btn.correct  { border-color: var(--accent); background: #e8fff8; color: #1a9c6e; pointer-events: none; }
+  .judge-btn.wrong    { border-color: var(--secondary); background: #fff0f3; color: var(--secondary); animation: shake 0.45s ease; pointer-events: none; }
   .judge-btn.revealed { border-color: var(--accent); background: #e8fff8; color: #1a9c6e; pointer-events: none; }
   .judge-explain {
     text-align: center; font-size: 0.88rem; min-height: 22px;
-    font-weight: 600; padding: 8px 12px; border-radius: 10px;
-    color: #555; background: #f9f9f9;
+    font-weight: 600; padding: 8px 12px; border-radius: 10px; color: #555; background: #f9f9f9;
   }
 
-  /* ── Level 4: Number line ── */
-  .nl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
-  .nl-col { display: flex; flex-direction: column; gap: 10px; }
-
-  .nl-ineq {
-    padding: 14px 10px; border-radius: 14px; border: 2.5px solid #ddd;
-    text-align: center; font-size: 1.15rem; font-weight: 700;
-    cursor: pointer; background: white; transition: all 0.18s;
-    user-select: none; font-family: monospace;
-  }
-  .nl-ineq:hover:not(.matched):not(.disabled) { border-color: var(--primary); background: #f0edff; }
-  .nl-ineq.selected { border-color: var(--primary); background: var(--primary); color: white; }
-  .nl-ineq.matched { border-color: var(--accent); background: #e8fff8; pointer-events: none; }
-  .nl-ineq.wrong { border-color: var(--secondary); background: #fff0f3; animation: shake 0.45s ease; }
-  .nl-ineq.disabled { pointer-events: none; opacity: 0.35; }
-
-  .nl-svg-card {
-    padding: 10px 8px; border-radius: 14px; border: 2.5px solid #ddd;
-    cursor: pointer; background: white; transition: all 0.18s;
-    user-select: none; text-align: center;
-  }
-  .nl-svg-card:hover:not(.matched):not(.disabled) { border-color: var(--secondary); background: #fff5f7; }
-  .nl-svg-card.selected { border-color: var(--secondary); background: #fff0f3; box-shadow: 0 4px 14px rgba(255,101,132,0.3); }
-  .nl-svg-card.matched { border-color: var(--accent); background: #e8fff8; pointer-events: none; }
-  .nl-svg-card.wrong { border-color: var(--secondary); animation: shake 0.45s ease; }
-  .nl-svg-card.disabled { pointer-events: none; opacity: 0.35; }
-
-  /* ── Celebration ── */
+  /* ── Celebrate ── */
   .celebrate {
-    display: none; text-align: center; padding: 28px 20px;
-    background: linear-gradient(135deg, #6C63FF22, #FF658422);
+    display: none; text-align: center; padding: 24px 20px;
+    background: linear-gradient(135deg,#6C63FF22,#FF658422);
     border-radius: 18px; margin-bottom: 16px; animation: pop 0.4s ease;
   }
   .celebrate.show { display: block; }
-  .celebrate h3 { font-size: 1.6rem; margin-bottom: 8px; }
-  .celebrate p { color: #666; margin-bottom: 14px; }
+  .celebrate h3 { font-size: 1.5rem; margin-bottom: 6px; }
+  .celebrate > p { color: #666; margin-bottom: 10px; }
 
   .btn-next {
     padding: 12px 30px; background: var(--primary); color: white;
@@ -364,7 +217,6 @@
     cursor: pointer; transition: all 0.2s;
   }
   .btn-next:hover { background: #5348e0; transform: translateY(-2px); box-shadow: 0 6px 18px rgba(108,99,255,0.4); }
-
   .btn-retry {
     padding: 10px 24px; background: transparent; color: var(--primary);
     border: 2px solid var(--primary); border-radius: 30px; font-size: 0.95rem;
@@ -372,107 +224,58 @@
   }
   .btn-retry:hover { background: var(--primary); color: white; }
 
-  .confetti-container {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none; z-index: 999; overflow: hidden;
-  }
-  .confetti-piece {
-    position: absolute; width: 10px; height: 14px;
-    opacity: 0; border-radius: 2px; animation: fall 1.8s ease-in forwards;
-  }
+  .confetti-container { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; overflow:hidden; }
+  .confetti-piece { position:absolute; width:10px; height:14px; opacity:0; border-radius:2px; animation:fall 1.8s ease-in forwards; }
 
-  /* ── Animations ── */
-  @keyframes shake {
-    0%,100% { transform: translateX(0); }
-    20% { transform: translateX(-6px); }
-    40% { transform: translateX(6px); }
-    60% { transform: translateX(-4px); }
-    80% { transform: translateX(4px); }
-  }
-  @keyframes pop {
-    0% { transform: scale(0.8); opacity: 0; }
-    70% { transform: scale(1.04); }
-    100% { transform: scale(1); opacity: 1; }
-  }
-  @keyframes fall {
-    0% { transform: translateY(-30px) rotate(0deg); opacity: 1; }
-    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-  }
-  @keyframes bounce-in {
-    0% { transform: scale(0); opacity: 0; }
-    60% { transform: scale(1.15); }
-    100% { transform: scale(1); opacity: 1; }
-  }
-  @keyframes slide-up {
-    from { transform: translateY(20px); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
-  }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+  @keyframes pop { 0%{transform:scale(0.8);opacity:0} 70%{transform:scale(1.04)} 100%{transform:scale(1);opacity:1} }
+  @keyframes fall { 0%{transform:translateY(-30px) rotate(0deg);opacity:1} 100%{transform:translateY(100vh) rotate(720deg);opacity:0} }
+  @keyframes bounce-in { 0%{transform:scale(0);opacity:0} 60%{transform:scale(1.15)} 100%{transform:scale(1);opacity:1} }
+  @keyframes slide-up { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
 
-  /* ── Final Screen ── */
-  #final-screen {
-    display: none;
-    width: 100%; max-width: 640px;
-    animation: bounce-in 0.5s ease;
-  }
-
+  /* ── Final ── */
+  #final-screen { display:none; width:100%; max-width:640px; animation:bounce-in 0.5s ease; }
   .final-hero {
-    text-align: center;
-    padding: 30px 20px 24px;
-    background: linear-gradient(135deg, #6C63FF, #FF6584);
-    border-radius: 20px;
-    color: white;
-    margin-bottom: 16px;
+    text-align:center; padding:30px 20px 24px;
+    background:linear-gradient(135deg,#6C63FF,#FF6584);
+    border-radius:20px; color:white; margin-bottom:16px;
   }
-
-  .final-hero h2 { font-size: 2rem; margin-bottom: 8px; }
-  .final-hero .player-label { font-size: 1rem; opacity: 0.85; margin-bottom: 4px; }
-  .final-hero .final-pts { font-size: 3.5rem; font-weight: 900; margin: 8px 0; }
-  .final-hero .final-sub { font-size: 0.9rem; opacity: 0.8; }
-
-  .final-btns { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
-
+  .final-hero h2 { font-size:2rem; margin-bottom:8px; }
+  .final-hero .player-label { font-size:1rem; opacity:0.85; margin-bottom:4px; }
+  .final-hero .final-pts { font-size:3.5rem; font-weight:900; margin:8px 0; }
+  .final-hero .final-sub { font-size:0.9rem; opacity:0.8; }
+  .final-btns { display:flex; gap:10px; justify-content:center; margin-top:16px; flex-wrap:wrap; }
   .btn-restart {
-    padding: 12px 28px; background: white; color: var(--primary);
-    border: none; border-radius: 30px; font-size: 1rem; font-weight: 700;
-    cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.2); transition: all 0.2s;
+    padding:12px 28px; background:white; color:var(--primary);
+    border:none; border-radius:30px; font-size:1rem; font-weight:700;
+    cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,0.2); transition:all 0.2s;
   }
-  .btn-restart:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
-
+  .btn-restart:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,0.25); }
   .btn-hub-white {
-    padding: 12px 28px; background: rgba(255,255,255,0.2); color: white;
-    border: 2px solid rgba(255,255,255,0.5); border-radius: 30px;
-    font-size: 1rem; font-weight: 700; cursor: pointer;
-    text-decoration: none; transition: all 0.2s; display: inline-block;
+    padding:12px 28px; background:rgba(255,255,255,0.2); color:white;
+    border:2px solid rgba(255,255,255,0.5); border-radius:30px; font-size:1rem;
+    font-weight:700; cursor:pointer; text-decoration:none; transition:all 0.2s; display:inline-block;
   }
-  .btn-hub-white:hover { background: rgba(255,255,255,0.35); }
-
+  .btn-hub-white:hover { background:rgba(255,255,255,0.35); }
   .final-lb-card {
-    background: white; border-radius: 18px; padding: 20px;
-    box-shadow: var(--shadow); margin-bottom: 16px;
-    animation: slide-up 0.4s ease 0.2s both;
+    background:white; border-radius:18px; padding:20px; box-shadow:var(--shadow);
+    margin-bottom:16px; animation:slide-up 0.4s ease 0.2s both;
   }
-  .final-lb-card h3 { font-size: 1rem; color: var(--primary); margin-bottom: 14px; text-align: center; }
+  .final-lb-card h3 { font-size:1rem; color:var(--primary); margin-bottom:14px; text-align:center; }
 
-  /* ── Misc ── */
-  .instruction { font-size: 0.82rem; color: #aaa; text-align: center; margin-bottom: 12px; }
-  .feedback-msg {
-    text-align: center; font-size: 0.9rem; min-height: 22px;
-    margin-bottom: 8px; font-weight: 600; color: var(--secondary); transition: opacity 0.3s;
-  }
+  .instruction { font-size:0.82rem; color:#aaa; text-align:center; margin-bottom:12px; }
+  .feedback-msg { text-align:center; font-size:0.9rem; min-height:22px; margin-bottom:8px; font-weight:600; color:var(--secondary); }
 </style>
 </head>
 <body>
 
-<!-- ==============================
-     START SCREEN
-============================== -->
+<!-- START SCREEN -->
 <div id="start-screen">
   <div class="start-hero">
     <span class="game-emoji">📐</span>
     <h1>一元一次不等式</h1>
-    <p>四關闖關挑戰<br>符號配對 · 文字轉算式 · 判斷是不是解 · 數線配對</p>
+    <p>四關闖關挑戰<br>符號配對 · 文字轉算式 · 判斷是不是解 · 數線選擇</p>
   </div>
-
   <div class="start-card">
     <h3>✏️ 輸入你的名字，開始挑戰！</h3>
     <div class="name-input-row">
@@ -482,70 +285,74 @@
     </div>
     <p class="name-hint">最多 12 個字</p>
   </div>
-
-  <div class="start-card leaderboard-wrap">
-    <h3>🏆 排行榜</h3>
+  <div class="start-card">
+    <h3>🏆 總排行榜</h3>
     <div class="leaderboard" id="lb-start"></div>
   </div>
 </div>
 
-<!-- ==============================
-     GAME AREA
-============================== -->
+<!-- GAME AREA -->
 <div id="game-area">
-
   <h1>📐 一元一次不等式</h1>
   <div class="player-name-display" id="player-name-display"></div>
-
   <div class="score-bar">
     <div class="score-item">總分：<span id="total-score">0</span></div>
     <div class="score-item">關卡：<span id="level-display">0/4</span></div>
   </div>
-
-  <div class="tabs" id="tabs">
+  <div class="tabs">
     <button class="tab-btn active" onclick="switchTab(1)" id="tab1">🔤 關卡一</button>
     <button class="tab-btn" onclick="switchTab(2)" id="tab2">📝 關卡二</button>
     <button class="tab-btn" onclick="switchTab(3)" id="tab3">✅ 關卡三</button>
     <button class="tab-btn" onclick="switchTab(4)" id="tab4">📏 關卡四</button>
   </div>
 
-  <!-- LEVEL 1: 符號配對 MCQ -->
+  <!-- LEVEL 1 -->
   <div class="section active" id="sec1">
-    <div class="card" id="sym-card">
+    <div class="card">
       <h2>🔤 關卡一：符號配對</h2>
       <div class="q-progress" id="sym-prog">第 1 / 10 題</div>
-      <div class="q-text" id="sym-text">題目載入中…</div>
+      <div class="q-text" id="sym-text"></div>
       <div class="q-options" id="sym-opts"></div>
     </div>
     <div class="celebrate" id="cel1">
       <h3>🎉 太棒了！</h3>
       <p>你認識所有的不等號用法！</p>
+      <div class="level-pts-disp" id="l1-pts"></div>
+      <div class="mini-lb-wrap">
+        <div class="mini-lb-title">🏆 本關排行榜 Top 5</div>
+        <div class="leaderboard" id="lb-cel1"></div>
+      </div>
       <button class="btn-next" onclick="nextLevel(2)">前往關卡二 →</button>
       <button class="btn-retry" onclick="retryLevel(1)">再玩一次</button>
     </div>
     <a href="https://mathhowhowwan.github.io/mathgame/" class="btn-hub">🏠 回遊戲主頁</a>
   </div>
 
-  <!-- LEVEL 2: 文字轉算式 -->
+  <!-- LEVEL 2 -->
   <div class="section" id="sec2">
-    <div class="card" id="q-card">
+    <div class="card">
       <h2>📝 關卡二：文字轉算式</h2>
       <div class="q-progress" id="q-prog">第 1 / 10 題</div>
-      <div class="q-text" id="q-text">題目載入中…</div>
+      <div class="q-text" id="q-text"></div>
       <div class="q-options" id="q-opts"></div>
     </div>
     <div class="celebrate" id="cel2">
       <h3>🌟 全對了！</h3>
       <p>你很會把文字轉換成不等式！</p>
+      <div class="level-pts-disp" id="l2-pts"></div>
+      <div class="mini-lb-wrap">
+        <div class="mini-lb-title">🏆 本關排行榜 Top 5</div>
+        <div class="leaderboard" id="lb-cel2"></div>
+      </div>
       <button class="btn-next" onclick="nextLevel(3)">前往關卡三 →</button>
       <button class="btn-retry" onclick="retryLevel(2)">再玩一次</button>
     </div>
     <a href="https://mathhowhowwan.github.io/mathgame/" class="btn-hub">🏠 回遊戲主頁</a>
   </div>
 
-  <!-- LEVEL 3: 判斷是不是解 -->
+  <!-- LEVEL 3 -->
   <div class="section" id="sec3">
-    <div class="card" id="judge-card">
+    <div class="card">
       <h2>✅ 關卡三：判斷是不是解</h2>
       <div class="q-progress" id="judge-prog">第 1 / 8 題</div>
       <div class="judge-ineq" id="judge-ineq"></div>
@@ -560,37 +367,41 @@
     <div class="celebrate" id="cel3">
       <h3>🧠 超厲害！</h3>
       <p>你已經掌握「解」的判斷方法！</p>
+      <div class="level-pts-disp" id="l3-pts"></div>
+      <div class="mini-lb-wrap">
+        <div class="mini-lb-title">🏆 本關排行榜 Top 5</div>
+        <div class="leaderboard" id="lb-cel3"></div>
+      </div>
       <button class="btn-next" onclick="nextLevel(4)">前往關卡四 →</button>
       <button class="btn-retry" onclick="retryLevel(3)">再玩一次</button>
     </div>
     <a href="https://mathhowhowwan.github.io/mathgame/" class="btn-hub">🏠 回遊戲主頁</a>
   </div>
 
-  <!-- LEVEL 4: 數線配對 -->
+  <!-- LEVEL 4 -->
   <div class="section" id="sec4">
     <div class="card">
-      <h2>📏 關卡四：數線配對</h2>
-      <p class="instruction">點左欄不等式，再點右欄對應數線圖</p>
-      <div class="feedback-msg" id="fb4"></div>
-      <div class="nl-grid">
-        <div class="nl-col" id="nl-left"></div>
-        <div class="nl-col" id="nl-right"></div>
-      </div>
+      <h2>📏 關卡四：數線選擇</h2>
+      <div class="q-progress" id="nl-prog">第 1 / 5 題</div>
+      <div class="q-text" id="nl-expr" style="font-size:1.5rem;font-weight:900;font-family:monospace;text-align:center;letter-spacing:2px;"></div>
+      <div class="nl-opts" id="nl-opts"></div>
     </div>
     <div class="celebrate" id="cel4">
       <h3>🏆 完美通關！</h3>
       <p>你是不等式小高手！</p>
+      <div class="level-pts-disp" id="l4-pts"></div>
+      <div class="mini-lb-wrap">
+        <div class="mini-lb-title">🏆 本關排行榜 Top 5</div>
+        <div class="leaderboard" id="lb-cel4"></div>
+      </div>
       <button class="btn-next" onclick="showFinal()">查看總成績 🎊</button>
       <button class="btn-retry" onclick="retryLevel(4)">再玩一次</button>
     </div>
     <a href="https://mathhowhowwan.github.io/mathgame/" class="btn-hub">🏠 回遊戲主頁</a>
   </div>
+</div>
 
-</div><!-- end #game-area -->
-
-<!-- ==============================
-     FINAL SCREEN
-============================== -->
+<!-- FINAL SCREEN -->
 <div id="final-screen">
   <div class="final-hero">
     <h2>🎊 恭喜完成！</h2>
@@ -602,14 +413,12 @@
       <a href="https://mathhowhowwan.github.io/mathgame/" class="btn-hub-white">🏠 回遊戲主頁</a>
     </div>
   </div>
-
   <div class="final-lb-card">
-    <h3>🏆 排行榜</h3>
+    <h3>🏆 總排行榜</h3>
     <div class="leaderboard" id="lb-final"></div>
   </div>
 </div>
 
-<!-- Confetti -->
 <div class="confetti-container" id="confetti"></div>
 
 <script>
@@ -617,414 +426,338 @@
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let actx;
 function initAudio() { if (!actx) actx = new AudioCtx(); }
-function playBeep(freq, dur, type='sine', vol=0.3) {
+function playBeep(freq,dur,type='sine',vol=0.3) {
   if (!actx) return;
-  const osc = actx.createOscillator(), gain = actx.createGain();
+  const osc=actx.createOscillator(), gain=actx.createGain();
   osc.connect(gain); gain.connect(actx.destination);
-  osc.type = type; osc.frequency.value = freq;
-  gain.gain.setValueAtTime(vol, actx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + dur);
-  osc.start(); osc.stop(actx.currentTime + dur);
+  osc.type=type; osc.frequency.value=freq;
+  gain.gain.setValueAtTime(vol,actx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+dur);
+  osc.start(); osc.stop(actx.currentTime+dur);
 }
-function sfxCorrect() { initAudio(); playBeep(880,0.1); setTimeout(()=>playBeep(1100,0.15),100); }
-function sfxWrong()   { initAudio(); playBeep(200,0.25,'sawtooth',0.2); }
-function sfxWin()     { initAudio(); [523,659,784,1046].forEach((f,i)=>setTimeout(()=>playBeep(f,0.2),i*100)); }
+function sfxCorrect(){ initAudio(); playBeep(880,0.1); setTimeout(()=>playBeep(1100,0.15),100); }
+function sfxWrong(){   initAudio(); playBeep(200,0.25,'sawtooth',0.2); }
+function sfxWin(){     initAudio(); [523,659,784,1046].forEach((f,i)=>setTimeout(()=>playBeep(f,0.2),i*100)); }
 
-/* ── LEADERBOARD (Firestore) ── */
-const RANK_ICONS = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
+/* ── LEADERBOARD ── */
+const RANK_ICONS = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+const LEVEL_COLS = [
+  'inequality_l1_scores',
+  'inequality_l2_scores',
+  'inequality_l3_scores',
+  'inequality_l4_scores',
+];
+const LEVEL_MAX = [100, 100, 96, 100];
 
-function escHtml(str) {
-  return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
+function escHtml(s){ return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-async function saveScore(name, score) {
-  if (window._fbSaveScore) await window._fbSaveScore(name, score);
-}
-
-async function renderLeaderboard(containerId, highlightName) {
-  const el = document.getElementById(containerId);
+async function renderLeaderboard(id, highlight, col='inequality_scores', n=10) {
+  const el = document.getElementById(id);
   el.innerHTML = '<div class="lb-empty">載入中…</div>';
   let scores = [];
   if (window._fbLoadScores) {
-    try { scores = await window._fbLoadScores(); } catch(e) { scores = []; }
+    try { scores = await window._fbLoadScores(col, n); } catch(e) { scores=[]; }
   }
-  if (!scores.length) {
-    el.innerHTML = '<div class="lb-empty">還沒有紀錄，快來挑戰！</div>';
-    return;
-  }
-  let highlighted = false;
-  el.innerHTML = scores.map((s, i) => {
-    const isMe = !highlighted && s.name === highlightName;
-    if (isMe) highlighted = true;
-    return `<div class="lb-row" style="${isMe ? 'box-shadow:0 0 0 2.5px var(--primary)' : ''}">
-      <span class="lb-rank">${RANK_ICONS[i] || (i+1)}</span>
+  if (!scores.length) { el.innerHTML='<div class="lb-empty">成為第一名！</div>'; return; }
+  let hi=false;
+  const isMini = n <= 5;
+  el.innerHTML = scores.map((s,i)=>{
+    const me = !hi && s.name===highlight;
+    if(me) hi=true;
+    return `<div class="lb-row${isMini?' mini':''}" style="${me?'box-shadow:0 0 0 2px var(--primary)':''}">
+      <span class="lb-rank">${RANK_ICONS[i]||(i+1)}</span>
       <span class="lb-name">${escHtml(s.name)}</span>
       <span class="lb-score">${s.score} 分</span>
-      <span class="lb-date">${s.date||''}</span>
+      ${!isMini?`<span class="lb-date">${s.date||''}</span>`:''}
     </div>`;
   }).join('');
 }
 
 /* ── PLAYER / SCORE STATE ── */
-let playerName = '';
-let totalScore = 0;
-let levelsDone = [false, false, false, false];
+let playerName='', totalScore=0;
+let levelsDone=[false,false,false,false];
+let levelScores=[0,0,0,0];
 
-function startGame() {
+function startGame(){
   initAudio();
-  const input = document.getElementById('player-name-input');
-  playerName = input.value.trim() || '匿名勇者';
-  document.getElementById('player-name-display').textContent = `👤 ${playerName}`;
-  document.getElementById('start-screen').style.display = 'none';
+  playerName=document.getElementById('player-name-input').value.trim()||'匿名勇者';
+  document.getElementById('player-name-display').textContent=`👤 ${playerName}`;
+  document.getElementById('start-screen').style.display='none';
   document.getElementById('game-area').classList.add('active');
 }
 
-function addScore(pts) {
-  totalScore += pts;
-  document.getElementById('total-score').textContent = totalScore;
+function addScore(pts, lvl){
+  totalScore+=pts;
+  if(lvl>=1&&lvl<=4) levelScores[lvl-1]+=pts;
+  document.getElementById('total-score').textContent=totalScore;
 }
 
-function updateLevelDisplay() {
-  document.getElementById('level-display').textContent = `${levelsDone.filter(Boolean).length}/4`;
+function updateLevelDisplay(){
+  document.getElementById('level-display').textContent=`${levelsDone.filter(Boolean).length}/4`;
 }
 
-/* ── TABS ── */
-function switchTab(n) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+function switchTab(n){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('sec'+n).classList.add('active');
   document.getElementById('tab'+n).classList.add('active');
 }
 
-/* ── CONFETTI ── */
-function launchConfetti() {
-  const cont = document.getElementById('confetti');
-  cont.innerHTML = '';
-  const colors = ['#6C63FF','#FF6584','#43D9A0','#FFD700','#FF8C42'];
-  for (let i=0;i<60;i++) {
-    const p = document.createElement('div');
-    p.className = 'confetti-piece';
-    p.style.cssText = `left:${Math.random()*100}vw;top:-20px;
-      background:${colors[Math.floor(Math.random()*colors.length)]};
-      animation-delay:${Math.random()*1.2}s;
-      animation-duration:${1.2+Math.random()*0.8}s;
-      transform:rotate(${Math.random()*360}deg)`;
+function launchConfetti(){
+  const cont=document.getElementById('confetti'); cont.innerHTML='';
+  const colors=['#6C63FF','#FF6584','#43D9A0','#FFD700','#FF8C42'];
+  for(let i=0;i<60;i++){
+    const p=document.createElement('div'); p.className='confetti-piece';
+    p.style.cssText=`left:${Math.random()*100}vw;top:-20px;background:${colors[Math.floor(Math.random()*5)]};animation-delay:${Math.random()*1.2}s;animation-duration:${1.2+Math.random()*0.8}s;transform:rotate(${Math.random()*360}deg)`;
     cont.appendChild(p);
   }
-  setTimeout(() => { cont.innerHTML=''; }, 3500);
+  setTimeout(()=>{ cont.innerHTML=''; },3500);
 }
 
-/* ════════════════════════════════
-   LEVEL 1：符號配對 MCQ
-   固定選項順序：＞ ＜ ≥ ≤
-════════════════════════════════ */
-const SYM_OPTS = ['＞', '＜', '≥', '≤'];
-// ans index matches SYM_OPTS: 0=＞, 1=＜, 2=≥, 3=≤
-const symQuestions = [
-  { text: '「大於」要用哪個不等號？',     ans: 0 },
-  { text: '「小於」要用哪個不等號？',     ans: 1 },
-  { text: '「大於等於」要用哪個不等號？', ans: 2 },
-  { text: '「小於等於」要用哪個不等號？', ans: 3 },
-  { text: '「超過」要用哪個不等號？',     ans: 0 },
-  { text: '「不超過」要用哪個不等號？',   ans: 3 },
-  { text: '「至少」要用哪個不等號？',     ans: 2 },
-  { text: '「至多」要用哪個不等號？',     ans: 3 },
-  { text: '「不少於」要用哪個不等號？',   ans: 2 },
-  { text: '「不多於」要用哪個不等號？',   ans: 3 },
+async function showCelebrate(lvl){
+  const cel=document.getElementById('cel'+lvl);
+  cel.classList.add('show');
+  levelsDone[lvl-1]=true;
+  document.getElementById('tab'+lvl).classList.add('done');
+  updateLevelDisplay();
+  const pts=levelScores[lvl-1], max=LEVEL_MAX[lvl-1];
+  document.getElementById('l'+lvl+'-pts').textContent=`本關得分：${pts} / ${max}`;
+  if(window._fbSaveScore) {
+    try { await window._fbSaveScore(playerName, pts, LEVEL_COLS[lvl-1]); } catch(e){}
+  }
+  renderLeaderboard('lb-cel'+lvl, playerName, LEVEL_COLS[lvl-1], 5);
+}
+
+/* ════ LEVEL 1：符號配對 MCQ ════ */
+const SYM_OPTS=['＞','＜','≥','≤'];
+const symQuestions=[
+  {text:'「大於」要用哪個不等號？',     ans:0},
+  {text:'「小於」要用哪個不等號？',     ans:1},
+  {text:'「大於等於」要用哪個不等號？', ans:2},
+  {text:'「小於等於」要用哪個不等號？', ans:3},
+  {text:'「超過」要用哪個不等號？',     ans:0},
+  {text:'「不超過」要用哪個不等號？',   ans:3},
+  {text:'「至少」要用哪個不等號？',     ans:2},
+  {text:'「至多」要用哪個不等號？',     ans:3},
+  {text:'「不少於」要用哪個不等號？',   ans:2},
+  {text:'「不多於」要用哪個不等號？',   ans:3},
 ];
+let l1_curr=0, l1_answered=false;
 
-let l1_curr = 0, l1_answered = false;
-
-function loadSymQuestion(i) {
-  const q = symQuestions[i];
-  document.getElementById('sym-prog').textContent = `第 ${i+1} / ${symQuestions.length} 題`;
-  document.getElementById('sym-text').textContent = q.text;
-  const div = document.getElementById('sym-opts');
-  div.innerHTML = ''; l1_answered = false;
-  SYM_OPTS.forEach((sym, idx) => {
-    const btn = document.createElement('div');
-    btn.className = 'q-opt';
-    btn.textContent = sym;
-    btn.onclick = () => answerSym(idx, q.ans, btn, div);
-    div.appendChild(btn);
+function loadSymQuestion(i){
+  const q=symQuestions[i];
+  document.getElementById('sym-prog').textContent=`第 ${i+1} / ${symQuestions.length} 題`;
+  document.getElementById('sym-text').textContent=q.text;
+  const div=document.getElementById('sym-opts'); div.innerHTML=''; l1_answered=false;
+  SYM_OPTS.forEach((sym,idx)=>{
+    const btn=document.createElement('div'); btn.className='q-opt'; btn.textContent=sym;
+    btn.onclick=()=>answerSym(idx,q.ans,btn,div); div.appendChild(btn);
   });
 }
 
-function answerSym(idx, ans, btn, optsDiv) {
-  if (l1_answered) return;
-  l1_answered = true; initAudio();
-  if (idx === ans) {
-    sfxCorrect(); btn.classList.add('correct'); addScore(10);
-    setTimeout(() => {
-      l1_curr++;
-      l1_curr >= symQuestions.length
-        ? (sfxWin(), launchConfetti(), showCelebrate(1))
-        : loadSymQuestion(l1_curr);
-    }, 700);
-  } else {
-    sfxWrong(); btn.classList.add('wrong');
-    optsDiv.querySelectorAll('.q-opt').forEach((b, i) => { if (i === ans) b.classList.add('correct'); });
-    setTimeout(() => {
-      l1_curr++;
-      l1_curr >= symQuestions.length
-        ? (sfxWin(), launchConfetti(), showCelebrate(1))
-        : loadSymQuestion(l1_curr);
-    }, 1200);
+function answerSym(idx,ans,btn,div){
+  if(l1_answered) return;
+  l1_answered=true; initAudio();
+  if(idx===ans){ sfxCorrect(); btn.classList.add('correct'); addScore(10,1);
+    setTimeout(()=>{ l1_curr++; l1_curr>=symQuestions.length?(sfxWin(),launchConfetti(),showCelebrate(1)):loadSymQuestion(l1_curr); },700);
+  } else { sfxWrong(); btn.classList.add('wrong');
+    div.querySelectorAll('.q-opt').forEach((b,i)=>{ if(i===ans) b.classList.add('correct'); });
+    setTimeout(()=>{ l1_curr++; l1_curr>=symQuestions.length?(sfxWin(),launchConfetti(),showCelebrate(1)):loadSymQuestion(l1_curr); },1200);
   }
 }
 
-function retryLevel1() {
-  l1_curr = 0; l1_answered = false;
+function retryLevel1(){
+  l1_curr=0; l1_answered=false; levelScores[0]=0;
   document.getElementById('cel1').classList.remove('show');
   loadSymQuestion(0);
 }
 
-/* ════════════════════════════════
-   LEVEL 2：文字轉算式
-════════════════════════════════ */
-const questions = [
-  // 文字敘述題
-  { text: '媽媽和爸爸的年齡總和大於 100 歲',
-    opts: ['媽+爸 > 100', '媽+爸 < 100', '媽+爸 ≥ 100', '媽+爸 ≤ 100'], ans: 0 },
-  { text: '小明每天喝水量不少於 2000 毫升',
-    opts: ['喝水量 < 2000', '喝水量 > 2000', '喝水量 ≥ 2000', '喝水量 ≤ 2000'], ans: 2 },
-  { text: '一班人數少於 40 人',
-    opts: ['人數 ≤ 40', '人數 < 40', '人數 > 40', '人數 ≥ 40'], ans: 1 },
-  { text: '停車場停車數量不多於 50 輛',
-    opts: ['停車數 < 50', '停車數 > 50', '停車數 ≥ 50', '停車數 ≤ 50'], ans: 3 },
-  { text: '氣溫超過 35 度就算高溫',
-    opts: ['氣溫 ≥ 35', '氣溫 ≤ 35', '氣溫 > 35', '氣溫 < 35'], ans: 2 },
-  // 數學式表示題
-  { text: '某數 x 加上 5 大於 12，用不等式表示',
-    opts: ['x + 5 ≥ 12', 'x + 5 < 12', 'x + 5 > 12', 'x − 5 > 12'], ans: 2 },
-  { text: '2 倍的 x 不超過 8，用不等式表示',
-    opts: ['2x > 8', '2x ≥ 8', '2x < 8', '2x ≤ 8'], ans: 3 },
-  { text: '某數 y 減 3 不少於 1，用不等式表示',
-    opts: ['y − 3 ≤ 1', 'y − 3 > 1', 'y − 3 ≥ 1', 'y + 3 ≥ 1'], ans: 2 },
-  { text: '某數 x 的 3 倍超過 9，用不等式表示',
-    opts: ['3x ≥ 9', '3x > 9', '3x < 9', '3x ≤ 9'], ans: 1 },
-  { text: '某數 x 的 2 倍加 1 不多於 7，用不等式表示',
-    opts: ['2x + 1 ≥ 7', '2x + 1 > 7', '2x − 1 ≤ 7', '2x + 1 ≤ 7'], ans: 3 },
+/* ════ LEVEL 2：文字轉算式 ════ */
+const questions=[
+  {text:'媽媽和爸爸的年齡總和大於 100 歲',         opts:['媽+爸 > 100','媽+爸 < 100','媽+爸 ≥ 100','媽+爸 ≤ 100'],ans:0},
+  {text:'小明每天喝水量不少於 2000 毫升',           opts:['喝水量 < 2000','喝水量 > 2000','喝水量 ≥ 2000','喝水量 ≤ 2000'],ans:2},
+  {text:'一班人數少於 40 人',                        opts:['人數 ≤ 40','人數 < 40','人數 > 40','人數 ≥ 40'],ans:1},
+  {text:'停車場停車數量不多於 50 輛',               opts:['停車數 < 50','停車數 > 50','停車數 ≥ 50','停車數 ≤ 50'],ans:3},
+  {text:'氣溫超過 35 度就算高溫',                    opts:['氣溫 ≥ 35','氣溫 ≤ 35','氣溫 > 35','氣溫 < 35'],ans:2},
+  {text:'某數 x 加上 5 大於 12，用不等式表示',       opts:['x + 5 ≥ 12','x + 5 < 12','x + 5 > 12','x − 5 > 12'],ans:2},
+  {text:'2 倍的 x 不超過 8，用不等式表示',           opts:['2x > 8','2x ≥ 8','2x < 8','2x ≤ 8'],ans:3},
+  {text:'某數 y 減 3 不少於 1，用不等式表示',        opts:['y − 3 ≤ 1','y − 3 > 1','y − 3 ≥ 1','y + 3 ≥ 1'],ans:2},
+  {text:'某數 x 的 3 倍超過 9，用不等式表示',        opts:['3x ≥ 9','3x > 9','3x < 9','3x ≤ 9'],ans:1},
+  {text:'某數 x 的 2 倍加 1 不多於 7，用不等式表示', opts:['2x + 1 ≥ 7','2x + 1 > 7','2x − 1 ≤ 7','2x + 1 ≤ 7'],ans:3},
 ];
+let l2_curr=0, l2_answered=false;
 
-let l2_curr = 0, l2_answered = false;
-
-function loadQuestion(i) {
-  const q = questions[i];
-  document.getElementById('q-prog').textContent = `第 ${i+1} / ${questions.length} 題`;
-  document.getElementById('q-text').textContent = q.text;
-  const div = document.getElementById('q-opts');
-  div.innerHTML = ''; l2_answered = false;
-  q.opts.forEach((opt, idx) => {
-    const btn = document.createElement('div');
-    btn.className = 'q-opt'; btn.textContent = opt;
-    btn.onclick = () => answerQ(idx, q.ans, btn, div);
-    div.appendChild(btn);
+function loadQuestion(i){
+  const q=questions[i];
+  document.getElementById('q-prog').textContent=`第 ${i+1} / ${questions.length} 題`;
+  document.getElementById('q-text').textContent=q.text;
+  const div=document.getElementById('q-opts'); div.innerHTML=''; l2_answered=false;
+  q.opts.forEach((opt,idx)=>{
+    const btn=document.createElement('div'); btn.className='q-opt'; btn.textContent=opt;
+    btn.onclick=()=>answerQ(idx,q.ans,btn,div); div.appendChild(btn);
   });
 }
 
-function answerQ(idx, ans, btn, optsDiv) {
-  if (l2_answered) return;
-  l2_answered = true; initAudio();
-  if (idx === ans) {
-    sfxCorrect(); btn.classList.add('correct'); addScore(10);
-    setTimeout(() => { l2_curr++; l2_curr >= questions.length ? (sfxWin(), launchConfetti(), showCelebrate(2)) : loadQuestion(l2_curr); }, 700);
-  } else {
-    sfxWrong(); btn.classList.add('wrong');
-    optsDiv.querySelectorAll('.q-opt').forEach((b, i) => { if (i === ans) b.classList.add('correct'); });
-    setTimeout(() => { l2_curr++; l2_curr >= questions.length ? (sfxWin(), launchConfetti(), showCelebrate(2)) : loadQuestion(l2_curr); }, 1200);
+function answerQ(idx,ans,btn,div){
+  if(l2_answered) return;
+  l2_answered=true; initAudio();
+  if(idx===ans){ sfxCorrect(); btn.classList.add('correct'); addScore(10,2);
+    setTimeout(()=>{ l2_curr++; l2_curr>=questions.length?(sfxWin(),launchConfetti(),showCelebrate(2)):loadQuestion(l2_curr); },700);
+  } else { sfxWrong(); btn.classList.add('wrong');
+    div.querySelectorAll('.q-opt').forEach((b,i)=>{ if(i===ans) b.classList.add('correct'); });
+    setTimeout(()=>{ l2_curr++; l2_curr>=questions.length?(sfxWin(),launchConfetti(),showCelebrate(2)):loadQuestion(l2_curr); },1200);
   }
 }
 
-function retryLevel2() {
-  l2_curr = 0; l2_answered = false;
+function retryLevel2(){
+  l2_curr=0; l2_answered=false; levelScores[1]=0;
   document.getElementById('cel2').classList.remove('show');
   loadQuestion(0);
 }
 
-/* ════════════════════════════════
-   LEVEL 3：判斷是不是解
-════════════════════════════════ */
-const judgeQuestions = [
-  { ineq: 'x > 3',      val: 'x = 5',  answer: true,  explain: '代入：5 > 3 ✓，所以 x = 5 是解' },
-  { ineq: 'x > 3',      val: 'x = 3',  answer: false, explain: '代入：3 > 3 ✗，「大於」不含等號' },
-  { ineq: 'x ≤ −1',     val: 'x = −1', answer: true,  explain: '代入：−1 ≤ −1 ✓，「小於等於」含等號' },
-  { ineq: 'x ≤ −1',     val: 'x = 0',  answer: false, explain: '代入：0 ≤ −1 ✗，0 比 −1 大' },
-  { ineq: 'x < 5',      val: 'x = 4',  answer: true,  explain: '代入：4 < 5 ✓' },
-  { ineq: '2x > 6',     val: 'x = 3',  answer: false, explain: '代入：2×3 = 6，6 > 6 ✗，不含等號' },
-  { ineq: 'x + 1 ≥ 4', val: 'x = 3',  answer: true,  explain: '代入：3 + 1 = 4，4 ≥ 4 ✓' },
-  { ineq: '3x ≤ 9',     val: 'x = 4',  answer: false, explain: '代入：3×4 = 12，12 ≤ 9 ✗' },
+/* ════ LEVEL 3：判斷是不是解 ════ */
+const judgeQuestions=[
+  {ineq:'x > 3',     val:'x = 5',  answer:true,  explain:'代入：5 > 3 ✓，所以 x = 5 是解'},
+  {ineq:'x > 3',     val:'x = 3',  answer:false, explain:'代入：3 > 3 ✗，「大於」不含等號'},
+  {ineq:'x ≤ −1',   val:'x = −1', answer:true,  explain:'代入：−1 ≤ −1 ✓，「小於等於」含等號'},
+  {ineq:'x ≤ −1',   val:'x = 0',  answer:false, explain:'代入：0 ≤ −1 ✗，0 比 −1 大'},
+  {ineq:'x < 5',     val:'x = 4',  answer:true,  explain:'代入：4 < 5 ✓'},
+  {ineq:'2x > 6',    val:'x = 3',  answer:false, explain:'代入：2×3 = 6，6 > 6 ✗，不含等號'},
+  {ineq:'x + 1 ≥ 4',val:'x = 3',  answer:true,  explain:'代入：3 + 1 = 4，4 ≥ 4 ✓'},
+  {ineq:'3x ≤ 9',    val:'x = 4',  answer:false, explain:'代入：3×4 = 12，12 ≤ 9 ✗'},
 ];
+let l3_curr=0, l3_answered=false;
 
-let l3_curr = 0, l3_answered = false;
-
-function loadJudgeQuestion(i) {
-  const q = judgeQuestions[i];
-  document.getElementById('judge-prog').textContent = `第 ${i+1} / ${judgeQuestions.length} 題`;
-  document.getElementById('judge-ineq').textContent = q.ineq;
-  document.getElementById('judge-val').textContent = `代入 ${q.val}`;
-  document.getElementById('judge-explain').textContent = '';
-  const yesBtn = document.getElementById('judge-yes');
-  const noBtn  = document.getElementById('judge-no');
-  yesBtn.className = 'judge-btn yes-btn';
-  noBtn.className  = 'judge-btn no-btn';
-  l3_answered = false;
+function loadJudgeQuestion(i){
+  const q=judgeQuestions[i];
+  document.getElementById('judge-prog').textContent=`第 ${i+1} / ${judgeQuestions.length} 題`;
+  document.getElementById('judge-ineq').textContent=q.ineq;
+  document.getElementById('judge-val').textContent=`代入 ${q.val}`;
+  document.getElementById('judge-explain').textContent='';
+  document.getElementById('judge-yes').className='judge-btn yes-btn';
+  document.getElementById('judge-no').className='judge-btn no-btn';
+  l3_answered=false;
 }
 
-function judgeAns(userSays) {
-  if (l3_answered) return;
-  l3_answered = true; initAudio();
-  const q = judgeQuestions[l3_curr];
-  const correct = (userSays === q.answer);
-  const yesBtn = document.getElementById('judge-yes');
-  const noBtn  = document.getElementById('judge-no');
-
-  if (correct) {
-    sfxCorrect(); addScore(12);
-    (userSays ? yesBtn : noBtn).classList.add('correct');
-  } else {
-    sfxWrong();
-    (userSays ? yesBtn : noBtn).classList.add('wrong');
-    // reveal correct answer
-    (q.answer ? yesBtn : noBtn).classList.add('revealed');
-  }
-  document.getElementById('judge-explain').textContent = q.explain;
-
-  setTimeout(() => {
+function judgeAns(userSays){
+  if(l3_answered) return;
+  l3_answered=true; initAudio();
+  const q=judgeQuestions[l3_curr];
+  const ok=(userSays===q.answer);
+  const yBtn=document.getElementById('judge-yes'), nBtn=document.getElementById('judge-no');
+  if(ok){ sfxCorrect(); addScore(12,3); (userSays?yBtn:nBtn).classList.add('correct'); }
+  else  { sfxWrong(); (userSays?yBtn:nBtn).classList.add('wrong'); (q.answer?yBtn:nBtn).classList.add('revealed'); }
+  document.getElementById('judge-explain').textContent=q.explain;
+  setTimeout(()=>{
     l3_curr++;
-    l3_curr >= judgeQuestions.length
-      ? (sfxWin(), launchConfetti(), showCelebrate(3))
-      : loadJudgeQuestion(l3_curr);
-  }, 1400);
+    l3_curr>=judgeQuestions.length?(sfxWin(),launchConfetti(),showCelebrate(3)):loadJudgeQuestion(l3_curr);
+  },1400);
 }
 
-function retryLevel3() {
-  l3_curr = 0; l3_answered = false;
+function retryLevel3(){
+  l3_curr=0; l3_answered=false; levelScores[2]=0;
   document.getElementById('cel3').classList.remove('show');
   loadJudgeQuestion(0);
 }
 
-/* ════════════════════════════════
-   LEVEL 4：數線配對
-════════════════════════════════ */
-const nlItems = [
-  { expr: 'x > 3',  val: 3,  dir: 'right', closed: false },
-  { expr: 'x ≤ −1', val: -1, dir: 'left',  closed: true  },
-  { expr: 'x < 5',  val: 5,  dir: 'left',  closed: false },
-  { expr: 'x ≥ 0',  val: 0,  dir: 'right', closed: true  },
-  { expr: 'x > −2', val: -2, dir: 'right', closed: false },
-  { expr: 'x ≤ 4',  val: 4,  dir: 'left',  closed: true  },
+/* ════ LEVEL 4：數線選擇 MCQ ════ */
+function makeSVG(val,dir,closed,w=130,h=44){
+  const cy=22, mid=65;
+  const dotX=Math.min(Math.max(mid+val*9,14),w-14);
+  const arrow=dir==='right'
+    ?`<line x1="${dotX}" y1="${cy}" x2="${w-7}" y2="${cy}" stroke="#6C63FF" stroke-width="2.5"/>
+      <polygon points="${w-7},${cy-4} ${w},${cy} ${w-7},${cy+4}" fill="#6C63FF"/>`
+    :`<line x1="${dotX}" y1="${cy}" x2="7" y2="${cy}" stroke="#6C63FF" stroke-width="2.5"/>
+      <polygon points="7,${cy-4} 0,${cy} 7,${cy+4}" fill="#6C63FF"/>`;
+  const dot=closed
+    ?`<circle cx="${dotX}" cy="${cy}" r="5" fill="#6C63FF"/>`
+    :`<circle cx="${dotX}" cy="${cy}" r="5" fill="white" stroke="#6C63FF" stroke-width="2.2"/>`;
+  const axis=`<line x1="3" y1="${cy}" x2="${w-3}" y2="${cy}" stroke="#ccc" stroke-width="1.2"/>
+    <line x1="${w-5}" y1="${cy-4}" x2="${w}" y2="${cy}" stroke="#ccc" stroke-width="1.2"/>
+    <line x1="${w-5}" y1="${cy+4}" x2="${w}" y2="${cy}" stroke="#ccc" stroke-width="1.2"/>`;
+  const tick=`<line x1="${dotX}" y1="${cy-7}" x2="${dotX}" y2="${cy+7}" stroke="#aaa" stroke-width="1"/>
+    <text x="${dotX}" y="${cy+18}" text-anchor="middle" font-size="10" fill="#999">${val}</text>`;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">${axis}${tick}${arrow}${dot}</svg>`;
+}
+
+// 每題：inequality expr + 4 options (val, dir, closed) + correct answer index
+const nlQuestions=[
+  { expr:'x > 3',
+    opts:[{val:3,dir:'right',closed:false},{val:3,dir:'right',closed:true},{val:3,dir:'left',closed:false},{val:3,dir:'left',closed:true}],
+    ans:0 },
+  { expr:'x ≤ −1',
+    opts:[{val:-1,dir:'left',closed:false},{val:-1,dir:'right',closed:true},{val:-1,dir:'left',closed:true},{val:-1,dir:'right',closed:false}],
+    ans:2 },
+  { expr:'x < 5',
+    opts:[{val:5,dir:'right',closed:false},{val:5,dir:'left',closed:true},{val:5,dir:'right',closed:true},{val:5,dir:'left',closed:false}],
+    ans:3 },
+  { expr:'x ≥ 0',
+    opts:[{val:0,dir:'left',closed:true},{val:0,dir:'right',closed:false},{val:0,dir:'right',closed:true},{val:0,dir:'left',closed:false}],
+    ans:2 },
+  { expr:'x > −2',
+    opts:[{val:-2,dir:'right',closed:true},{val:-2,dir:'left',closed:false},{val:-2,dir:'left',closed:true},{val:-2,dir:'right',closed:false}],
+    ans:3 },
 ];
+let l4_curr=0, l4_answered=false;
 
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length-1; i > 0; i--) {
-    const j = Math.floor(Math.random()*(i+1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-let nl_selLeft = null, nl_matched = {}, nl_rightOrder = [];
-
-function makeSVG(val, dir, closed) {
-  const W=140, H=48, cy=24, mid=70;
-  const dotX = Math.min(Math.max(mid + val*10, 18), W-18);
-  const arrow = dir === 'right'
-    ? `<line x1="${dotX}" y1="${cy}" x2="${W-8}" y2="${cy}" stroke="#6C63FF" stroke-width="3"/>
-       <polygon points="${W-8},${cy-5} ${W},${cy} ${W-8},${cy+5}" fill="#6C63FF"/>`
-    : `<line x1="${dotX}" y1="${cy}" x2="8" y2="${cy}" stroke="#6C63FF" stroke-width="3"/>
-       <polygon points="8,${cy-5} 0,${cy} 8,${cy+5}" fill="#6C63FF"/>`;
-  const circle = closed
-    ? `<circle cx="${dotX}" cy="${cy}" r="6" fill="#6C63FF" stroke="#6C63FF" stroke-width="2"/>`
-    : `<circle cx="${dotX}" cy="${cy}" r="6" fill="white" stroke="#6C63FF" stroke-width="2.5"/>`;
-  const axis = `<line x1="4" y1="${cy}" x2="${W-4}" y2="${cy}" stroke="#ccc" stroke-width="1.5"/>
-    <line x1="${W-4}" y1="${cy-4}" x2="${W}" y2="${cy}" stroke="#ccc" stroke-width="1.5"/>
-    <line x1="${W-4}" y1="${cy+4}" x2="${W}" y2="${cy}" stroke="#ccc" stroke-width="1.5"/>`;
-  const tick = `<line x1="${dotX}" y1="${cy-8}" x2="${dotX}" y2="${cy+8}" stroke="#999" stroke-width="1"/>
-    <text x="${dotX}" y="${cy+20}" text-anchor="middle" font-size="11" fill="#999">${val}</text>`;
-  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${axis}${tick}${arrow}${circle}</svg>`;
-}
-
-function buildLevel4() {
-  nl_selLeft = null; nl_matched = {};
-  nl_rightOrder = shuffle(nlItems.map((_, i) => i));
-  const lc = document.getElementById('nl-left'), rc = document.getElementById('nl-right');
-  lc.innerHTML = ''; rc.innerHTML = '';
-  nlItems.forEach((item, i) => {
-    const el = document.createElement('div');
-    el.className = 'nl-ineq'; el.id = 'nll-'+i; el.textContent = item.expr;
-    el.onclick = () => selectNLLeft(i); lc.appendChild(el);
+function loadNLQuestion(i){
+  const q=nlQuestions[i];
+  document.getElementById('nl-prog').textContent=`第 ${i+1} / ${nlQuestions.length} 題`;
+  document.getElementById('nl-expr').textContent=q.expr;
+  const div=document.getElementById('nl-opts'); div.innerHTML=''; l4_answered=false;
+  q.opts.forEach((opt,idx)=>{
+    const card=document.createElement('div'); card.className='nl-opt';
+    card.innerHTML=makeSVG(opt.val,opt.dir,opt.closed);
+    card.onclick=()=>answerNL(idx,q.ans,card,div); div.appendChild(card);
   });
-  nl_rightOrder.forEach((origIdx, ri) => {
-    const item = nlItems[origIdx], el = document.createElement('div');
-    el.className = 'nl-svg-card'; el.id = 'nlr-'+ri;
-    el.innerHTML = makeSVG(item.val, item.dir, item.closed);
-    el.dataset.orig = origIdx; el.onclick = () => selectNLRight(ri, origIdx); rc.appendChild(el);
-  });
-  document.getElementById('fb4').textContent = '';
 }
 
-function selectNLLeft(i) {
-  if (nl_matched[i]) return;
-  document.querySelectorAll('.nl-ineq').forEach(el => { if (!el.classList.contains('matched')) el.classList.remove('selected'); });
-  nl_selLeft = i; document.getElementById('nll-'+i).classList.add('selected');
-  document.getElementById('fb4').textContent = '好！現在點右欄的數線圖';
-}
-
-function selectNLRight(ri, origIdx) {
-  if (nl_selLeft === null) { document.getElementById('fb4').textContent = '請先點左欄的不等式！'; return; }
-  if (nl_matched[nl_selLeft]) return;
-  const lEl = document.getElementById('nll-'+nl_selLeft), rEl = document.getElementById('nlr-'+ri);
-  if (origIdx === nl_selLeft) {
-    sfxCorrect();
-    lEl.classList.remove('selected'); lEl.classList.add('matched'); rEl.classList.add('matched');
-    nl_matched[nl_selLeft] = true; addScore(17);
-    document.getElementById('fb4').textContent = '✅ 正確配對！'; nl_selLeft = null;
-    if (Object.keys(nl_matched).length === nlItems.length) setTimeout(() => { sfxWin(); launchConfetti(); showCelebrate(4); }, 400);
-  } else {
-    sfxWrong(); rEl.classList.add('wrong'); lEl.classList.add('wrong');
-    document.getElementById('fb4').textContent = '❌ 不對，再想想！';
-    setTimeout(() => { rEl.classList.remove('wrong','selected'); lEl.classList.remove('wrong','selected'); nl_selLeft = null; document.getElementById('fb4').textContent = ''; }, 700);
+function answerNL(idx,ans,card,div){
+  if(l4_answered) return;
+  l4_answered=true; initAudio();
+  if(idx===ans){ sfxCorrect(); card.classList.add('correct'); addScore(20,4);
+    setTimeout(()=>{ l4_curr++; l4_curr>=nlQuestions.length?(sfxWin(),launchConfetti(),showCelebrate(4)):loadNLQuestion(l4_curr); },700);
+  } else { sfxWrong(); card.classList.add('wrong');
+    div.querySelectorAll('.nl-opt').forEach((c,i)=>{ if(i===ans) c.classList.add('correct'); });
+    setTimeout(()=>{ l4_curr++; l4_curr>=nlQuestions.length?(sfxWin(),launchConfetti(),showCelebrate(4)):loadNLQuestion(l4_curr); },1400);
   }
 }
 
-function retryLevel4() { document.getElementById('cel4').classList.remove('show'); buildLevel4(); }
+function retryLevel4(){
+  l4_curr=0; l4_answered=false; levelScores[3]=0;
+  document.getElementById('cel4').classList.remove('show');
+  loadNLQuestion(0);
+}
 
 /* ── FLOW ── */
-function showCelebrate(lvl) {
-  document.getElementById('cel'+lvl).classList.add('show');
-  levelsDone[lvl-1] = true;
-  document.getElementById('tab'+lvl).classList.add('done');
-  updateLevelDisplay();
-}
-
-function nextLevel(n) {
+function nextLevel(n){
   switchTab(n);
-  if (n === 4 && Object.keys(nl_matched).length === 0) buildLevel4();
+  if(n===4 && l4_curr===0 && !levelsDone[3]) loadNLQuestion(0);
 }
 
-function retryLevel(n) { [retryLevel1, retryLevel2, retryLevel3, retryLevel4][n-1](); }
+function retryLevel(n){ [retryLevel1,retryLevel2,retryLevel3,retryLevel4][n-1](); }
 
-async function showFinal() {
-  document.getElementById('final-player-label').textContent = `👤 ${playerName} 的成績`;
-  document.getElementById('final-score').textContent = totalScore + ' 分';
+async function showFinal(){
+  document.getElementById('final-player-label').textContent=`👤 ${playerName} 的成績`;
+  document.getElementById('final-score').textContent=totalScore+' 分';
   document.getElementById('game-area').classList.remove('active');
-  document.getElementById('final-screen').style.display = 'block';
+  document.getElementById('final-screen').style.display='block';
   launchConfetti(); sfxWin();
-  await saveScore(playerName, totalScore);
-  renderLeaderboard('lb-final', playerName);
+  if(window._fbSaveScore) {
+    try { await window._fbSaveScore(playerName,totalScore,'inequality_scores'); } catch(e){}
+  }
+  renderLeaderboard('lb-final',playerName,'inequality_scores',10);
 }
 
-function restartAll() {
-  totalScore = 0; levelsDone = [false, false, false, false];
-  document.getElementById('total-score').textContent = '0';
-  document.getElementById('level-display').textContent = '0/4';
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('done','active'));
+function restartAll(){
+  totalScore=0; levelsDone=[false,false,false,false]; levelScores=[0,0,0,0];
+  document.getElementById('total-score').textContent='0';
+  document.getElementById('level-display').textContent='0/4';
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('done','active'));
   document.getElementById('tab1').classList.add('active');
-  document.getElementById('final-screen').style.display = 'none';
+  document.getElementById('final-screen').style.display='none';
   document.getElementById('game-area').classList.add('active');
-  document.querySelectorAll('.section').forEach(s => { s.style.display=''; s.classList.remove('active'); });
+  document.querySelectorAll('.section').forEach(s=>{ s.style.display=''; s.classList.remove('active'); });
   document.getElementById('sec1').classList.add('active');
   retryLevel1(); retryLevel2(); retryLevel3(); retryLevel4();
 }
@@ -1033,13 +766,10 @@ function restartAll() {
 loadSymQuestion(0);
 loadQuestion(0);
 loadJudgeQuestion(0);
-buildLevel4();
+loadNLQuestion(0);
 document.getElementById('player-name-input').focus();
-function onFbReady(fn) {
-  if (window._fbReady) { fn(); }
-  else { document.addEventListener('fb-ready', fn, { once: true }); }
-}
-onFbReady(() => renderLeaderboard('lb-start', ''));
+function onFbReady(fn){ if(window._fbReady){fn();}else{document.addEventListener('fb-ready',fn,{once:true});} }
+onFbReady(()=>renderLeaderboard('lb-start','','inequality_scores',10));
 </script>
 </body>
 </html>
