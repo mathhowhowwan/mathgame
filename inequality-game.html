@@ -32,6 +32,9 @@
     const snap = await getDocs(q);
     return snap.docs.map(d => d.data());
   };
+
+  window._fbReady = true;
+  document.dispatchEvent(new Event('fb-ready'));
 </script>
 <style>
   :root {
@@ -908,10 +911,15 @@ function restartAll() {
 }
 
 /* ── INIT ── */
-renderLeaderboard('lb-start', '');
 loadQuestion(0);
 buildLevel3();
 document.getElementById('player-name-input').focus();
+// Wait for Firebase module before loading leaderboard
+function onFbReady(fn) {
+  if (window._fbReady) { fn(); }
+  else { document.addEventListener('fb-ready', fn, { once: true }); }
+}
+onFbReady(() => renderLeaderboard('lb-start', ''));
 </script>
 </body>
 </html>

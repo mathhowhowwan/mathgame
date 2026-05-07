@@ -25,6 +25,8 @@
         const snap = await getDocs(query(collection(db, COL), orderBy('score','desc'), limit(10)));
         return snap.docs.map(d => d.data());
       };
+      window._fbReady = true;
+      document.dispatchEvent(new Event('fb-ready'));
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Kalam:wght@700&family=Zen+Maru+Gothic:wght@700&display=swap');
@@ -398,9 +400,13 @@
         nb.style.display = "inline-block";
     }
 
-    // Init: load leaderboard on start screen
-    renderLb('lb-start', '');
+    // Init
     document.getElementById('player-name-input').focus();
+    function onFbReady(fn) {
+      if (window._fbReady) { fn(); }
+      else { document.addEventListener('fb-ready', fn, { once: true }); }
+    }
+    onFbReady(() => renderLb('lb-start', ''));
 </script>
 </body>
 </html>
