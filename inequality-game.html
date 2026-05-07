@@ -28,22 +28,147 @@
     padding: 16px;
   }
 
+  /* ── Start Screen ── */
+  #start-screen {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .start-hero {
+    text-align: center;
+    padding: 32px 20px 24px;
+  }
+
+  .start-hero .game-emoji { font-size: 4rem; display: block; margin-bottom: 12px; }
+
+  .start-hero h1 {
+    font-size: 1.8rem;
+    color: var(--primary);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  .start-hero p {
+    font-size: 0.9rem;
+    color: #888;
+    line-height: 1.6;
+  }
+
+  .start-card {
+    background: white;
+    border-radius: 20px;
+    padding: 28px 24px;
+    box-shadow: var(--shadow);
+    width: 100%;
+    margin-bottom: 16px;
+  }
+
+  .start-card h3 {
+    font-size: 1rem;
+    color: var(--primary);
+    margin-bottom: 14px;
+    text-align: center;
+  }
+
+  .name-input-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .name-input-row input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2.5px solid #ddd;
+    border-radius: 14px;
+    font-size: 1rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+    color: var(--text);
+  }
+
+  .name-input-row input:focus { border-color: var(--primary); }
+
+  .btn-start {
+    padding: 12px 24px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-start:hover { background: #5348e0; transform: translateY(-2px); box-shadow: 0 6px 18px rgba(108,99,255,0.4); }
+
+  .name-hint { font-size: 0.78rem; color: #bbb; text-align: center; }
+
+  /* ── Leaderboard ── */
+  .leaderboard { width: 100%; }
+
+  .lb-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 12px;
+    margin-bottom: 6px;
+    background: #f8f7ff;
+    gap: 10px;
+    transition: background 0.2s;
+  }
+
+  .lb-row:first-child { background: linear-gradient(135deg, #fff8e1, #fff3cd); }
+  .lb-row:nth-child(2) { background: linear-gradient(135deg, #f0f4f8, #e8edf2); }
+  .lb-row:nth-child(3) { background: linear-gradient(135deg, #fef0ea, #fde8dc); }
+
+  .lb-rank { font-size: 1.2rem; width: 28px; text-align: center; flex-shrink: 0; }
+  .lb-name { flex: 1; font-weight: 700; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb-score { font-size: 1rem; font-weight: 900; color: var(--primary); }
+  .lb-date { font-size: 0.72rem; color: #bbb; }
+  .lb-empty { text-align: center; color: #ccc; font-size: 0.9rem; padding: 16px 0; }
+
+  /* ── Game Area ── */
+  #game-area { display: none; width: 100%; flex-direction: column; align-items: center; }
+  #game-area.active { display: flex; }
+
   h1 {
     font-size: 1.6rem;
     color: var(--primary);
     text-align: center;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     letter-spacing: 2px;
   }
 
-  .subtitle {
+  .player-name-display {
     font-size: 0.85rem;
-    color: #888;
+    color: var(--secondary);
     text-align: center;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+    font-weight: 700;
   }
 
-  /* ── Level tabs ── */
+  /* ── Score bar ── */
+  .score-bar {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 18px;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--primary);
+  }
+
+  .score-item span { color: var(--secondary); font-size: 1.3rem; }
+
+  /* ── Tabs ── */
   .tabs {
     display: flex;
     gap: 8px;
@@ -74,19 +199,6 @@
 
   .tab-btn.done::after { content: ' ✅'; }
 
-  /* ── Score bar ── */
-  .score-bar {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-    margin-bottom: 18px;
-    font-weight: 700;
-    font-size: 1rem;
-    color: var(--primary);
-  }
-
-  .score-item span { color: var(--secondary); font-size: 1.3rem; }
-
   /* ── Section containers ── */
   .section { display: none; width: 100%; max-width: 640px; }
   .section.active { display: block; }
@@ -106,22 +218,33 @@
     text-align: center;
   }
 
-  /* ── Level 1: Symbol matching ── */
-  .match-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    align-items: start;
+  /* ── Back to hub button ── */
+  .btn-hub {
+    display: block;
+    width: 100%;
+    max-width: 640px;
+    padding: 12px;
+    text-align: center;
+    background: white;
+    color: #888;
+    border: 2px solid #e0e0e0;
+    border-radius: 14px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    margin-bottom: 20px;
+    transition: all 0.2s;
   }
 
+  .btn-hub:hover { border-color: var(--primary); color: var(--primary); background: #f0edff; }
+
+  /* ── Level 1 ── */
+  .match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
   .match-col { display: flex; flex-direction: column; gap: 10px; }
   .match-col-title {
-    text-align: center;
-    font-size: 0.8rem;
-    color: #aaa;
-    margin-bottom: 4px;
-    font-weight: 600;
-    letter-spacing: 1px;
+    text-align: center; font-size: 0.8rem; color: #aaa;
+    margin-bottom: 4px; font-weight: 600; letter-spacing: 1px;
   }
 
   .match-item {
@@ -136,131 +259,54 @@
     transition: all 0.18s;
     user-select: none;
     min-height: 54px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
   }
 
-  .match-item:hover:not(.matched):not(.disabled) {
-    border-color: var(--primary);
-    background: #f0edff;
-    transform: scale(1.04);
-  }
-
-  .match-item.selected {
-    border-color: var(--primary);
-    background: var(--primary);
-    color: white;
-    box-shadow: 0 4px 14px rgba(108,99,255,0.4);
-  }
-
-  .match-item.matched {
-    border-color: var(--accent);
-    background: #e8fff8;
-    color: var(--accent);
-    pointer-events: none;
-  }
-
-  .match-item.wrong {
-    border-color: var(--secondary);
-    background: #fff0f3;
-    animation: shake 0.45s ease;
-  }
-
+  .match-item:hover:not(.matched):not(.disabled) { border-color: var(--primary); background: #f0edff; transform: scale(1.04); }
+  .match-item.selected { border-color: var(--primary); background: var(--primary); color: white; box-shadow: 0 4px 14px rgba(108,99,255,0.4); }
+  .match-item.matched { border-color: var(--accent); background: #e8fff8; color: var(--accent); pointer-events: none; }
+  .match-item.wrong { border-color: var(--secondary); background: #fff0f3; animation: shake 0.45s ease; }
   .match-item.disabled { pointer-events: none; opacity: 0.35; }
 
-  /* ── Level 2: Word to expression ── */
-  .q-progress {
-    text-align: center;
-    font-size: 0.85rem;
-    color: #aaa;
-    margin-bottom: 10px;
-  }
-
+  /* ── Level 2 ── */
+  .q-progress { text-align: center; font-size: 0.85rem; color: #aaa; margin-bottom: 10px; }
   .q-text {
-    background: #f5f3ff;
-    border-left: 4px solid var(--primary);
-    border-radius: 10px;
-    padding: 14px 16px;
-    font-size: 1.05rem;
-    line-height: 1.6;
-    margin-bottom: 18px;
-    color: var(--text);
+    background: #f5f3ff; border-left: 4px solid var(--primary);
+    border-radius: 10px; padding: 14px 16px;
+    font-size: 1.05rem; line-height: 1.6; margin-bottom: 18px; color: var(--text);
   }
-
-  .q-options {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-
+  .q-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .q-opt {
-    padding: 14px 10px;
-    border: 2.5px solid #ddd;
-    border-radius: 14px;
-    text-align: center;
-    font-size: 1.1rem;
-    font-weight: 700;
-    cursor: pointer;
-    background: white;
-    transition: all 0.18s;
-    user-select: none;
+    padding: 14px 10px; border: 2.5px solid #ddd; border-radius: 14px;
+    text-align: center; font-size: 1.1rem; font-weight: 700;
+    cursor: pointer; background: white; transition: all 0.18s; user-select: none;
   }
-
   .q-opt:hover { border-color: var(--primary); background: #f0edff; }
   .q-opt.correct { border-color: var(--accent); background: #e8fff8; color: #1a9c6e; pointer-events: none; }
   .q-opt.wrong { border-color: var(--secondary); background: #fff0f3; color: var(--secondary); animation: shake 0.45s ease; pointer-events: none; }
 
-  /* ── Level 3: Number line matching ── */
-  .nl-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    align-items: start;
-  }
-
+  /* ── Level 3 ── */
+  .nl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
   .nl-col { display: flex; flex-direction: column; gap: 10px; }
 
   .nl-ineq {
-    padding: 14px 10px;
-    border-radius: 14px;
-    border: 2.5px solid #ddd;
-    text-align: center;
-    font-size: 1.15rem;
-    font-weight: 700;
-    cursor: pointer;
-    background: white;
-    transition: all 0.18s;
-    user-select: none;
-    font-family: monospace;
+    padding: 14px 10px; border-radius: 14px; border: 2.5px solid #ddd;
+    text-align: center; font-size: 1.15rem; font-weight: 700;
+    cursor: pointer; background: white; transition: all 0.18s;
+    user-select: none; font-family: monospace;
   }
-
-  .nl-ineq:hover:not(.matched):not(.disabled) {
-    border-color: var(--primary);
-    background: #f0edff;
-  }
-
+  .nl-ineq:hover:not(.matched):not(.disabled) { border-color: var(--primary); background: #f0edff; }
   .nl-ineq.selected { border-color: var(--primary); background: var(--primary); color: white; }
   .nl-ineq.matched { border-color: var(--accent); background: #e8fff8; pointer-events: none; }
   .nl-ineq.wrong { border-color: var(--secondary); background: #fff0f3; animation: shake 0.45s ease; }
   .nl-ineq.disabled { pointer-events: none; opacity: 0.35; }
 
   .nl-svg-card {
-    padding: 10px 8px;
-    border-radius: 14px;
-    border: 2.5px solid #ddd;
-    cursor: pointer;
-    background: white;
-    transition: all 0.18s;
-    user-select: none;
-    text-align: center;
+    padding: 10px 8px; border-radius: 14px; border: 2.5px solid #ddd;
+    cursor: pointer; background: white; transition: all 0.18s;
+    user-select: none; text-align: center;
   }
-
-  .nl-svg-card:hover:not(.matched):not(.disabled) {
-    border-color: var(--secondary);
-    background: #fff5f7;
-  }
-
+  .nl-svg-card:hover:not(.matched):not(.disabled) { border-color: var(--secondary); background: #fff5f7; }
   .nl-svg-card.selected { border-color: var(--secondary); background: #fff0f3; box-shadow: 0 4px 14px rgba(255,101,132,0.3); }
   .nl-svg-card.matched { border-color: var(--accent); background: #e8fff8; pointer-events: none; }
   .nl-svg-card.wrong { border-color: var(--secondary); animation: shake 0.45s ease; }
@@ -268,63 +314,35 @@
 
   /* ── Celebration ── */
   .celebrate {
-    display: none;
-    text-align: center;
-    padding: 28px 20px;
+    display: none; text-align: center; padding: 28px 20px;
     background: linear-gradient(135deg, #6C63FF22, #FF658422);
-    border-radius: 18px;
-    margin-bottom: 16px;
-    animation: pop 0.4s ease;
+    border-radius: 18px; margin-bottom: 16px; animation: pop 0.4s ease;
   }
-
   .celebrate.show { display: block; }
   .celebrate h3 { font-size: 1.6rem; margin-bottom: 8px; }
   .celebrate p { color: #666; margin-bottom: 14px; }
 
   .btn-next {
-    padding: 12px 30px;
-    background: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 30px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
+    padding: 12px 30px; background: var(--primary); color: white;
+    border: none; border-radius: 30px; font-size: 1rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
   }
-
   .btn-next:hover { background: #5348e0; transform: translateY(-2px); box-shadow: 0 6px 18px rgba(108,99,255,0.4); }
 
   .btn-retry {
-    padding: 10px 24px;
-    background: transparent;
-    color: var(--primary);
-    border: 2px solid var(--primary);
-    border-radius: 30px;
-    font-size: 0.95rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-left: 10px;
+    padding: 10px 24px; background: transparent; color: var(--primary);
+    border: 2px solid var(--primary); border-radius: 30px; font-size: 0.95rem;
+    font-weight: 700; cursor: pointer; transition: all 0.2s; margin-left: 10px;
   }
-
   .btn-retry:hover { background: var(--primary); color: white; }
 
   .confetti-container {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    pointer-events: none;
-    z-index: 999;
-    overflow: hidden;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 999; overflow: hidden;
   }
-
   .confetti-piece {
-    position: absolute;
-    width: 10px; height: 14px;
-    opacity: 0;
-    border-radius: 2px;
-    animation: fall 1.8s ease-in forwards;
+    position: absolute; width: 10px; height: 14px;
+    opacity: 0; border-radius: 2px; animation: fall 1.8s ease-in forwards;
   }
 
   /* ── Animations ── */
@@ -335,200 +353,287 @@
     60% { transform: translateX(-4px); }
     80% { transform: translateX(4px); }
   }
-
   @keyframes pop {
     0% { transform: scale(0.8); opacity: 0; }
     70% { transform: scale(1.04); }
     100% { transform: scale(1); opacity: 1; }
   }
-
   @keyframes fall {
     0% { transform: translateY(-30px) rotate(0deg); opacity: 1; }
     100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
   }
-
   @keyframes bounce-in {
     0% { transform: scale(0); opacity: 0; }
     60% { transform: scale(1.15); }
     100% { transform: scale(1); opacity: 1; }
   }
+  @keyframes slide-up {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
 
-  /* final screen */
+  /* ── Final Screen ── */
   #final-screen {
     display: none;
-    text-align: center;
-    padding: 30px 20px;
-    background: linear-gradient(135deg, #6C63FF, #FF6584);
-    border-radius: 20px;
-    color: white;
-    width: 100%;
-    max-width: 640px;
+    width: 100%; max-width: 640px;
     animation: bounce-in 0.5s ease;
   }
 
-  #final-screen h2 { font-size: 2rem; margin-bottom: 10px; }
-  #final-screen p { font-size: 1.1rem; margin-bottom: 20px; opacity: 0.9; }
+  .final-hero {
+    text-align: center;
+    padding: 30px 20px 24px;
+    background: linear-gradient(135deg, #6C63FF, #FF6584);
+    border-radius: 20px;
+    color: white;
+    margin-bottom: 16px;
+  }
+
+  .final-hero h2 { font-size: 2rem; margin-bottom: 8px; }
+  .final-hero .player-label { font-size: 1rem; opacity: 0.85; margin-bottom: 4px; }
+  .final-hero .final-pts { font-size: 3.5rem; font-weight: 900; margin: 8px 0; }
+  .final-hero .final-sub { font-size: 0.9rem; opacity: 0.8; }
+
+  .final-btns { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
 
   .btn-restart {
-    padding: 12px 32px;
-    background: white;
-    color: var(--primary);
-    border: none;
-    border-radius: 30px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    padding: 12px 28px; background: white; color: var(--primary);
+    border: none; border-radius: 30px; font-size: 1rem; font-weight: 700;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.2); transition: all 0.2s;
   }
+  .btn-restart:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
 
-  .instruction {
-    font-size: 0.82rem;
-    color: #aaa;
-    text-align: center;
-    margin-bottom: 12px;
+  .btn-hub-white {
+    padding: 12px 28px; background: rgba(255,255,255,0.2); color: white;
+    border: 2px solid rgba(255,255,255,0.5); border-radius: 30px;
+    font-size: 1rem; font-weight: 700; cursor: pointer;
+    text-decoration: none; transition: all 0.2s; display: inline-block;
   }
+  .btn-hub-white:hover { background: rgba(255,255,255,0.35); }
 
+  .final-lb-card {
+    background: white; border-radius: 18px; padding: 20px;
+    box-shadow: var(--shadow); margin-bottom: 16px;
+    animation: slide-up 0.4s ease 0.2s both;
+  }
+  .final-lb-card h3 { font-size: 1rem; color: var(--primary); margin-bottom: 14px; text-align: center; }
+
+  /* ── Misc ── */
+  .instruction { font-size: 0.82rem; color: #aaa; text-align: center; margin-bottom: 12px; }
   .feedback-msg {
-    text-align: center;
-    font-size: 0.9rem;
-    min-height: 22px;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: var(--secondary);
-    transition: opacity 0.3s;
+    text-align: center; font-size: 0.9rem; min-height: 22px;
+    margin-bottom: 8px; font-weight: 600; color: var(--secondary); transition: opacity 0.3s;
   }
 </style>
 </head>
 <body>
 
-<h1>📐 一元一次不等式</h1>
-<p class="subtitle">三關闖關挑戰，完成全部獲得滿分！</p>
+<!-- ==============================
+     START SCREEN
+============================== -->
+<div id="start-screen">
+  <div class="start-hero">
+    <span class="game-emoji">📐</span>
+    <h1>一元一次不等式</h1>
+    <p>三關闖關挑戰<br>符號配對 · 文字轉算式 · 數線配對</p>
+  </div>
 
-<div class="score-bar">
-  <div class="score-item">總分：<span id="total-score">0</span></div>
-  <div class="score-item">關卡：<span id="level-display">1/3</span></div>
+  <div class="start-card">
+    <h3>✏️ 輸入你的名字，開始挑戰！</h3>
+    <div class="name-input-row">
+      <input type="text" id="player-name-input" placeholder="你的名字…" maxlength="12"
+             onkeydown="if(event.key==='Enter') startGame()">
+      <button class="btn-start" onclick="startGame()">開始 🚀</button>
+    </div>
+    <p class="name-hint">最多 12 個字</p>
+  </div>
+
+  <div class="start-card leaderboard-wrap">
+    <h3>🏆 排行榜</h3>
+    <div class="leaderboard" id="lb-start"></div>
+  </div>
 </div>
 
-<!-- Tabs -->
-<div class="tabs">
-  <button class="tab-btn active" onclick="switchTab(1)" id="tab1">🔤 關卡一</button>
-  <button class="tab-btn" onclick="switchTab(2)" id="tab2">📝 關卡二</button>
-  <button class="tab-btn" onclick="switchTab(3)" id="tab3">📏 關卡三</button>
-</div>
+<!-- ==============================
+     GAME AREA
+============================== -->
+<div id="game-area">
 
-<!-- ====== LEVEL 1 ====== -->
-<div class="section active" id="sec1">
-  <div class="card">
-    <h2>🔤 關卡一：符號配對</h2>
-    <p class="instruction">點擊左欄的文字，再點擊右欄對應的符號</p>
-    <div class="feedback-msg" id="fb1"></div>
-    <div class="match-grid">
-      <div class="match-col">
-        <div class="match-col-title">文字</div>
-        <div class="match-item" id="w-da" data-key="gt" onclick="selectWord('w-da','gt')">大於</div>
-        <div class="match-item" id="w-xiao" data-key="lt" onclick="selectWord('w-xiao','lt')">小於</div>
-        <div class="match-item" id="w-dae" data-key="gte" onclick="selectWord('w-dae','gte')">大於等於</div>
-        <div class="match-item" id="w-xiaoe" data-key="lte" onclick="selectWord('w-xiaoe','lte')">小於等於</div>
-      </div>
-      <div class="match-col">
-        <div class="match-col-title">符號</div>
-        <div class="match-item" id="s-lt" data-key="lt" onclick="selectSymbol('s-lt','lt')">＜</div>
-        <div class="match-item" id="s-gte" data-key="gte" onclick="selectSymbol('s-gte','gte')">≥</div>
-        <div class="match-item" id="s-gt" data-key="gt" onclick="selectSymbol('s-gt','gt')">＞</div>
-        <div class="match-item" id="s-lte" data-key="lte" onclick="selectSymbol('s-lte','lte')">≤</div>
+  <h1>📐 一元一次不等式</h1>
+  <div class="player-name-display" id="player-name-display"></div>
+
+  <div class="score-bar">
+    <div class="score-item">總分：<span id="total-score">0</span></div>
+    <div class="score-item">關卡：<span id="level-display">0/3</span></div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab-btn active" onclick="switchTab(1)" id="tab1">🔤 關卡一</button>
+    <button class="tab-btn" onclick="switchTab(2)" id="tab2">📝 關卡二</button>
+    <button class="tab-btn" onclick="switchTab(3)" id="tab3">📏 關卡三</button>
+  </div>
+
+  <!-- LEVEL 1 -->
+  <div class="section active" id="sec1">
+    <div class="card">
+      <h2>🔤 關卡一：符號配對</h2>
+      <p class="instruction">點擊左欄的文字，再點擊右欄對應的符號</p>
+      <div class="feedback-msg" id="fb1"></div>
+      <div class="match-grid">
+        <div class="match-col">
+          <div class="match-col-title">文字</div>
+          <div class="match-item" id="w-da"    onclick="selectWord('w-da','gt')">大於</div>
+          <div class="match-item" id="w-xiao"  onclick="selectWord('w-xiao','lt')">小於</div>
+          <div class="match-item" id="w-dae"   onclick="selectWord('w-dae','gte')">大於等於</div>
+          <div class="match-item" id="w-xiaoe" onclick="selectWord('w-xiaoe','lte')">小於等於</div>
+        </div>
+        <div class="match-col">
+          <div class="match-col-title">符號</div>
+          <div class="match-item" id="s-lt"  onclick="selectSymbol('s-lt','lt')">＜</div>
+          <div class="match-item" id="s-gte" onclick="selectSymbol('s-gte','gte')">≥</div>
+          <div class="match-item" id="s-gt"  onclick="selectSymbol('s-gt','gt')">＞</div>
+          <div class="match-item" id="s-lte" onclick="selectSymbol('s-lte','lte')">≤</div>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="celebrate" id="cel1">
-    <h3>🎉 太棒了！</h3>
-    <p>你成功配對了所有不等號！</p>
-    <button class="btn-next" onclick="nextLevel(2)">前往關卡二 →</button>
-    <button class="btn-retry" onclick="retryLevel(1)">再玩一次</button>
-  </div>
-</div>
-
-<!-- ====== LEVEL 2 ====== -->
-<div class="section" id="sec2">
-  <div class="card" id="q-card">
-    <h2>📝 關卡二：文字轉算式</h2>
-    <div class="q-progress" id="q-prog">第 1 / 5 題</div>
-    <div class="q-text" id="q-text">題目載入中…</div>
-    <div class="q-options" id="q-opts"></div>
-  </div>
-  <div class="celebrate" id="cel2">
-    <h3>🌟 全對了！</h3>
-    <p>你很會把文字轉換成不等式！</p>
-    <button class="btn-next" onclick="nextLevel(3)">前往關卡三 →</button>
-    <button class="btn-retry" onclick="retryLevel(2)">再玩一次</button>
-  </div>
-</div>
-
-<!-- ====== LEVEL 3 ====== -->
-<div class="section" id="sec3">
-  <div class="card">
-    <h2>📏 關卡三：數線配對</h2>
-    <p class="instruction">點左欄不等式，再點右欄對應數線圖</p>
-    <div class="feedback-msg" id="fb3"></div>
-    <div class="nl-grid">
-      <div class="nl-col" id="nl-left"></div>
-      <div class="nl-col" id="nl-right"></div>
+    <div class="celebrate" id="cel1">
+      <h3>🎉 太棒了！</h3>
+      <p>你成功配對了所有不等號！</p>
+      <button class="btn-next" onclick="nextLevel(2)">前往關卡二 →</button>
+      <button class="btn-retry" onclick="retryLevel(1)">再玩一次</button>
     </div>
+    <a href="https://mathhowhowwan.github.io/mathgame/" class="btn-hub">🏠 回遊戲主頁</a>
   </div>
-  <div class="celebrate" id="cel3">
-    <h3>🏆 完美通關！</h3>
-    <p>你是不等式小高手！</p>
-    <button class="btn-next" onclick="showFinal()">查看總成績 🎊</button>
-    <button class="btn-retry" onclick="retryLevel(3)">再玩一次</button>
-  </div>
-</div>
 
-<!-- Final Screen -->
+  <!-- LEVEL 2 -->
+  <div class="section" id="sec2">
+    <div class="card" id="q-card">
+      <h2>📝 關卡二：文字轉算式</h2>
+      <div class="q-progress" id="q-prog">第 1 / 5 題</div>
+      <div class="q-text" id="q-text">題目載入中…</div>
+      <div class="q-options" id="q-opts"></div>
+    </div>
+    <div class="celebrate" id="cel2">
+      <h3>🌟 全對了！</h3>
+      <p>你很會把文字轉換成不等式！</p>
+      <button class="btn-next" onclick="nextLevel(3)">前往關卡三 →</button>
+      <button class="btn-retry" onclick="retryLevel(2)">再玩一次</button>
+    </div>
+    <a href="https://mathhowhowwan.github.io/mathgame/" class="btn-hub">🏠 回遊戲主頁</a>
+  </div>
+
+  <!-- LEVEL 3 -->
+  <div class="section" id="sec3">
+    <div class="card">
+      <h2>📏 關卡三：數線配對</h2>
+      <p class="instruction">點左欄不等式，再點右欄對應數線圖</p>
+      <div class="feedback-msg" id="fb3"></div>
+      <div class="nl-grid">
+        <div class="nl-col" id="nl-left"></div>
+        <div class="nl-col" id="nl-right"></div>
+      </div>
+    </div>
+    <div class="celebrate" id="cel3">
+      <h3>🏆 完美通關！</h3>
+      <p>你是不等式小高手！</p>
+      <button class="btn-next" onclick="showFinal()">查看總成績 🎊</button>
+      <button class="btn-retry" onclick="retryLevel(3)">再玩一次</button>
+    </div>
+    <a href="https://mathhowhowwan.github.io/mathgame/" class="btn-hub">🏠 回遊戲主頁</a>
+  </div>
+
+</div><!-- end #game-area -->
+
+<!-- ==============================
+     FINAL SCREEN
+============================== -->
 <div id="final-screen">
-  <h2>🎊 恭喜完成！</h2>
-  <p>三關全部通關，你的總分是</p>
-  <div style="font-size:3rem; font-weight:900; margin:10px 0;" id="final-score">0</div>
-  <p style="font-size:0.9rem; opacity:0.8;">一元一次不等式小達人</p>
-  <button class="btn-restart" onclick="restartAll()">🔄 重新挑戰</button>
+  <div class="final-hero">
+    <h2>🎊 恭喜完成！</h2>
+    <div class="player-label" id="final-player-label"></div>
+    <div class="final-pts" id="final-score">0</div>
+    <div class="final-sub">一元一次不等式小達人</div>
+    <div class="final-btns">
+      <button class="btn-restart" onclick="restartAll()">🔄 重新挑戰</button>
+      <a href="https://mathhowhowwan.github.io/mathgame/" class="btn-hub-white">🏠 回遊戲主頁</a>
+    </div>
+  </div>
+
+  <div class="final-lb-card">
+    <h3>🏆 排行榜</h3>
+    <div class="leaderboard" id="lb-final"></div>
+  </div>
 </div>
 
 <!-- Confetti -->
 <div class="confetti-container" id="confetti"></div>
 
 <script>
-/* ──────────────────────────────
-   AUDIO
-────────────────────────────── */
+/* ── AUDIO ── */
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let actx;
-
-function initAudio() {
-  if (!actx) actx = new AudioCtx();
-}
-
+function initAudio() { if (!actx) actx = new AudioCtx(); }
 function playBeep(freq, dur, type='sine', vol=0.3) {
   if (!actx) return;
-  const osc = actx.createOscillator();
-  const gain = actx.createGain();
+  const osc = actx.createOscillator(), gain = actx.createGain();
   osc.connect(gain); gain.connect(actx.destination);
-  osc.type = type;
-  osc.frequency.value = freq;
+  osc.type = type; osc.frequency.value = freq;
   gain.gain.setValueAtTime(vol, actx.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + dur);
   osc.start(); osc.stop(actx.currentTime + dur);
 }
+function sfxCorrect() { initAudio(); playBeep(880,0.1); setTimeout(()=>playBeep(1100,0.15),100); }
+function sfxWrong()   { initAudio(); playBeep(200,0.25,'sawtooth',0.2); }
+function sfxWin()     { initAudio(); [523,659,784,1046].forEach((f,i)=>setTimeout(()=>playBeep(f,0.2),i*100)); }
 
-function sfxCorrect() { initAudio(); playBeep(880, 0.1); setTimeout(()=>playBeep(1100, 0.15), 100); }
-function sfxWrong()   { initAudio(); playBeep(200, 0.25, 'sawtooth', 0.2); }
-function sfxWin()     {
-  initAudio();
-  [523,659,784,1046].forEach((f,i) => setTimeout(() => playBeep(f, 0.2), i*100));
+/* ── LEADERBOARD (localStorage) ── */
+const LB_KEY = 'inequality_game_scores';
+const RANK_ICONS = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
+
+function getScores() {
+  try { return JSON.parse(localStorage.getItem(LB_KEY)) || []; }
+  catch(e) { return []; }
 }
 
-/* ──────────────────────────────
-   SCORE
-────────────────────────────── */
+function saveScore(name, score) {
+  const scores = getScores();
+  scores.push({ name, score, date: new Date().toLocaleDateString('zh-TW') });
+  scores.sort((a,b) => b.score - a.score);
+  localStorage.setItem(LB_KEY, JSON.stringify(scores.slice(0, 20)));
+}
+
+function renderLeaderboard(containerId, highlightName) {
+  const el = document.getElementById(containerId);
+  const scores = getScores().slice(0, 10);
+  if (!scores.length) {
+    el.innerHTML = '<div class="lb-empty">還沒有紀錄，快來挑戰！</div>';
+    return;
+  }
+  el.innerHTML = scores.map((s, i) => `
+    <div class="lb-row" style="${s.name===highlightName && i===scores.findIndex(x=>x.name===highlightName&&x.score===s.score) ? 'box-shadow:0 0 0 2.5px var(--primary)' : ''}">
+      <span class="lb-rank">${RANK_ICONS[i] || (i+1)}</span>
+      <span class="lb-name">${escHtml(s.name)}</span>
+      <span class="lb-score">${s.score} 分</span>
+      <span class="lb-date">${s.date}</span>
+    </div>`).join('');
+}
+
+function escHtml(str) {
+  return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ── PLAYER / SCORE STATE ── */
+let playerName = '';
 let totalScore = 0;
 let levelsDone = [false, false, false];
+
+function startGame() {
+  initAudio();
+  const input = document.getElementById('player-name-input');
+  playerName = input.value.trim() || '匿名勇者';
+  document.getElementById('player-name-display').textContent = `👤 ${playerName}`;
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('game-area').classList.add('active');
+}
 
 function addScore(pts) {
   totalScore += pts;
@@ -536,13 +641,10 @@ function addScore(pts) {
 }
 
 function updateLevelDisplay() {
-  const done = levelsDone.filter(Boolean).length;
-  document.getElementById('level-display').textContent = `${done}/3`;
+  document.getElementById('level-display').textContent = `${levelsDone.filter(Boolean).length}/3`;
 }
 
-/* ──────────────────────────────
-   TABS
-────────────────────────────── */
+/* ── TABS ── */
 function switchTab(n) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -550,370 +652,238 @@ function switchTab(n) {
   document.getElementById('tab'+n).classList.add('active');
 }
 
-/* ──────────────────────────────
-   CONFETTI
-────────────────────────────── */
+/* ── CONFETTI ── */
 function launchConfetti() {
   const cont = document.getElementById('confetti');
   cont.innerHTML = '';
   const colors = ['#6C63FF','#FF6584','#43D9A0','#FFD700','#FF8C42'];
-  for (let i = 0; i < 60; i++) {
+  for (let i=0;i<60;i++) {
     const p = document.createElement('div');
     p.className = 'confetti-piece';
-    p.style.left = Math.random()*100 + 'vw';
-    p.style.top = '-20px';
-    p.style.background = colors[Math.floor(Math.random()*colors.length)];
-    p.style.animationDelay = Math.random()*1.2 + 's';
-    p.style.animationDuration = (1.2 + Math.random()*0.8) + 's';
-    p.style.transform = `rotate(${Math.random()*360}deg)`;
+    p.style.cssText = `left:${Math.random()*100}vw;top:-20px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-delay:${Math.random()*1.2}s;
+      animation-duration:${1.2+Math.random()*0.8}s;
+      transform:rotate(${Math.random()*360}deg)`;
     cont.appendChild(p);
   }
-  setTimeout(() => { cont.innerHTML = ''; }, 3500);
+  setTimeout(() => { cont.innerHTML=''; }, 3500);
 }
 
-/* ──────────────────────────────
-   LEVEL 1 — Symbol Match
-────────────────────────────── */
-let l1_selectedWord = null;
-let l1_selectedWordKey = null;
-let l1_matched = {};
-const l1_total = 4;
+/* ── LEVEL 1 ── */
+let l1_word=null, l1_wordKey=null, l1_matched={};
 
 function selectWord(id, key) {
   if (l1_matched[key]) return;
-  // deselect any previously selected word
   document.querySelectorAll('#sec1 .match-col:first-child .match-item').forEach(el => {
     if (!el.classList.contains('matched')) el.classList.remove('selected');
   });
-  l1_selectedWord = id;
-  l1_selectedWordKey = key;
+  l1_word=id; l1_wordKey=key;
   document.getElementById(id).classList.add('selected');
-  document.getElementById('fb1').textContent = '現在點右欄符號來配對！';
+  document.getElementById('fb1').textContent='現在點右欄符號來配對！';
 }
 
 function selectSymbol(id, key) {
-  if (!l1_selectedWord) {
-    document.getElementById('fb1').textContent = '請先點左欄文字！';
-    return;
-  }
+  if (!l1_word) { document.getElementById('fb1').textContent='請先點左欄文字！'; return; }
   if (l1_matched[key]) return;
-
-  if (l1_selectedWordKey === key) {
-    // correct
+  if (l1_wordKey===key) {
     sfxCorrect();
-    document.getElementById(l1_selectedWord).classList.remove('selected');
-    document.getElementById(l1_selectedWord).classList.add('matched');
+    document.getElementById(l1_word).classList.replace('selected','matched');
     document.getElementById(id).classList.add('matched');
-    l1_matched[key] = true;
-    l1_selectedWord = null;
-    l1_selectedWordKey = null;
+    l1_matched[key]=true; l1_word=null; l1_wordKey=null;
     addScore(25);
-    document.getElementById('fb1').textContent = '✅ 正確！';
-    if (Object.keys(l1_matched).length === l1_total) {
-      setTimeout(() => { sfxWin(); launchConfetti(); showCelebrate(1); }, 400);
-    }
+    document.getElementById('fb1').textContent='✅ 正確！';
+    if (Object.keys(l1_matched).length===4) setTimeout(()=>{sfxWin();launchConfetti();showCelebrate(1);},400);
   } else {
-    // wrong
     sfxWrong();
     document.getElementById(id).classList.add('wrong');
-    document.getElementById(l1_selectedWord).classList.add('wrong');
-    document.getElementById('fb1').textContent = '❌ 再試試看！';
-    setTimeout(() => {
+    document.getElementById(l1_word).classList.add('wrong');
+    document.getElementById('fb1').textContent='❌ 再試試看！';
+    setTimeout(()=>{
       document.getElementById(id).classList.remove('wrong');
-      document.getElementById(l1_selectedWord).classList.remove('wrong','selected');
-      l1_selectedWord = null;
-      l1_selectedWordKey = null;
-      document.getElementById('fb1').textContent = '';
+      document.getElementById(l1_word).classList.remove('wrong','selected');
+      l1_word=null; l1_wordKey=null;
+      document.getElementById('fb1').textContent='';
     }, 700);
   }
 }
 
 function retryLevel1() {
-  l1_selectedWord = null; l1_selectedWordKey = null; l1_matched = {};
-  document.querySelectorAll('#sec1 .match-item').forEach(el => {
-    el.classList.remove('selected','matched','wrong','disabled');
-  });
-  document.getElementById('fb1').textContent = '';
+  l1_word=null; l1_wordKey=null; l1_matched={};
+  document.querySelectorAll('#sec1 .match-item').forEach(el=>el.classList.remove('selected','matched','wrong','disabled'));
+  document.getElementById('fb1').textContent='';
   document.getElementById('cel1').classList.remove('show');
 }
 
-/* ──────────────────────────────
-   LEVEL 2 — Word to Expression
-────────────────────────────── */
+/* ── LEVEL 2 ── */
 const questions = [
-  {
-    text: '媽媽和爸爸的年齡總和大於 100 歲',
-    opts: ['媽+爸 > 100', '媽+爸 < 100', '媽+爸 ≥ 100', '媽+爸 ≤ 100'],
-    ans: 0
-  },
-  {
-    text: '小明每天喝水量不少於 2000 毫升',
-    opts: ['喝水量 < 2000', '喝水量 > 2000', '喝水量 ≥ 2000', '喝水量 ≤ 2000'],
-    ans: 2
-  },
-  {
-    text: '一班人數少於 40 人',
-    opts: ['人數 ≤ 40', '人數 < 40', '人數 > 40', '人數 ≥ 40'],
-    ans: 1
-  },
-  {
-    text: '停車場停車數量不多於 50 輛',
-    opts: ['停車數 < 50', '停車數 > 50', '停車數 ≥ 50', '停車數 ≤ 50'],
-    ans: 3
-  },
-  {
-    text: '氣溫超過 35 度就算高溫',
-    opts: ['氣溫 ≥ 35', '氣溫 ≤ 35', '氣溫 > 35', '氣溫 < 35'],
-    ans: 2
-  }
+  { text:'媽媽和爸爸的年齡總和大於 100 歲', opts:['媽+爸 > 100','媽+爸 < 100','媽+爸 ≥ 100','媽+爸 ≤ 100'], ans:0 },
+  { text:'小明每天喝水量不少於 2000 毫升',  opts:['喝水量 < 2000','喝水量 > 2000','喝水量 ≥ 2000','喝水量 ≤ 2000'], ans:2 },
+  { text:'一班人數少於 40 人',              opts:['人數 ≤ 40','人數 < 40','人數 > 40','人數 ≥ 40'], ans:1 },
+  { text:'停車場停車數量不多於 50 輛',       opts:['停車數 < 50','停車數 > 50','停車數 ≥ 50','停車數 ≤ 50'], ans:3 },
+  { text:'氣溫超過 35 度就算高溫',           opts:['氣溫 ≥ 35','氣溫 ≤ 35','氣溫 > 35','氣溫 < 35'], ans:2 },
 ];
 
-let l2_curr = 0;
-let l2_answered = false;
+let l2_curr=0, l2_answered=false;
 
 function loadQuestion(i) {
-  const q = questions[i];
-  document.getElementById('q-prog').textContent = `第 ${i+1} / ${questions.length} 題`;
-  document.getElementById('q-text').textContent = q.text;
-  const optsDiv = document.getElementById('q-opts');
-  optsDiv.innerHTML = '';
-  l2_answered = false;
-  q.opts.forEach((opt, idx) => {
-    const btn = document.createElement('div');
-    btn.className = 'q-opt';
-    btn.textContent = opt;
-    btn.onclick = () => answerQ(idx, q.ans, btn, optsDiv);
-    optsDiv.appendChild(btn);
+  const q=questions[i];
+  document.getElementById('q-prog').textContent=`第 ${i+1} / ${questions.length} 題`;
+  document.getElementById('q-text').textContent=q.text;
+  const div=document.getElementById('q-opts');
+  div.innerHTML=''; l2_answered=false;
+  q.opts.forEach((opt,idx)=>{
+    const btn=document.createElement('div');
+    btn.className='q-opt'; btn.textContent=opt;
+    btn.onclick=()=>answerQ(idx,q.ans,btn,div);
+    div.appendChild(btn);
   });
 }
 
-function answerQ(idx, ans, btn, optsDiv) {
+function answerQ(idx,ans,btn,optsDiv) {
   if (l2_answered) return;
-  l2_answered = true;
-  initAudio();
-  if (idx === ans) {
-    sfxCorrect();
-    btn.classList.add('correct');
-    addScore(20);
-    setTimeout(() => {
-      l2_curr++;
-      if (l2_curr >= questions.length) {
-        sfxWin(); launchConfetti(); showCelebrate(2);
-      } else {
-        loadQuestion(l2_curr);
-      }
-    }, 700);
+  l2_answered=true; initAudio();
+  if (idx===ans) {
+    sfxCorrect(); btn.classList.add('correct'); addScore(20);
+    setTimeout(()=>{ l2_curr++; l2_curr>=questions.length ? (sfxWin(),launchConfetti(),showCelebrate(2)) : loadQuestion(l2_curr); }, 700);
   } else {
-    sfxWrong();
-    btn.classList.add('wrong');
-    // show correct
-    optsDiv.querySelectorAll('.q-opt').forEach((b, i) => {
-      if (i === ans) b.classList.add('correct');
-    });
-    setTimeout(() => {
-      l2_curr++;
-      if (l2_curr >= questions.length) {
-        sfxWin(); launchConfetti(); showCelebrate(2);
-      } else {
-        loadQuestion(l2_curr);
-      }
-    }, 1200);
+    sfxWrong(); btn.classList.add('wrong');
+    optsDiv.querySelectorAll('.q-opt').forEach((b,i)=>{ if(i===ans) b.classList.add('correct'); });
+    setTimeout(()=>{ l2_curr++; l2_curr>=questions.length ? (sfxWin(),launchConfetti(),showCelebrate(2)) : loadQuestion(l2_curr); }, 1200);
   }
 }
 
 function retryLevel2() {
-  l2_curr = 0; l2_answered = false;
+  l2_curr=0; l2_answered=false;
   document.getElementById('cel2').classList.remove('show');
   loadQuestion(0);
 }
 
-/* ──────────────────────────────
-   LEVEL 3 — Number Line Match
-────────────────────────────── */
+/* ── LEVEL 3 ── */
 const nlItems = [
-  { id: 'nl0', expr: 'x > 3',  val: 3,  dir: 'right', closed: false },
-  { id: 'nl1', expr: 'x ≤ -1', val: -1, dir: 'left',  closed: true  },
-  { id: 'nl2', expr: 'x < 5',  val: 5,  dir: 'left',  closed: false },
-  { id: 'nl3', expr: 'x ≥ 0',  val: 0,  dir: 'right', closed: true  },
-  { id: 'nl4', expr: 'x > -2', val: -2, dir: 'right', closed: false },
-  { id: 'nl5', expr: 'x ≤ 4',  val: 4,  dir: 'left',  closed: true  },
+  { expr:'x > 3',  val:3,  dir:'right', closed:false },
+  { expr:'x ≤ -1', val:-1, dir:'left',  closed:true  },
+  { expr:'x < 5',  val:5,  dir:'left',  closed:false },
+  { expr:'x ≥ 0',  val:0,  dir:'right', closed:true  },
+  { expr:'x > -2', val:-2, dir:'right', closed:false },
+  { expr:'x ≤ 4',  val:4,  dir:'left',  closed:true  },
 ];
 
-// Shuffle right column
 function shuffle(arr) {
-  const a = [...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
 }
 
-let nl_selectedLeft = null;
-let nl_selectedRight = null;
-let nl_matched = {};
-let nl_rightOrder = [];
+let nl_selLeft=null, nl_matched={}, nl_rightOrder=[];
 
-function makeSVG(val, dir, closed) {
-  const W=140, H=48, mid=70, cy=24;
-  const vx = mid + val*10; // map val to x
-
-  // Clamp display dot position
-  const dotX = Math.min(Math.max(vx, 18), W-18);
-
-  let arrow = dir === 'right'
-    ? `<line x1="${dotX}" y1="${cy}" x2="${W-8}" y2="${cy}" stroke="#6C63FF" stroke-width="3"/>
-       <polygon points="${W-8},${cy-5} ${W},${cy} ${W-8},${cy+5}" fill="#6C63FF"/>`
-    : `<line x1="${dotX}" y1="${cy}" x2="8" y2="${cy}" stroke="#6C63FF" stroke-width="3"/>
-       <polygon points="8,${cy-5} 0,${cy} 8,${cy+5}" fill="#6C63FF"/>`;
-
-  const circle = closed
-    ? `<circle cx="${dotX}" cy="${cy}" r="6" fill="#6C63FF" stroke="#6C63FF" stroke-width="2"/>`
-    : `<circle cx="${dotX}" cy="${cy}" r="6" fill="white" stroke="#6C63FF" stroke-width="2.5"/>`;
-
-  // Axis line
-  const axis = `<line x1="4" y1="${cy}" x2="${W-4}" y2="${cy}" stroke="#ccc" stroke-width="1.5"/>
+function makeSVG(val,dir,closed) {
+  const W=140,H=48,cy=24,mid=70;
+  const dotX=Math.min(Math.max(mid+val*10,18),W-18);
+  const arrow=dir==='right'
+    ?`<line x1="${dotX}" y1="${cy}" x2="${W-8}" y2="${cy}" stroke="#6C63FF" stroke-width="3"/>
+      <polygon points="${W-8},${cy-5} ${W},${cy} ${W-8},${cy+5}" fill="#6C63FF"/>`
+    :`<line x1="${dotX}" y1="${cy}" x2="8" y2="${cy}" stroke="#6C63FF" stroke-width="3"/>
+      <polygon points="8,${cy-5} 0,${cy} 8,${cy+5}" fill="#6C63FF"/>`;
+  const circle=closed
+    ?`<circle cx="${dotX}" cy="${cy}" r="6" fill="#6C63FF" stroke="#6C63FF" stroke-width="2"/>`
+    :`<circle cx="${dotX}" cy="${cy}" r="6" fill="white" stroke="#6C63FF" stroke-width="2.5"/>`;
+  const axis=`<line x1="4" y1="${cy}" x2="${W-4}" y2="${cy}" stroke="#ccc" stroke-width="1.5"/>
     <line x1="${W-4}" y1="${cy-4}" x2="${W}" y2="${cy}" stroke="#ccc" stroke-width="1.5"/>
     <line x1="${W-4}" y1="${cy+4}" x2="${W}" y2="${cy}" stroke="#ccc" stroke-width="1.5"/>`;
-
-  // Tick mark and label
-  const tick = `<line x1="${dotX}" y1="${cy-8}" x2="${dotX}" y2="${cy+8}" stroke="#999" stroke-width="1"/>
+  const tick=`<line x1="${dotX}" y1="${cy-8}" x2="${dotX}" y2="${cy+8}" stroke="#999" stroke-width="1"/>
     <text x="${dotX}" y="${cy+20}" text-anchor="middle" font-size="11" fill="#999">${val}</text>`;
-
-  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-    ${axis}${tick}${arrow}${circle}
-  </svg>`;
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">${axis}${tick}${arrow}${circle}</svg>`;
 }
 
 function buildLevel3() {
-  nl_selectedLeft = null; nl_selectedRight = null; nl_matched = {};
-  nl_rightOrder = shuffle(nlItems.map((_,i)=>i));
-
-  const leftCol = document.getElementById('nl-left');
-  const rightCol = document.getElementById('nl-right');
-  leftCol.innerHTML = ''; rightCol.innerHTML = '';
-
-  nlItems.forEach((item, i) => {
-    const el = document.createElement('div');
-    el.className = 'nl-ineq';
-    el.id = 'nll-' + i;
-    el.textContent = item.expr;
-    el.onclick = () => selectNLLeft(i);
-    leftCol.appendChild(el);
+  nl_selLeft=null; nl_matched={};
+  nl_rightOrder=shuffle(nlItems.map((_,i)=>i));
+  const lc=document.getElementById('nl-left'), rc=document.getElementById('nl-right');
+  lc.innerHTML=''; rc.innerHTML='';
+  nlItems.forEach((item,i)=>{
+    const el=document.createElement('div');
+    el.className='nl-ineq'; el.id='nll-'+i; el.textContent=item.expr;
+    el.onclick=()=>selectNLLeft(i); lc.appendChild(el);
   });
-
-  nl_rightOrder.forEach((origIdx, ri) => {
-    const item = nlItems[origIdx];
-    const el = document.createElement('div');
-    el.className = 'nl-svg-card';
-    el.id = 'nlr-' + ri;
-    el.innerHTML = makeSVG(item.val, item.dir, item.closed);
-    el.dataset.orig = origIdx;
-    el.onclick = () => selectNLRight(ri, origIdx);
-    rightCol.appendChild(el);
+  nl_rightOrder.forEach((origIdx,ri)=>{
+    const item=nlItems[origIdx], el=document.createElement('div');
+    el.className='nl-svg-card'; el.id='nlr-'+ri;
+    el.innerHTML=makeSVG(item.val,item.dir,item.closed);
+    el.dataset.orig=origIdx; el.onclick=()=>selectNLRight(ri,origIdx); rc.appendChild(el);
   });
-
-  document.getElementById('fb3').textContent = '';
+  document.getElementById('fb3').textContent='';
 }
 
 function selectNLLeft(i) {
   if (nl_matched[i]) return;
-  // deselect old
-  document.querySelectorAll('.nl-ineq').forEach(el => {
-    if (!el.classList.contains('matched')) el.classList.remove('selected');
-  });
-  nl_selectedLeft = i;
-  document.getElementById('nll-' + i).classList.add('selected');
-  document.getElementById('fb3').textContent = '好！現在點右欄的數線圖';
+  document.querySelectorAll('.nl-ineq').forEach(el=>{ if(!el.classList.contains('matched')) el.classList.remove('selected'); });
+  nl_selLeft=i; document.getElementById('nll-'+i).classList.add('selected');
+  document.getElementById('fb3').textContent='好！現在點右欄的數線圖';
 }
 
-function selectNLRight(ri, origIdx) {
-  if (nl_selectedLeft === null) {
-    document.getElementById('fb3').textContent = '請先點左欄的不等式！';
-    return;
-  }
-  if (nl_matched[nl_selectedLeft]) return;
-
-  const leftEl = document.getElementById('nll-' + nl_selectedLeft);
-  const rightEl = document.getElementById('nlr-' + ri);
-
-  if (origIdx === nl_selectedLeft) {
-    // correct
+function selectNLRight(ri,origIdx) {
+  if (nl_selLeft===null) { document.getElementById('fb3').textContent='請先點左欄的不等式！'; return; }
+  if (nl_matched[nl_selLeft]) return;
+  const lEl=document.getElementById('nll-'+nl_selLeft), rEl=document.getElementById('nlr-'+ri);
+  if (origIdx===nl_selLeft) {
     sfxCorrect();
-    leftEl.classList.remove('selected'); leftEl.classList.add('matched');
-    rightEl.classList.add('matched');
-    nl_matched[nl_selectedLeft] = true;
-    addScore(17);
-    document.getElementById('fb3').textContent = '✅ 正確配對！';
-    nl_selectedLeft = null;
-
-    if (Object.keys(nl_matched).length === nlItems.length) {
-      setTimeout(() => { sfxWin(); launchConfetti(); showCelebrate(3); }, 400);
-    }
+    lEl.classList.remove('selected'); lEl.classList.add('matched'); rEl.classList.add('matched');
+    nl_matched[nl_selLeft]=true; addScore(17);
+    document.getElementById('fb3').textContent='✅ 正確配對！'; nl_selLeft=null;
+    if (Object.keys(nl_matched).length===nlItems.length) setTimeout(()=>{sfxWin();launchConfetti();showCelebrate(3);},400);
   } else {
-    // wrong
-    sfxWrong();
-    rightEl.classList.add('wrong');
-    leftEl.classList.add('wrong');
-    document.getElementById('fb3').textContent = '❌ 不對，再想想！';
-    setTimeout(() => {
-      rightEl.classList.remove('wrong','selected');
-      leftEl.classList.remove('wrong','selected');
-      nl_selectedLeft = null;
-      document.getElementById('fb3').textContent = '';
-    }, 700);
+    sfxWrong(); rEl.classList.add('wrong'); lEl.classList.add('wrong');
+    document.getElementById('fb3').textContent='❌ 不對，再想想！';
+    setTimeout(()=>{ rEl.classList.remove('wrong','selected'); lEl.classList.remove('wrong','selected'); nl_selLeft=null; document.getElementById('fb3').textContent=''; }, 700);
   }
 }
 
-function retryLevel3() {
-  document.getElementById('cel3').classList.remove('show');
-  buildLevel3();
-}
+function retryLevel3() { document.getElementById('cel3').classList.remove('show'); buildLevel3(); }
 
-/* ──────────────────────────────
-   CELEBRATE / NAVIGATION
-────────────────────────────── */
+/* ── FLOW ── */
 function showCelebrate(lvl) {
   document.getElementById('cel'+lvl).classList.add('show');
-  levelsDone[lvl-1] = true;
+  levelsDone[lvl-1]=true;
   document.getElementById('tab'+lvl).classList.add('done');
   updateLevelDisplay();
 }
 
 function nextLevel(n) {
   switchTab(n);
-  if (n === 3 && Object.keys(nl_matched).length === 0) buildLevel3();
+  if (n===3 && Object.keys(nl_matched).length===0) buildLevel3();
 }
 
-function retryLevel(n) {
-  if (n===1) retryLevel1();
-  else if (n===2) retryLevel2();
-  else retryLevel3();
-}
+function retryLevel(n) { [retryLevel1,retryLevel2,retryLevel3][n-1](); }
 
 function showFinal() {
+  saveScore(playerName, totalScore);
+  document.getElementById('final-player-label').textContent = `👤 ${playerName} 的成績`;
   document.getElementById('final-score').textContent = totalScore + ' 分';
-  document.getElementById('final-screen').style.display = 'block';
-  document.querySelectorAll('.section').forEach(s => s.style.display='none');
-  document.getElementById('tabs') && (document.getElementById('tabs').style.display='none');
-  launchConfetti();
-  sfxWin();
+  document.getElementById('game-area').classList.remove('active');
+  document.getElementById('final-screen').style.display='block';
+  renderLeaderboard('lb-final', playerName);
+  launchConfetti(); sfxWin();
 }
 
 function restartAll() {
-  totalScore = 0; levelsDone = [false,false,false];
-  document.getElementById('total-score').textContent = '0';
-  document.getElementById('level-display').textContent = '0/3';
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('done','active'));
+  totalScore=0; levelsDone=[false,false,false];
+  document.getElementById('total-score').textContent='0';
+  document.getElementById('level-display').textContent='0/3';
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('done','active'));
   document.getElementById('tab1').classList.add('active');
-  document.getElementById('final-screen').style.display = 'none';
-  document.querySelectorAll('.section').forEach(s => { s.style.display=''; s.classList.remove('active'); });
+  document.getElementById('final-screen').style.display='none';
+  document.getElementById('game-area').classList.add('active');
+  document.querySelectorAll('.section').forEach(s=>{s.style.display='';s.classList.remove('active');});
   document.getElementById('sec1').classList.add('active');
-  retryLevel1();
-  retryLevel2();
-  retryLevel3();
+  retryLevel1(); retryLevel2(); retryLevel3();
 }
 
-/* ──────────────────────────────
-   INIT
-────────────────────────────── */
+/* ── INIT ── */
+renderLeaderboard('lb-start');
 loadQuestion(0);
 buildLevel3();
+document.getElementById('player-name-input').focus();
 </script>
 </body>
 </html>
