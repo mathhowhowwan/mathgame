@@ -265,6 +265,37 @@
 
   .instruction { font-size:0.82rem; color:#aaa; text-align:center; margin-bottom:12px; }
   .feedback-msg { text-align:center; font-size:0.9rem; min-height:22px; margin-bottom:8px; font-weight:600; color:var(--secondary); }
+
+  /* ── Level selection grid ── */
+  .level-select-label { text-align:center; color:#aaa; font-size:0.82rem; margin:4px 0 10px; }
+  .level-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; }
+  .level-card {
+    background:white; border-radius:18px; padding:14px 12px;
+    box-shadow:var(--shadow); cursor:pointer;
+    border:2.5px solid transparent; transition:all 0.2s;
+    display:flex; flex-direction:column;
+  }
+  .level-card:hover { border-color:var(--primary); transform:translateY(-3px); }
+  .level-card-header {
+    font-size:0.88rem; font-weight:700; color:var(--primary);
+    text-align:center; margin-bottom:10px; line-height:1.4;
+  }
+  .level-card .leaderboard { flex:1; }
+  .btn-play-level {
+    display:block; width:100%; margin-top:10px; padding:8px 4px;
+    background:var(--primary); color:white; border:none;
+    border-radius:10px; font-weight:700; cursor:pointer;
+    font-size:0.82rem; font-family:inherit;
+    transition:background 0.2s;
+  }
+  .btn-play-level:hover { background:#5348e0; }
+  .btn-back-menu {
+    padding:10px 20px; background:transparent; color:#aaa;
+    border:2px solid #ddd; border-radius:30px; font-size:0.88rem;
+    font-weight:700; cursor:pointer; transition:all 0.2s;
+    margin-top:8px; font-family:inherit;
+  }
+  .btn-back-menu:hover { border-color:var(--primary); color:var(--primary); }
 </style>
 </head>
 <body>
@@ -285,9 +316,28 @@
     </div>
     <p class="name-hint">最多 12 個字</p>
   </div>
-  <div class="start-card">
-    <h3>🏆 總排行榜</h3>
-    <div class="leaderboard" id="lb-start"></div>
+  <p class="level-select-label">選擇一關，直接開始挑戰 👇</p>
+  <div class="level-grid">
+    <div class="level-card" onclick="startLevel(1)">
+      <div class="level-card-header">🔤 關卡一<br>符號配對</div>
+      <div class="leaderboard" id="lb-l1"></div>
+      <button class="btn-play-level" onclick="event.stopPropagation();startLevel(1)">開始挑戰</button>
+    </div>
+    <div class="level-card" onclick="startLevel(2)">
+      <div class="level-card-header">📝 關卡二<br>文字轉算式</div>
+      <div class="leaderboard" id="lb-l2"></div>
+      <button class="btn-play-level" onclick="event.stopPropagation();startLevel(2)">開始挑戰</button>
+    </div>
+    <div class="level-card" onclick="startLevel(3)">
+      <div class="level-card-header">✅ 關卡三<br>判斷是不是解</div>
+      <div class="leaderboard" id="lb-l3"></div>
+      <button class="btn-play-level" onclick="event.stopPropagation();startLevel(3)">開始挑戰</button>
+    </div>
+    <div class="level-card" onclick="startLevel(4)">
+      <div class="level-card-header">📏 關卡四<br>數線選擇</div>
+      <div class="leaderboard" id="lb-l4"></div>
+      <button class="btn-play-level" onclick="event.stopPropagation();startLevel(4)">開始挑戰</button>
+    </div>
   </div>
 </div>
 
@@ -324,6 +374,7 @@
       </div>
       <button class="btn-next" onclick="nextLevel(2)">前往關卡二 →</button>
       <button class="btn-retry" onclick="retryLevel(1)">再玩一次</button>
+      <br><button class="btn-back-menu" onclick="backToMenu()">🏠 回選單</button>
     </div>
     <a href="https://mathhowhowwan.github.io/mathgame/" class="btn-hub">🏠 回遊戲主頁</a>
   </div>
@@ -346,6 +397,7 @@
       </div>
       <button class="btn-next" onclick="nextLevel(3)">前往關卡三 →</button>
       <button class="btn-retry" onclick="retryLevel(2)">再玩一次</button>
+      <br><button class="btn-back-menu" onclick="backToMenu()">🏠 回選單</button>
     </div>
     <a href="https://mathhowhowwan.github.io/mathgame/" class="btn-hub">🏠 回遊戲主頁</a>
   </div>
@@ -374,6 +426,7 @@
       </div>
       <button class="btn-next" onclick="nextLevel(4)">前往關卡四 →</button>
       <button class="btn-retry" onclick="retryLevel(3)">再玩一次</button>
+      <br><button class="btn-back-menu" onclick="backToMenu()">🏠 回選單</button>
     </div>
     <a href="https://mathhowhowwan.github.io/mathgame/" class="btn-hub">🏠 回遊戲主頁</a>
   </div>
@@ -396,6 +449,7 @@
       </div>
       <button class="btn-next" onclick="showFinal()">查看總成績 🎊</button>
       <button class="btn-retry" onclick="retryLevel(4)">再玩一次</button>
+      <br><button class="btn-back-menu" onclick="backToMenu()">🏠 回選單</button>
     </div>
     <a href="https://mathhowhowwan.github.io/mathgame/" class="btn-hub">🏠 回遊戲主頁</a>
   </div>
@@ -478,12 +532,22 @@ let playerName='', totalScore=0;
 let levelsDone=[false,false,false,false];
 let levelScores=[0,0,0,0];
 
-function startGame(){
+function startLevel(n){
   initAudio();
   playerName=document.getElementById('player-name-input').value.trim()||'匿名勇者';
   document.getElementById('player-name-display').textContent=`👤 ${playerName}`;
   document.getElementById('start-screen').style.display='none';
   document.getElementById('game-area').classList.add('active');
+  switchTab(n);
+}
+
+function startGame(){ startLevel(1); }
+
+function backToMenu(){
+  document.getElementById('game-area').classList.remove('active');
+  document.getElementById('final-screen').style.display='none';
+  document.getElementById('start-screen').style.display='';
+  onFbReady(loadStartLeaderboards);
 }
 
 function addScore(pts, lvl){
@@ -769,7 +833,13 @@ loadJudgeQuestion(0);
 loadNLQuestion(0);
 document.getElementById('player-name-input').focus();
 function onFbReady(fn){ if(window._fbReady){fn();}else{document.addEventListener('fb-ready',fn,{once:true});} }
-onFbReady(()=>renderLeaderboard('lb-start','','inequality_scores',10));
+function loadStartLeaderboards(){
+  renderLeaderboard('lb-l1','',LEVEL_COLS[0],3);
+  renderLeaderboard('lb-l2','',LEVEL_COLS[1],3);
+  renderLeaderboard('lb-l3','',LEVEL_COLS[2],3);
+  renderLeaderboard('lb-l4','',LEVEL_COLS[3],3);
+}
+onFbReady(loadStartLeaderboards);
 </script>
 </body>
 </html>
