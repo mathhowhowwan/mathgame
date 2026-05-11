@@ -501,7 +501,7 @@ const LEVEL_COLS = [
   'inequality_l3_scores',
   'inequality_l4_scores',
 ];
-const LEVEL_MAX = [100, 100, 96, 100];
+const LEVEL_MAX = [100, 100, 120, 200];
 
 function escHtml(s){ return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
@@ -526,6 +526,10 @@ async function renderLeaderboard(id, highlight, col='inequality_scores', n=10) {
     </div>`;
   }).join('');
 }
+
+/* ── QUESTION BANK UTILS ── */
+function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function pick(bank,n){ return shuffle(bank).slice(0,Math.min(n,bank.length)); }
 
 /* ── PLAYER / SCORE STATE ── */
 let playerName='', totalScore=0;
@@ -594,7 +598,7 @@ async function showCelebrate(lvl){
 
 /* ════ LEVEL 1：符號配對 MCQ ════ */
 const SYM_OPTS=['＞','＜','≥','≤'];
-const symQuestions=[
+const symBank=[
   {text:'「大於」要用哪個不等號？',     ans:0},
   {text:'「小於」要用哪個不等號？',     ans:1},
   {text:'「大於等於」要用哪個不等號？', ans:2},
@@ -605,8 +609,18 @@ const symQuestions=[
   {text:'「至多」要用哪個不等號？',     ans:3},
   {text:'「不少於」要用哪個不等號？',   ans:2},
   {text:'「不多於」要用哪個不等號？',   ans:3},
+  {text:'「未達」要用哪個不等號？',     ans:1},
+  {text:'「未滿」要用哪個不等號？',     ans:1},
+  {text:'「以上」要用哪個不等號？',     ans:2},
+  {text:'「以下」要用哪個不等號？',     ans:3},
+  {text:'「超出」要用哪個不等號？',     ans:0},
+  {text:'「不足」要用哪個不等號？',     ans:1},
+  {text:'「不小於」要用哪個不等號？',   ans:2},
+  {text:'「不大於」要用哪個不等號？',   ans:3},
+  {text:'「多於」要用哪個不等號？',     ans:0},
+  {text:'「少於」要用哪個不等號？',     ans:1},
 ];
-let l1_curr=0, l1_answered=false;
+let symQuestions=[], l1_curr=0, l1_answered=false;
 
 function loadSymQuestion(i){
   const q=symQuestions[i];
@@ -630,26 +644,38 @@ function answerSym(idx,ans,btn,div){
   }
 }
 
-function retryLevel1(){
+function initLevel1(){
+  symQuestions=pick(symBank,10);
   l1_curr=0; l1_answered=false; levelScores[0]=0;
   document.getElementById('cel1').classList.remove('show');
   loadSymQuestion(0);
 }
+function retryLevel1(){ initLevel1(); }
 
 /* ════ LEVEL 2：文字轉算式 ════ */
-const questions=[
-  {text:'媽媽和爸爸的年齡總和大於 100 歲',         opts:['媽+爸 > 100','媽+爸 < 100','媽+爸 ≥ 100','媽+爸 ≤ 100'],ans:0},
-  {text:'小明每天喝水量不少於 2000 毫升',           opts:['喝水量 < 2000','喝水量 > 2000','喝水量 ≥ 2000','喝水量 ≤ 2000'],ans:2},
-  {text:'一班人數少於 40 人',                        opts:['人數 ≤ 40','人數 < 40','人數 > 40','人數 ≥ 40'],ans:1},
-  {text:'停車場停車數量不多於 50 輛',               opts:['停車數 < 50','停車數 > 50','停車數 ≥ 50','停車數 ≤ 50'],ans:3},
-  {text:'氣溫超過 35 度就算高溫',                    opts:['氣溫 ≥ 35','氣溫 ≤ 35','氣溫 > 35','氣溫 < 35'],ans:2},
-  {text:'某數 x 加上 5 大於 12，用不等式表示',       opts:['x + 5 ≥ 12','x + 5 < 12','x + 5 > 12','x − 5 > 12'],ans:2},
-  {text:'2 倍的 x 不超過 8，用不等式表示',           opts:['2x > 8','2x ≥ 8','2x < 8','2x ≤ 8'],ans:3},
-  {text:'某數 y 減 3 不少於 1，用不等式表示',        opts:['y − 3 ≤ 1','y − 3 > 1','y − 3 ≥ 1','y + 3 ≥ 1'],ans:2},
-  {text:'某數 x 的 3 倍超過 9，用不等式表示',        opts:['3x ≥ 9','3x > 9','3x < 9','3x ≤ 9'],ans:1},
-  {text:'某數 x 的 2 倍加 1 不多於 7，用不等式表示', opts:['2x + 1 ≥ 7','2x + 1 > 7','2x − 1 ≤ 7','2x + 1 ≤ 7'],ans:3},
+const questionBank=[
+  {text:'媽媽和爸爸的年齡總和大於 100 歲',           opts:['媽+爸 > 100','媽+爸 < 100','媽+爸 ≥ 100','媽+爸 ≤ 100'],ans:0},
+  {text:'小明每天喝水量不少於 2000 毫升',             opts:['喝水量 < 2000','喝水量 > 2000','喝水量 ≥ 2000','喝水量 ≤ 2000'],ans:2},
+  {text:'一班人數少於 40 人',                          opts:['人數 ≤ 40','人數 < 40','人數 > 40','人數 ≥ 40'],ans:1},
+  {text:'停車場停車數量不多於 50 輛',                 opts:['停車數 < 50','停車數 > 50','停車數 ≥ 50','停車數 ≤ 50'],ans:3},
+  {text:'氣溫超過 35 度就算高溫',                      opts:['氣溫 ≥ 35','氣溫 ≤ 35','氣溫 > 35','氣溫 < 35'],ans:2},
+  {text:'某數 x 加上 5 大於 12，用不等式表示',         opts:['x + 5 ≥ 12','x + 5 < 12','x + 5 > 12','x − 5 > 12'],ans:2},
+  {text:'2 倍的 x 不超過 8，用不等式表示',             opts:['2x > 8','2x ≥ 8','2x < 8','2x ≤ 8'],ans:3},
+  {text:'某數 y 減 3 不少於 1，用不等式表示',          opts:['y − 3 ≤ 1','y − 3 > 1','y − 3 ≥ 1','y + 3 ≥ 1'],ans:2},
+  {text:'某數 x 的 3 倍超過 9，用不等式表示',          opts:['3x ≥ 9','3x > 9','3x < 9','3x ≤ 9'],ans:1},
+  {text:'某數 x 的 2 倍加 1 不多於 7，用不等式表示',   opts:['2x + 1 ≥ 7','2x + 1 > 7','2x − 1 ≤ 7','2x + 1 ≤ 7'],ans:3},
+  {text:'小華存款至少要有 1000 元才能買玩具',          opts:['存款 < 1000','存款 > 1000','存款 ≤ 1000','存款 ≥ 1000'],ans:3},
+  {text:'一包餅乾的重量不足 200 克',                   opts:['重量 ≥ 200','重量 > 200','重量 < 200','重量 ≤ 200'],ans:2},
+  {text:'遊樂設施規定身高超過 120 公分才可乘坐',       opts:['身高 ≥ 120','身高 > 120','身高 ≤ 120','身高 < 120'],ans:1},
+  {text:'某數 x 的一半小於 6，用不等式表示',           opts:['x/2 ≥ 6','x/2 > 6','x/2 < 6','x/2 ≤ 6'],ans:2},
+  {text:'x 減 2 的結果不超過 5，用不等式表示',         opts:['x − 2 > 5','x − 2 ≥ 5','x − 2 = 5','x − 2 ≤ 5'],ans:3},
+  {text:'某班平均分數至多 80 分，用不等式表示',         opts:['平均 ≥ 80','平均 > 80','平均 ≤ 80','平均 < 80'],ans:2},
+  {text:'3 倍的 y 加 2 大於 14，用不等式表示',         opts:['3y + 2 > 14','3y + 2 ≥ 14','3y − 2 > 14','3y + 2 < 14'],ans:0},
+  {text:'圖書館每天借書量未達 100 本，用不等式表示',   opts:['借書量 ≥ 100','借書量 ≤ 100','借書量 > 100','借書量 < 100'],ans:3},
+  {text:'某數 a 的 4 倍不少於 20，用不等式表示',       opts:['4a < 20','4a ≥ 20','4a > 20','4a ≤ 20'],ans:1},
+  {text:'購物金額超出 500 元才可打折，用不等式表示',   opts:['金額 ≤ 500','金額 ≥ 500','金額 < 500','金額 > 500'],ans:3},
 ];
-let l2_curr=0, l2_answered=false;
+let questions=[], l2_curr=0, l2_answered=false;
 
 function loadQuestion(i){
   const q=questions[i];
@@ -673,24 +699,38 @@ function answerQ(idx,ans,btn,div){
   }
 }
 
-function retryLevel2(){
+function initLevel2(){
+  questions=pick(questionBank,10);
   l2_curr=0; l2_answered=false; levelScores[1]=0;
   document.getElementById('cel2').classList.remove('show');
   loadQuestion(0);
 }
+function retryLevel2(){ initLevel2(); }
 
 /* ════ LEVEL 3：判斷是不是解 ════ */
-const judgeQuestions=[
-  {ineq:'x > 3',     val:'x = 5',  answer:true,  explain:'代入：5 > 3 ✓，所以 x = 5 是解'},
-  {ineq:'x > 3',     val:'x = 3',  answer:false, explain:'代入：3 > 3 ✗，「大於」不含等號'},
-  {ineq:'x ≤ −1',   val:'x = −1', answer:true,  explain:'代入：−1 ≤ −1 ✓，「小於等於」含等號'},
-  {ineq:'x ≤ −1',   val:'x = 0',  answer:false, explain:'代入：0 ≤ −1 ✗，0 比 −1 大'},
-  {ineq:'x < 5',     val:'x = 4',  answer:true,  explain:'代入：4 < 5 ✓'},
-  {ineq:'2x > 6',    val:'x = 3',  answer:false, explain:'代入：2×3 = 6，6 > 6 ✗，不含等號'},
-  {ineq:'x + 1 ≥ 4',val:'x = 3',  answer:true,  explain:'代入：3 + 1 = 4，4 ≥ 4 ✓'},
-  {ineq:'3x ≤ 9',    val:'x = 4',  answer:false, explain:'代入：3×4 = 12，12 ≤ 9 ✗'},
+const judgeBank=[
+  {ineq:'x > 3',      val:'x = 5',  answer:true,  explain:'代入：5 > 3 ✓，所以 x = 5 是解'},
+  {ineq:'x > 3',      val:'x = 3',  answer:false, explain:'代入：3 > 3 ✗，「大於」不含等號'},
+  {ineq:'x ≤ −1',    val:'x = −1', answer:true,  explain:'代入：−1 ≤ −1 ✓，「小於等於」含等號'},
+  {ineq:'x ≤ −1',    val:'x = 0',  answer:false, explain:'代入：0 ≤ −1 ✗，0 比 −1 大'},
+  {ineq:'x < 5',      val:'x = 4',  answer:true,  explain:'代入：4 < 5 ✓'},
+  {ineq:'2x > 6',     val:'x = 3',  answer:false, explain:'代入：2×3 = 6，6 > 6 ✗，「大於」不含等號'},
+  {ineq:'x + 1 ≥ 4', val:'x = 3',  answer:true,  explain:'代入：3 + 1 = 4，4 ≥ 4 ✓'},
+  {ineq:'3x ≤ 9',     val:'x = 4',  answer:false, explain:'代入：3×4 = 12，12 ≤ 9 ✗'},
+  {ineq:'x ≥ 2',      val:'x = 2',  answer:true,  explain:'代入：2 ≥ 2 ✓，「大於等於」含等號'},
+  {ineq:'x ≥ 2',      val:'x = 1',  answer:false, explain:'代入：1 ≥ 2 ✗，1 比 2 小'},
+  {ineq:'x < 0',      val:'x = −1', answer:true,  explain:'代入：−1 < 0 ✓'},
+  {ineq:'x < 0',      val:'x = 0',  answer:false, explain:'代入：0 < 0 ✗，「小於」不含等號'},
+  {ineq:'2x ≥ 4',     val:'x = 2',  answer:true,  explain:'代入：2×2 = 4，4 ≥ 4 ✓'},
+  {ineq:'2x ≥ 4',     val:'x = 1',  answer:false, explain:'代入：2×1 = 2，2 ≥ 4 ✗'},
+  {ineq:'x − 1 > 3',  val:'x = 5',  answer:true,  explain:'代入：5 − 1 = 4，4 > 3 ✓'},
+  {ineq:'x − 1 > 3',  val:'x = 4',  answer:false, explain:'代入：4 − 1 = 3，3 > 3 ✗，「大於」不含等號'},
+  {ineq:'x + 2 ≤ 5',  val:'x = 3',  answer:true,  explain:'代入：3 + 2 = 5，5 ≤ 5 ✓'},
+  {ineq:'x + 2 ≤ 5',  val:'x = 4',  answer:false, explain:'代入：4 + 2 = 6，6 ≤ 5 ✗'},
+  {ineq:'3x < 6',      val:'x = 2',  answer:false, explain:'代入：3×2 = 6，6 < 6 ✗，「小於」不含等號'},
+  {ineq:'3x < 6',      val:'x = 1',  answer:true,  explain:'代入：3×1 = 3，3 < 6 ✓'},
 ];
-let l3_curr=0, l3_answered=false;
+let judgeQuestions=[], l3_curr=0, l3_answered=false;
 
 function loadJudgeQuestion(i){
   const q=judgeQuestions[i];
@@ -718,11 +758,13 @@ function judgeAns(userSays){
   },1400);
 }
 
-function retryLevel3(){
+function initLevel3(){
+  judgeQuestions=pick(judgeBank,10);
   l3_curr=0; l3_answered=false; levelScores[2]=0;
   document.getElementById('cel3').classList.remove('show');
   loadJudgeQuestion(0);
 }
+function retryLevel3(){ initLevel3(); }
 
 /* ════ LEVEL 4：數線選擇 MCQ ════ */
 function makeSVG(val,dir,closed,w=130,h=44){
@@ -745,24 +787,24 @@ function makeSVG(val,dir,closed,w=130,h=44){
 }
 
 // 每題：inequality expr + 4 options (val, dir, closed) + correct answer index
-const nlQuestions=[
-  { expr:'x > 3',
-    opts:[{val:3,dir:'right',closed:false},{val:3,dir:'right',closed:true},{val:3,dir:'left',closed:false},{val:3,dir:'left',closed:true}],
-    ans:0 },
-  { expr:'x ≤ −1',
-    opts:[{val:-1,dir:'left',closed:false},{val:-1,dir:'right',closed:true},{val:-1,dir:'left',closed:true},{val:-1,dir:'right',closed:false}],
-    ans:2 },
-  { expr:'x < 5',
-    opts:[{val:5,dir:'right',closed:false},{val:5,dir:'left',closed:true},{val:5,dir:'right',closed:true},{val:5,dir:'left',closed:false}],
-    ans:3 },
-  { expr:'x ≥ 0',
-    opts:[{val:0,dir:'left',closed:true},{val:0,dir:'right',closed:false},{val:0,dir:'right',closed:true},{val:0,dir:'left',closed:false}],
-    ans:2 },
-  { expr:'x > −2',
-    opts:[{val:-2,dir:'right',closed:true},{val:-2,dir:'left',closed:false},{val:-2,dir:'left',closed:true},{val:-2,dir:'right',closed:false}],
-    ans:3 },
+const nlBank=[
+  {expr:'x > 3',   opts:[{val:3,dir:'right',closed:false},{val:3,dir:'right',closed:true},{val:3,dir:'left',closed:false},{val:3,dir:'left',closed:true}],  ans:0},
+  {expr:'x ≤ −1', opts:[{val:-1,dir:'left',closed:false},{val:-1,dir:'right',closed:true},{val:-1,dir:'left',closed:true},{val:-1,dir:'right',closed:false}],ans:2},
+  {expr:'x < 5',   opts:[{val:5,dir:'right',closed:false},{val:5,dir:'left',closed:true},{val:5,dir:'right',closed:true},{val:5,dir:'left',closed:false}],   ans:3},
+  {expr:'x ≥ 0',  opts:[{val:0,dir:'left',closed:true},{val:0,dir:'right',closed:false},{val:0,dir:'right',closed:true},{val:0,dir:'left',closed:false}],   ans:2},
+  {expr:'x > −2', opts:[{val:-2,dir:'right',closed:true},{val:-2,dir:'left',closed:false},{val:-2,dir:'left',closed:true},{val:-2,dir:'right',closed:false}],ans:3},
+  {expr:'x ≥ 2',  opts:[{val:2,dir:'right',closed:false},{val:2,dir:'right',closed:true},{val:2,dir:'left',closed:true},{val:2,dir:'left',closed:false}],   ans:1},
+  {expr:'x < −1', opts:[{val:-1,dir:'right',closed:false},{val:-1,dir:'right',closed:true},{val:-1,dir:'left',closed:false},{val:-1,dir:'left',closed:true}],ans:2},
+  {expr:'x ≤ 4',  opts:[{val:4,dir:'right',closed:true},{val:4,dir:'left',closed:true},{val:4,dir:'left',closed:false},{val:4,dir:'right',closed:false}],   ans:1},
+  {expr:'x > 0',   opts:[{val:0,dir:'left',closed:false},{val:0,dir:'right',closed:true},{val:0,dir:'left',closed:true},{val:0,dir:'right',closed:false}],   ans:3},
+  {expr:'x ≥ −3', opts:[{val:-3,dir:'left',closed:true},{val:-3,dir:'right',closed:false},{val:-3,dir:'right',closed:true},{val:-3,dir:'left',closed:false}],ans:2},
+  {expr:'x < 3',   opts:[{val:3,dir:'right',closed:false},{val:3,dir:'right',closed:true},{val:3,dir:'left',closed:false},{val:3,dir:'left',closed:true}],   ans:2},
+  {expr:'x ≤ −2', opts:[{val:-2,dir:'right',closed:false},{val:-2,dir:'left',closed:false},{val:-2,dir:'right',closed:true},{val:-2,dir:'left',closed:true}],ans:3},
+  {expr:'x > 1',   opts:[{val:1,dir:'left',closed:false},{val:1,dir:'right',closed:false},{val:1,dir:'right',closed:true},{val:1,dir:'left',closed:true}],   ans:1},
+  {expr:'x ≥ −1', opts:[{val:-1,dir:'right',closed:true},{val:-1,dir:'left',closed:false},{val:-1,dir:'left',closed:true},{val:-1,dir:'right',closed:false}],ans:0},
+  {expr:'x < −3', opts:[{val:-3,dir:'right',closed:false},{val:-3,dir:'left',closed:false},{val:-3,dir:'left',closed:true},{val:-3,dir:'right',closed:true}], ans:1},
 ];
-let l4_curr=0, l4_answered=false;
+let nlQuestions=[], l4_curr=0, l4_answered=false;
 
 function loadNLQuestion(i){
   const q=nlQuestions[i];
@@ -787,11 +829,13 @@ function answerNL(idx,ans,card,div){
   }
 }
 
-function retryLevel4(){
+function initLevel4(){
+  nlQuestions=pick(nlBank,10);
   l4_curr=0; l4_answered=false; levelScores[3]=0;
   document.getElementById('cel4').classList.remove('show');
   loadNLQuestion(0);
 }
+function retryLevel4(){ initLevel4(); }
 
 /* ── FLOW ── */
 function nextLevel(n){
@@ -799,7 +843,7 @@ function nextLevel(n){
   if(n===4 && l4_curr===0 && !levelsDone[3]) loadNLQuestion(0);
 }
 
-function retryLevel(n){ [retryLevel1,retryLevel2,retryLevel3,retryLevel4][n-1](); }
+function retryLevel(n){ [initLevel1,initLevel2,initLevel3,initLevel4][n-1](); }
 
 async function showFinal(){
   document.getElementById('final-player-label').textContent=`👤 ${playerName} 的成績`;
@@ -823,14 +867,14 @@ function restartAll(){
   document.getElementById('game-area').classList.add('active');
   document.querySelectorAll('.section').forEach(s=>{ s.style.display=''; s.classList.remove('active'); });
   document.getElementById('sec1').classList.add('active');
-  retryLevel1(); retryLevel2(); retryLevel3(); retryLevel4();
+  initLevel1(); initLevel2(); initLevel3(); initLevel4();
 }
 
 /* ── INIT ── */
-loadSymQuestion(0);
-loadQuestion(0);
-loadJudgeQuestion(0);
-loadNLQuestion(0);
+initLevel1();
+initLevel2();
+initLevel3();
+initLevel4();
 document.getElementById('player-name-input').focus();
 function onFbReady(fn){ if(window._fbReady){fn();}else{document.addEventListener('fb-ready',fn,{once:true});} }
 function loadStartLeaderboards(){
