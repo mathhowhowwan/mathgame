@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>數學拔河大賽 v2</title>
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js';
+  import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp }
+    from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
+  const app = initializeApp({
+    apiKey: "AIzaSyCHYtmrbMTxQhsSm9qjspiz-OVs2Jwv9jA",
+    authDomain: "my-teaching-tools-ae1ac.firebaseapp.com",
+    projectId: "my-teaching-tools-ae1ac",
+    storageBucket: "my-teaching-tools-ae1ac.firebasestorage.app",
+    messagingSenderId: "817693080761",
+    appId: "1:817693080761:web:27f1226f1f024713fc6f68"
+  });
+  const db = getFirestore(app);
+  const COL = 'tugwar_scores';
+  window._fbSave = async (name, score) => {
+    await addDoc(collection(db, COL), { name, score, timestamp: serverTimestamp(), date: new Date().toLocaleDateString('zh-TW') });
+  };
+  window._fbLoad = async () => {
+    const snap = await getDocs(query(collection(db, COL), orderBy('score','desc'), limit(10)));
+    return snap.docs.map(d => d.data());
+  };
+</script>
+<style>
+:root {
+  --blue:#2563eb; --blue-l:#3b82f6; --blue-d:#1d4ed8;
+  --red:#dc2626;  --red-l:#ef4444;  --red-d:#b91c1c;
+  --bg:#f0f9ff;   --dark:#1e293b;   --gold:#f59e0b;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);min-height:100vh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden;}
+
+/* ======= TABS (Start) ======= */
+.screen{display:none;width:100%;max-width:960px;padding:12px;}
+.screen.active{display:flex;flex-direction:column;align-items:center;}
+#startScreen{min-height:100vh;justify-content:flex-start;padding-top:16px;}
+
+.logo{font-size:clamp(1.8rem,5vw,3rem);font-weight:900;color:var(--dark);text-align:center;line-height:1.1;}
+.logo .bl{color:var(--blue);} .logo .rd{color:var(--red);}
+.subtitle{color:#64748b;font-size:.9rem;margin:4px 0 14px;text-align:center;}
+
+/* Tab navigation */
+.tab-nav{display:flex;gap:8px;margin-bottom:16px;background:white;padding:6px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.tab-btn{flex:1;padding:8px 12px;border:none;border-radius:10px;font-weight:700;font-size:.85rem;cursor:pointer;background:transparent;color:#64748b;transition:all .2s;}
+.tab-btn.active{background:var(--blue);color:white;}
+
+.tab-panel{display:none;width:100%;}
+.tab-panel.active{display:block;}
+
+/* Section headers */
+.sec-label{font-weight:700;color:#475569;font-size:.85rem;margin:10px 0 6px;text-align:center;}
+
+/* Mode cards */
+.mode-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;width:100%;}
+.mode-card{border:3px solid #cbd5e1;border-radius:14px;padding:12px 10px;cursor:pointer;background:white;transition:all .2s;text-align:center;}
+.mode-card:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 6px 16px rgba(37,99,235,.15);}
+.mode-card.selected{border-color:var(--blue);background:#eff6ff;}
+.mode-card .mi{font-size:1.8rem;display:block;margin-bottom:4px;}
+.mode-card .mn{font-size:.9rem;font-weight:800;color:#1e293b;}
+.mode-card .md{font-size:.72rem;color:#64748b;margin-top:2px;}
+.mode-card.selected .mn{color:var(--blue);}
+
+/* Difficulty */
+.diff-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;width:100%;}
+.diff-btn{padding:8px 20px;border:2px solid #cbd5e1;border-radius:50px;background:white;font-weight:700;font-size:.85rem;cursor:pointer;color:#475569;transition:all .15s;}
+.diff-btn:hover{border-color:var(--blue);}
+.diff-btn.selected{border-color:var(--gold);background:var(--gold);color:white;}
+.diff-btn.d-easy.selected{background:#22c55e;border-color:#22c55e;}
+.diff-btn.d-mid.selected{background:var(--blue);border-color:var(--blue);}
+.diff-btn.d-hard.selected{background:var(--red);border-color:var(--red);}
+
+/* Start button */
+.big-btn{display:block;width:100%;max-width:360px;padding:16px;border:none;border-radius:50px;font-size:1.2rem;font-weight:900;cursor:pointer;margin:14px auto 0;box-shadow:0 6px 0 rgba(0,0,0,.2);transition:transform .1s,box-shadow .1s;background:var(--blue);color:white;}
+.big-btn:hover{transform:translateY(-2px);box-shadow:0 8px 0 rgba(0,0,0,.2);}
+.big-btn:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.2);}
+
+/* Score history */
+.hist-wrap{width:100%;background:white;border-radius:16px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.hist-empty{text-align:center;color:#94a3b8;padding:24px;font-size:.9rem;}
+.hist-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;margin-bottom:6px;background:#f8fafc;font-size:.82rem;}
+.hist-row:last-child{margin-bottom:0;}
+.hist-date{color:#94a3b8;min-width:80px;}
+.hist-topic{flex:1;font-weight:700;color:#334155;}
+.hist-winner{font-weight:800;padding:3px 10px;border-radius:20px;font-size:.78rem;}
+.hist-winner.blue{background:#eff6ff;color:var(--blue);}
+.hist-winner.red{background:#fef2f2;color:var(--red);}
+.hist-score{color:#64748b;font-size:.78rem;}
+.hist-clear{display:block;margin:10px auto 0;padding:6px 18px;border:2px solid #e2e8f0;border-radius:50px;background:white;color:#94a3b8;font-size:.8rem;cursor:pointer;font-weight:600;}
+.hist-clear:hover{border-color:#f87171;color:#f87171;}
+
+/* ======= GAME SCREEN ======= */
+#gameScreen{justify-content:flex-start;padding-top:8px;}
+
+.game-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--dark);border-radius:16px;margin-bottom:10px;color:white;width:100%;}
+.tsb{display:flex;flex-direction:column;align-items:center;min-width:80px;}
+.ts-label{font-size:.65rem;font-weight:700;opacity:.6;letter-spacing:1px;text-transform:uppercase;}
+.ts-name{font-size:.95rem;font-weight:800;}
+.ts-score{font-size:1.9rem;font-weight:900;line-height:1;}
+.tsb.blue .ts-name,.tsb.blue .ts-score{color:#60a5fa;}
+.tsb.red  .ts-name,.tsb.red  .ts-score{color:#f87171;}
+.timer-center{text-align:center;}
+.timer-num{font-size:2rem;font-weight:900;color:#facc15;font-variant-numeric:tabular-nums;}
+.round-lbl{font-size:.7rem;opacity:.55;}
+.win-dots{display:flex;gap:4px;justify-content:center;margin-top:3px;}
+.wd{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.15);}
+.wd.wb{background:#60a5fa;} .wd.wr{background:#f87171;}
+.diff-badge{font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px;margin-top:3px;}
+.diff-badge.easy{background:#22c55e;color:white;}
+.diff-badge.medium{background:var(--blue);color:white;}
+.diff-badge.hard{background:var(--red);color:white;}
+
+/* Rope arena */
+.rope-arena{background:linear-gradient(180deg,#e0f2fe,#bae6fd 60%,#7dd3fc);border-radius:20px;border:3px solid #0369a1;padding:14px 8px 8px;margin-bottom:10px;position:relative;overflow:hidden;width:100%;}
+.rope-arena::after{content:'';position:absolute;bottom:0;left:0;right:0;height:28px;background:linear-gradient(transparent,#4ade80);border-radius:0 0 17px 17px;pointer-events:none;}
+#tugCanvas{width:100%;height:150px;display:block;}
+.tug-bar-wrap{height:18px;background:rgba(0,0,0,.2);border-radius:9px;overflow:hidden;margin:6px 4px 0;position:relative;}
+.tug-bar-fill{position:absolute;top:0;left:0;bottom:0;width:50%;background:linear-gradient(90deg,var(--blue-l),var(--red-l));border-radius:9px;transition:width .4s cubic-bezier(.34,1.56,.64,1);}
+.tug-center-mark{position:absolute;top:0;bottom:0;left:50%;width:3px;background:#facc15;transform:translateX(-50%);}
+.tug-dl{position:absolute;top:0;bottom:0;left:0;width:15%;background:rgba(37,99,235,.15);}
+.tug-dr{position:absolute;top:0;bottom:0;right:0;width:15%;background:rgba(220,38,38,.15);}
+
+/* Question panels */
+.q-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;width:100%;}
+.q-panel{border-radius:14px;padding:12px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.q-panel.blue{background:var(--blue);}
+.q-panel.red{background:var(--red);}
+.q-lbl{color:rgba(255,255,255,.8);font-size:.65rem;font-weight:700;letter-spacing:1px;}
+.q-text{font-size:clamp(1rem,3.5vw,1.4rem);font-weight:900;color:white;text-align:center;min-height:2em;display:flex;align-items:center;justify-content:center;line-height:1.2;}
+
+/* MCQ choices */
+.choices-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;width:100%;}
+.choice-btn{padding:7px 4px;border:2px solid rgba(255,255,255,.35);border-radius:9px;background:rgba(255,255,255,.12);color:white;font-size:.85rem;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;line-height:1.2;}
+.choice-btn:hover{background:rgba(255,255,255,.28);}
+.choice-btn:active{transform:scale(.96);}
+.choice-btn.correct-ans{background:rgba(134,239,172,.45);border-color:#86efac;animation:cFlash .35s;}
+.choice-btn.wrong-ans{background:rgba(252,165,165,.35);border-color:#fca5a5;animation:wShake .35s;}
+.choice-btn.reveal-ans{background:rgba(134,239,172,.6);border-color:#86efac;}
+@keyframes cFlash{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes wShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+/* Number input (for arithmetic) */
+.q-input{width:100%;padding:7px 10px;border:3px solid rgba(255,255,255,.5);border-radius:9px;background:rgba(255,255,255,.15);color:white;font-size:1.2rem;font-weight:800;text-align:center;outline:none;}
+.q-input::placeholder{color:rgba(255,255,255,.4);}
+.q-input:focus{border-color:white;}
+.q-input.correct{background:rgba(134,239,172,.4);border-color:#86efac;animation:cFlash .3s;}
+.q-input.wrong{background:rgba(252,165,165,.3);border-color:#fca5a5;animation:wShake .3s;}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:100%;}
+.nb{padding:7px 2px;border:2px solid rgba(255,255,255,.3);border-radius:8px;background:rgba(255,255,255,.12);color:white;font-size:.9rem;font-weight:700;cursor:pointer;transition:background .1s;}
+.nb:hover{background:rgba(255,255,255,.28);}
+.nb:active{transform:scale(.95);}
+.nb.del{background:rgba(255,200,50,.2);}
+.nb.ok{background:rgba(134,239,172,.3);grid-column:span 2;}
+
+/* Float feedback */
+.float-fb{position:fixed;font-size:1.8rem;font-weight:900;pointer-events:none;animation:floatUp .8s ease-out forwards;z-index:100;}
+@keyframes floatUp{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-70px) scale(1.4);opacity:0}}
+
+/* Round flash overlay */
+#roundFlash{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:200;pointer-events:none;opacity:0;transition:opacity .2s;background:rgba(0,0,0,.4);}
+#roundFlash.show{opacity:1;pointer-events:all;}
+.flash-box{background:rgba(15,23,42,.9);border-radius:22px;padding:28px 44px;text-align:center;color:white;border:2px solid rgba(255,255,255,.1);}
+.fl-title{font-size:1.2rem;font-weight:700;opacity:.7;}
+.fl-team{font-size:2.8rem;font-weight:900;margin:8px 0;}
+.fl-sub{font-size:.9rem;opacity:.55;}
+
+/* End screen */
+#endScreen{min-height:100vh;justify-content:center;}
+.champ-box{background:white;border-radius:24px;padding:28px 36px;box-shadow:0 20px 60px rgba(0,0,0,.12);max-width:420px;width:100%;text-align:center;}
+.trophy{font-size:4.5rem;animation:bounce .6s ease-in-out infinite alternate;}
+@keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-14px)}}
+.champ-title{font-size:.9rem;color:#64748b;font-weight:600;margin-top:8px;}
+.champ-name{font-size:2.2rem;font-weight:900;margin:4px 0;}
+.champ-name.blue{color:var(--blue);} .champ-name.red{color:var(--red);}
+.champ-sub{font-size:.85rem;color:#94a3b8;}
+.final-row{display:flex;gap:20px;justify-content:center;margin-top:14px;}
+.fbox{text-align:center;}
+.fbox-lbl{font-size:.72rem;font-weight:700;color:#64748b;}
+.fbox-num{font-size:1.8rem;font-weight:900;}
+.fbox.blue .fbox-num{color:var(--blue);} .fbox.red .fbox-num{color:var(--red);}
+.end-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:18px;}
+.end-btn{padding:11px 26px;border-radius:50px;font-size:.95rem;font-weight:800;border:none;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.15);transition:transform .1s;}
+.end-btn:active{transform:translateY(3px);}
+.confetti-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:50;}
+
+/* Inequality graph canvas */
+.ineq-canvas-wrap{width:100%;background:rgba(255,255,255,.1);border-radius:10px;padding:6px;}
+canvas.ineq-graph{width:100%;height:60px;display:block;border-radius:8px;}
+
+@media(max-width:480px){
+  .q-text{font-size:.95rem;}
+  .choice-btn{font-size:.75rem;padding:6px 3px;}
+  .nb{font-size:.8rem;padding:6px 2px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ========== START SCREEN ========== -->
+<div id="startScreen" class="screen active">
+  <div class="logo"><span class="bl">數學</span> 拔河 <span class="rd">大賽</span> <span style="font-size:1.2rem">v2</span></div>
+  <div class="subtitle">兩隊競速答題，把繩子往自己方向拉！</div>
+
+  <!-- Tab nav -->
+  <div class="tab-nav" style="width:100%;max-width:480px;">
+    <button class="tab-btn active" onclick="showTab('setup')">🎮 設定</button>
+    <button class="tab-btn" onclick="showTab('history')">📊 紀錄</button>
+  </div>
+
+  <!-- Setup tab -->
+  <div class="tab-panel active" id="tab-setup" style="max-width:480px;">
+    <div class="sec-label">📚 選擇題目類型</div>
+    <div class="mode-grid">
+      <div class="mode-card selected" data-topic="multiply" onclick="pickTopic(this,'multiply')">
+        <span class="mi">✖️</span><span class="mn">乘法</span><span class="md">1–10 乘法表</span>
+      </div>
+      <div class="mode-card" data-topic="add" onclick="pickTopic(this,'add')">
+        <span class="mi">➕</span><span class="mn">加減法</span><span class="md">兩位數計算</span>
+      </div>
+      <div class="mode-card" data-topic="mixed" onclick="pickTopic(this,'mixed')">
+        <span class="mi">🎲</span><span class="mn">四則混合</span><span class="md">加減乘除</span>
+      </div>
+      <div class="mode-card" data-topic="ineq-symbol" onclick="pickTopic(this,'ineq-symbol')">
+        <span class="mi">⚖️</span><span class="mn">不等式符號</span><span class="md">填入 &gt; &lt; ≥ ≤</span>
+      </div>
+      <div class="mode-card" data-topic="ineq-graph" onclick="pickTopic(this,'ineq-graph')">
+        <span class="mi">📈</span><span class="mn">不等式圖解</span><span class="md">數線圖選擇</span>
+      </div>
+      <div class="mode-card" data-topic="ineq-solve" onclick="pickTopic(this,'ineq-solve')">
+        <span class="mi">🔢</span><span class="mn">一次不等式</span><span class="md">解 x 的範圍</span>
+      </div>
+    </div>
+
+    <div class="sec-label" style="margin-top:14px;">⚡ 難度</div>
+    <div class="diff-row">
+      <button class="diff-btn d-easy" data-diff="easy" onclick="pickDiff(this,'easy')">🟢 簡單</button>
+      <button class="diff-btn d-mid selected" data-diff="medium" onclick="pickDiff(this,'medium')">🔵 中等</button>
+      <button class="diff-btn d-hard" data-diff="hard" onclick="pickDiff(this,'hard')">🔴 困難</button>
+    </div>
+    <div id="diff-hint" style="text-align:center;font-size:.78rem;color:#94a3b8;margin-top:4px;">⏱ 計時 30 秒・答對拉繩子</div>
+
+    <div class="sec-label" style="margin-top:14px;">🏆 先贏幾局</div>
+    <div class="diff-row">
+      <button class="diff-btn" data-rounds="1" onclick="pickRounds(this,1)">1 局</button>
+      <button class="diff-btn selected" data-rounds="3" onclick="pickRounds(this,3)">3 局</button>
+      <button class="diff-btn" data-rounds="5" onclick="pickRounds(this,5)">5 局</button>
+    </div>
+
+    <div class="sec-label" style="margin-top:14px;">👤 班級 / 姓名</div>
+    <input id="playerName" type="text" placeholder="輸入班級或姓名…" maxlength="20"
+      style="width:100%;max-width:360px;display:block;margin:0 auto;padding:10px 16px;border:2px solid #cbd5e1;border-radius:50px;font-size:1rem;text-align:center;outline:none;font-family:inherit;">
+
+    <button class="big-btn" onclick="startGame()">🏁 開始比賽！</button>
+  </div>
+
+  <!-- History tab -->
+  <div class="tab-panel" id="tab-history" style="max-width:480px;width:100%;">
+    <div class="hist-wrap" id="histList"></div>
+    <button class="hist-clear" onclick="clearHistory()">🗑 清除紀錄</button>
+  </div>
+</div>
+
+<!-- ========== GAME SCREEN ========== -->
+<div id="gameScreen" class="screen">
+  <!-- Header -->
+  <div class="game-header">
+    <div class="tsb blue">
+      <span class="ts-label">隊伍</span>
+      <span class="ts-name">🔵 藍隊</span>
+      <span class="ts-score" id="blueScore">0</span>
+      <span class="ts-label" style="margin-top:3px">已贏局</span>
+      <div class="win-dots" id="blueWins"></div>
+    </div>
+    <div class="timer-center">
+      <div class="round-lbl" id="roundInfo">第 1 局</div>
+      <div class="timer-num" id="timerNum">30</div>
+      <div id="diffBadge" class="diff-badge medium">中等</div>
+    </div>
+    <div class="tsb red">
+      <span class="ts-label">隊伍</span>
+      <span class="ts-name">🔴 紅隊</span>
+      <span class="ts-score" id="redScore">0</span>
+      <span class="ts-label" style="margin-top:3px">已贏局</span>
+      <div class="win-dots" id="redWins"></div>
+    </div>
+  </div>
+
+  <!-- Rope arena -->
+  <div class="rope-arena">
+    <svg id="tugCanvas" viewBox="0 0 800 150" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="rg" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#92400e"/>
+          <stop offset="30%" stop-color="#d97706"/>
+          <stop offset="70%" stop-color="#92400e"/>
+          <stop offset="100%" stop-color="#d97706"/>
+        </linearGradient>
+      </defs>
+      <line x1="0" y1="132" x2="800" y2="132" stroke="#4ade80" stroke-width="3" opacity=".5"/>
+      <line id="flagPole" x1="400" y1="60" x2="400" y2="132" stroke="#1e293b" stroke-width="3"/>
+      <polygon id="flagShape" points="400,60 432,73 400,86" fill="#facc15" stroke="#d97706" stroke-width="1"/>
+      <path id="ropeEl" d="" stroke="url(#rg)" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <circle id="ropeKnot" cx="400" cy="94" r="7" fill="#451a03" stroke="#d97706" stroke-width="2"/>
+      <g id="blueTeam"></g>
+      <g id="redTeam"></g>
+    </svg>
+    <div class="tug-bar-wrap">
+      <div class="tug-dl"></div><div class="tug-dr"></div>
+      <div class="tug-center-mark"></div>
+      <div class="tug-bar-fill" id="tugBar"></div>
+    </div>
+  </div>
+
+  <!-- Back button -->
+  <div style="width:100%;text-align:right;margin-bottom:4px;">
+    <a href="https://mathhowhowwan.github.io/mathgame/" style="font-size:.75rem;color:#94a3b8;text-decoration:none;">🏠 回遊戲主頁</a>
+  </div>
+
+  <!-- Question panels -->
+  <div class="q-row">
+    <div class="q-panel blue" id="bluePanel">
+      <span class="q-lbl">🔵 藍隊</span>
+      <div class="q-text" id="blueQ">loading…</div>
+      <div id="blueChoices" style="width:100%"></div>
+    </div>
+    <div class="q-panel red" id="redPanel">
+      <span class="q-lbl">🔴 紅隊</span>
+      <div class="q-text" id="redQ">loading…</div>
+      <div id="redChoices" style="width:100%"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Round flash -->
+<div id="roundFlash">
+  <div class="flash-box">
+    <div class="fl-title" id="flTitle">本局結束</div>
+    <div class="fl-team" id="flTeam">🔵 藍隊勝！</div>
+    <div class="fl-sub" id="flSub">準備下一局…</div>
+  </div>
+</div>
+
+<!-- ========== END SCREEN ========== -->
+<div id="endScreen" class="screen">
+  <canvas class="confetti-canvas" id="confettiCanvas"></canvas>
+  <div class="champ-box">
+    <div class="trophy">🏆</div>
+    <div class="champ-title">比賽結束！冠軍是</div>
+    <div class="champ-name" id="champName">藍隊</div>
+    <div class="champ-sub" id="champSub">贏得 3 局</div>
+    <div class="final-row">
+      <div class="fbox blue"><div class="fbox-lbl">🔵 藍隊局數</div><div class="fbox-num" id="endBlue">0</div></div>
+      <div class="fbox red"><div class="fbox-lbl">🔴 紅隊局數</div><div class="fbox-num" id="endRed">0</div></div>
+    </div>
+    <div class="end-btns">
+      <button class="end-btn" onclick="startGame()" style="background:var(--blue);color:white">🔄 再來一場</button>
+      <button class="end-btn" onclick="goStart()" style="background:#e2e8f0;color:#1e293b">⚙️ 設定</button>
+      <a href="https://mathhowhowwan.github.io/mathgame/" class="end-btn" style="background:#f59e0b;color:white;text-decoration:none;display:inline-block;line-height:normal;">🏠 遊戲主頁</a>
+    </div>
+    <div id="leaderboard" style="margin-top:18px;width:100%;text-align:left;">
+      <div style="font-size:.8rem;font-weight:700;color:#64748b;margin-bottom:6px;">🏆 排行榜（前10名）</div>
+      <div id="lbList" style="font-size:.8rem;color:#475569;">載入中…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// SETTINGS
+// ============================================================
+let topic = 'multiply', difficulty = 'medium', winsNeeded = 3;
+let blueWins = 0, redWins = 0;
+let blueRoundScore = 0, redRoundScore = 0;
+let tugPos = 0; // -100 blue .. +100 red
+let roundTime = 30, timerInterval = null;
+let currentRound = 1;
+let cooldown = {blue:false, red:false};
+let questions = {blue:null, red:null};
+let figAnim = 0, animFrame = null, roundEnded = false;
+let activeSide = 'blue';
+
+const TIMER_BY_DIFF = {easy:45, medium:30, hard:20};
+const TUG_BY_DIFF   = {easy:14, medium:18, hard:25};
+const PENALTY_BY_DIFF = {easy:0, medium:0, hard:8}; // wrong = pull back
+
+// ============================================================
+// TAB / UI
+// ============================================================
+function showTab(t) {
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active', ['setup','history'][i]===t));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  if(t==='history') renderHistory();
+}
+function pickTopic(el,t) {
+  document.querySelectorAll('[data-topic]').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected'); topic=t;
+}
+function pickDiff(el,d) {
+  document.querySelectorAll('[data-diff]').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected'); difficulty=d;
+  const hints = {easy:'⏱ 45 秒・答錯無懲罰',medium:'⏱ 30 秒・答錯無懲罰',hard:'⏱ 20 秒・答錯倒扣！'};
+  document.getElementById('diff-hint').textContent = hints[d];
+}
+function pickRounds(el,r) {
+  document.querySelectorAll('[data-rounds]').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected'); winsNeeded=r;
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ============================================================
+// QUESTION GENERATORS
+// ============================================================
+
+// ---- Arithmetic ----
+function genArithmetic(t, d) {
+  let a,b,op,ans;
+  const big = d==='hard', med = d==='medium';
+  if(t==='multiply'){
+    a = big?Math.floor(Math.random()*15)+6 : med?Math.floor(Math.random()*10)+2 : Math.floor(Math.random()*5)+2;
+    b = big?Math.floor(Math.random()*12)+4 : Math.floor(Math.random()*10)+1;
+    op='×'; ans=a*b;
+  } else if(t==='add'){
+    a = big?Math.floor(Math.random()*200)+50 : Math.floor(Math.random()*80)+10;
+    b = big?Math.floor(Math.random()*200)+50 : Math.floor(Math.random()*80)+10;
+    op = Math.random()<.5?'+':'-';
+    if(op==='-'&&b>a){let tmp=a;a=b;b=tmp;}
+    ans = op==='+'?a+b:a-b;
+  } else { // mixed
+    const ops = big?['+','-','×','÷']:['+','-','×'];
+    op = ops[Math.floor(Math.random()*ops.length)];
+    if(op==='×'){a=Math.floor(Math.random()*12)+2;b=Math.floor(Math.random()*12)+2;ans=a*b;}
+    else if(op==='÷'){b=Math.floor(Math.random()*10)+2;ans=Math.floor(Math.random()*10)+2;a=b*ans;}
+    else if(op==='+'){a=Math.floor(Math.random()*80)+10;b=Math.floor(Math.random()*80)+10;ans=a+b;}
+    else{a=Math.floor(Math.random()*80)+20;b=Math.floor(Math.random()*a)+1;ans=a-b;}
+  }
+  return {type:'number', text:`${a} ${op} ${b} = ?`, answer:ans};
+}
+
+// ---- Inequality symbol ----
+const IEQ_SYMBOLS = ['>', '<', '≥', '≤'];
+function genIneqSymbol(d) {
+  let a,b;
+  if(d==='easy'){a=Math.floor(Math.random()*20)+1;b=Math.floor(Math.random()*20)+1;}
+  else if(d==='medium'){
+    const x=Math.floor(Math.random()*6)+1, c1=Math.floor(Math.random()*5)+1, c2=Math.floor(Math.random()*5)+1;
+    const d1=Math.floor(Math.random()*4);
+    a=c1*x+d1; b=c2*x;
+  } else {
+    a=Math.floor(Math.random()*50)+10; b=Math.floor(Math.random()*50)+10;
+  }
+  if(d==='medium'){a=Math.floor(Math.random()*50)+5;b=Math.floor(Math.random()*50)+5;}
+  let correct;
+  if(a>b) correct='>';
+  else if(a<b) correct='<';
+  else correct='=';
+  let choices;
+  if(a===b){choices=['=','≠','>','<'];}
+  else if(a>b){choices=['>','<','≥','≤'];correct='>';}
+  else{choices=['<','>','≥','≤'];correct='<';}
+  choices = choices.sort(()=>Math.random()-.5);
+  return {type:'mcq', text:`${a} ＿ ${b}`, answer:correct, choices};
+}
+
+// ---- Inequality graph ----
+const INEQ_GRAPH_TYPES = [
+  {sym:'>', desc:'x > {a}', render:'open-right'},
+  {sym:'<', desc:'x < {a}', render:'open-left'},
+  {sym:'≥', desc:'x ≥ {a}', render:'closed-right'},
+  {sym:'≤', desc:'x ≤ {a}', render:'closed-left'},
+];
+function genIneqGraph(d) {
+  const a = d==='easy'?Math.floor(Math.random()*6)-2:d==='medium'?Math.floor(Math.random()*12)-4:Math.floor(Math.random()*20)-8;
+  const correctType = INEQ_GRAPH_TYPES[Math.floor(Math.random()*4)];
+  const qText = correctType.desc.replace('{a}', a);
+  const allTypes = [...INEQ_GRAPH_TYPES].sort(()=>Math.random()-.5);
+  const others = allTypes.filter(t=>t.render!==correctType.render).slice(0,3);
+  let pool = [correctType, ...others].sort(()=>Math.random()-.5);
+  const choices = pool.map(t=>({ label: graphLabel(t.render, a), render: t.render, value: t.render }));
+  return {
+    type:'graph-mcq',
+    text: qText,
+    answer: correctType.render,
+    a,
+    choices
+  };
+}
+function graphLabel(render, a) {
+  const map = {'open-right':`x > ${a}`,'open-left':`x < ${a}`,'closed-right':`x ≥ ${a}`,'closed-left':`x ≤ ${a}`};
+  return map[render];
+}
+
+// ---- One-variable inequality solve ----
+function genIneqSolve(d) {
+  let a,b,c,sym,ans;
+  const syms = ['>', '<', '≥', '≤'];
+  sym = syms[Math.floor(Math.random()*syms.length)];
+  if(d==='easy'){
+    a=1; b=Math.floor(Math.random()*10)+1; c=Math.floor(Math.random()*20)+b+1;
+  } else if(d==='medium'){
+    a=Math.floor(Math.random()*4)+2; b=Math.floor(Math.random()*10); c=Math.floor(Math.random()*30)+5;
+  } else {
+    a=Math.floor(Math.random()*6)+2; b=Math.floor(Math.random()*15)-5; c=Math.floor(Math.random()*40)-5;
+  }
+  c = a * (Math.floor(Math.random()*10)+1) + b;
+  const xVal = (c - b) / a;
+  let ansStr, flipSym = sym;
+  if(a < 0) {
+    flipSym = sym==='>'?'<': sym==='<'?'>': sym==='≥'?'≤':'≥';
+  }
+  ansStr = `x ${flipSym} ${xVal}`;
+  const qText = `${a}x ${b>=0?'+':''} ${b!==0?b+' ':''} ${sym} ${c}`;
+  const wrongVals = [xVal+1, xVal-1, xVal+2].filter(v=>v!==xVal);
+  const wrongSyms = ['>', '<', '≥', '≤'].filter(s=>s!==flipSym);
+  const choice2 = `x ${wrongSyms[0]} ${xVal}`;
+  const choice3 = `x ${flipSym} ${wrongVals[0]}`;
+  const choice4 = `x ${wrongSyms[1]} ${wrongVals[1]}`;
+  let choices = [ansStr, choice2, choice3, choice4].sort(()=>Math.random()-.5);
+  return {type:'mcq', text: qText.trim(), answer: ansStr, choices};
+}
+
+// ============================================================
+// QUESTION DISPATCHER
+// ============================================================
+function generateQuestion() {
+  switch(topic) {
+    case 'multiply':
+    case 'add':
+    case 'mixed':     return genArithmetic(topic, difficulty);
+    case 'ineq-symbol': return genIneqSymbol(difficulty);
+    case 'ineq-graph':  return genIneqGraph(difficulty);
+    case 'ineq-solve':  return genIneqSolve(difficulty);
+    default: return genArithmetic('multiply','medium');
+  }
+}
+
+// ============================================================
+// RENDER QUESTION INTO PANEL
+// ============================================================
+function renderQuestion(side) {
+  const q = generateQuestion();
+  questions[side] = q;
+  document.getElementById(side+'Q').textContent = q.text;
+  const choicesDiv = document.getElementById(side+'Choices');
+  choicesDiv.innerHTML = '';
+
+  if(q.type === 'number') {
+    const inp = document.createElement('input');
+    inp.type = 'number'; inp.className = 'q-input'; inp.placeholder = '輸入答案';
+    inp.id = side+'Input'; inp.autocomplete = 'off';
+    inp.addEventListener('input', ()=>checkNumberAnswer(side));
+    inp.addEventListener('focus', ()=>activeSide=side);
+    choicesDiv.appendChild(inp);
+    const numpad = buildNumpad(side);
+    choicesDiv.appendChild(numpad);
+
+  } else if(q.type === 'mcq') {
+    const grid = document.createElement('div');
+    grid.className = 'choices-grid';
+    q.choices.forEach(ch => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.textContent = ch;
+      btn.addEventListener('click', ()=>checkMCQ(side, ch, btn, grid));
+      btn.addEventListener('touchend', e=>{e.preventDefault(); checkMCQ(side, ch, btn, grid);});
+      grid.appendChild(btn);
+    });
+    choicesDiv.appendChild(grid);
+
+  } else if(q.type === 'graph-mcq') {
+    const grid = document.createElement('div');
+    grid.className = 'choices-grid';
+    q.choices.forEach(ch => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.innerHTML = `<span style="font-size:.7rem;display:block">${ch.label}</span>` + miniGraphSVG(ch.render, q.a);
+      btn.addEventListener('click', ()=>checkMCQ(side, ch.value, btn, grid));
+      btn.addEventListener('touchend', e=>{e.preventDefault(); checkMCQ(side, ch.value, btn, grid);});
+      grid.appendChild(btn);
+    });
+    choicesDiv.appendChild(grid);
+  }
+}
+
+function miniGraphSVG(render, a) {
+  const w=90, h=22, cx=45, y=11;
+  const px = cx;
+  const filled = render.startsWith('closed');
+  const right = render.endsWith('right');
+  const dot = filled
+    ? `<circle cx="${px}" cy="${y}" r="4" fill="white" stroke="white" stroke-width="1.5"/>`
+    : `<circle cx="${px}" cy="${y}" r="4" fill="none" stroke="white" stroke-width="1.5"/>`;
+  const arrow = right
+    ? `<line x1="${px}" y1="${y}" x2="${w-4}" y2="${y}" stroke="white" stroke-width="2.5"/><polygon points="${w-4},${y-4} ${w},${y} ${w-4},${y+4}" fill="white"/>`
+    : `<line x1="${px}" y1="${y}" x2="4" y2="${y}" stroke="white" stroke-width="2.5"/><polygon points="4,${y-4} 0,${y} 4,${y+4}" fill="white"/>`;
+  const line = `<line x1="4" y1="${y}" x2="${w-4}" y2="${y}" stroke="rgba(255,255,255,.3)" stroke-width="1"/>`;
+  const label = `<text x="${px}" y="${y-7}" fill="rgba(255,255,255,.8)" font-size="7" text-anchor="middle">${a}</text>`;
+  return `<svg width="${w}" height="${h}" style="display:block;margin:2px auto">${line}${arrow}${dot}${label}</svg>`;
+}
+
+// ============================================================
+// ANSWER CHECKING
+// ============================================================
+function checkMCQ(side, chosen, btn, grid) {
+  if(cooldown[side]) return;
+  cooldown[side] = true;
+  const q = questions[side];
+  const correct = chosen === q.answer;
+
+  if(correct) {
+    btn.classList.add('correct-ans');
+    adjustTug(side, true);
+    spawnFeedback('✅', side);
+    playSound('correct');
+    setTimeout(()=>{ renderQuestion(side); cooldown[side]=false; }, 500);
+  } else {
+    btn.classList.add('wrong-ans');
+    grid.querySelectorAll('.choice-btn').forEach(b=>{ if(b.textContent.includes(q.answer)||b.innerHTML.includes(q.answer)) b.classList.add('reveal-ans'); });
+    adjustTug(side, false);
+    playSound('wrong');
+    setTimeout(()=>{ renderQuestion(side); cooldown[side]=false; }, 700);
+  }
+}
+
+function checkNumberAnswer(side) {
+  if(cooldown[side]) return;
+  const inp = document.getElementById(side+'Input');
+  if(!inp) return;
+  const val = parseInt(inp.value);
+  const q = questions[side];
+  if(isNaN(val)) return;
+  if(val === q.answer) {
+    inp.className = 'q-input correct';
+    cooldown[side] = true;
+    adjustTug(side, true);
+    spawnFeedback('✅', side);
+    playSound('correct');
+    setTimeout(()=>{ renderQuestion(side); cooldown[side]=false; }, 400);
+  } else if(inp.value.length >= String(q.answer).length+1) {
+    inp.className = 'q-input wrong';
+    adjustTug(side, false);
+    playSound('wrong');
+    setTimeout(()=>{ inp.value=''; inp.className='q-input'; }, 350);
+  }
+}
+
+function adjustTug(side, correct) {
+  const pull = TUG_BY_DIFF[difficulty];
+  const penalty = PENALTY_BY_DIFF[difficulty];
+  if(side==='blue') {
+    if(correct){ blueRoundScore++; tugPos = Math.max(-100, tugPos - pull); }
+    else { tugPos = Math.min(100, tugPos + penalty); }
+  } else {
+    if(correct){ redRoundScore++; tugPos = Math.min(100, tugPos + pull); }
+    else { tugPos = Math.max(-100, tugPos - penalty); }
+  }
+  document.getElementById('blueScore').textContent = blueRoundScore;
+  document.getElementById('redScore').textContent = redRoundScore;
+}
+
+// ============================================================
+// NUMPAD (for number questions)
+// ============================================================
+function buildNumpad(side) {
+  const wrap = document.createElement('div');
+  wrap.className = 'numpad';
+  [1,2,3,4,5,6,7,8,9,'DEL',0,'OK'].forEach(k=>{
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'nb' + (k==='DEL'?' del':k==='OK'?' ok':'');
+    btn.textContent = k==='DEL'?'⌫':k==='OK'?'✔':k;
+    btn.addEventListener('mousedown', e=>{e.preventDefault(); handleNP(side,k);});
+    btn.addEventListener('touchstart', e=>{e.preventDefault(); handleNP(side,k);},{passive:false});
+    wrap.appendChild(btn);
+  });
+  return wrap;
+}
+function handleNP(side, k) {
+  const inp = document.getElementById(side+'Input');
+  if(!inp) return;
+  if(k==='DEL') inp.value=inp.value.slice(0,-1);
+  else if(k==='OK') checkNumberAnswer(side);
+  else { inp.value+=k; checkNumberAnswer(side); }
+}
+
+// ============================================================
+// SVG ANIMATION
+// ============================================================
+function drawScene() {
+  const pos = tugPos;
+  const cx = 400 + pos*1.8;
+  figAnim = (figAnim+0.06) % (Math.PI*2);
+
+  const midY = 94 + Math.sin(figAnim*2)*3;
+  const rope = document.getElementById('ropeEl');
+  const bx=80, rx=720;
+  rope.setAttribute('d',`M${bx},${midY} Q${(bx+cx)/2},${midY+7} ${cx},${midY} Q${(cx+rx)/2},${midY-7} ${rx},${midY}`);
+  document.getElementById('ropeKnot').setAttribute('cx',cx);
+  document.getElementById('ropeKnot').setAttribute('cy',midY);
+  document.getElementById('flagPole').setAttribute('x1',cx);
+  document.getElementById('flagPole').setAttribute('x2',cx);
+  document.getElementById('flagShape').setAttribute('points',`${cx},60 ${cx+32},73 ${cx},86`);
+
+  drawFigures(pos, figAnim);
+
+  const pct = 50 - pos/2;
+  document.getElementById('tugBar').style.width = Math.max(8,Math.min(92,pct))+'%';
+
+  if(pos<=-80) endRound('blue');
+  else if(pos>=80) endRound('red');
+
+  animFrame = requestAnimationFrame(drawScene);
+}
+
+function drawFigures(pos, t) {
+  const lean = pos>0?-0.15:0.15;
+  const bg=document.getElementById('blueTeam'), rg=document.getElementById('redTeam');
+  bg.innerHTML=''; rg.innerHTML='';
+  [65,125,178].forEach((x,i)=>{ const b=Math.sin(t*2+i*1.2)*4; bg.appendChild(makeFig(x,95+b,'#2563eb','#1d4ed8',lean+.1,true,i,t)); });
+  [735,675,622].forEach((x,i)=>{ const b=Math.sin(t*2+i*1.4+1)*4; rg.appendChild(makeFig(x,95+b,'#dc2626','#b91c1c',-lean-.1,false,i,t)); });
+}
+
+function makeFig(x,y,bc,dc,lean,facR,idx,t) {
+  const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+  const ls=Math.sin(t*2+idx)*8, ap=Math.cos(t*2+idx)*5, dir=facR?1:-1;
+  ell(g,x,y+34,13,4,'#00000018');
+  ln(g,x,y+16,x-dir*8+ls*dir,y+34,dc,5); ln(g,x,y+16,x+dir*6-ls*dir,y+34,dc,5);
+  ell(g,x-dir*8+ls*dir,y+34,7,3,'#1e293b'); ell(g,x+dir*6-ls*dir,y+34,7,3,'#1e293b');
+  rc(g,x-8,y,16,18,bc,4);
+  ln(g,x+dir*8,y+5,x+dir*22+ap,y+1,dc,4); ln(g,x+dir*8,y+11,x+dir*22,y+9+ap,dc,4);
+  ci(g,x,y-9,11,'#f5d0a9');
+  idx%2===0?ell(g,x,y-17,10,4,'#4b3621'):ell(g,x,y-18,9,4,'#f59e0b');
+  ci(g,x-dir*3,y-11,1.8,'#1e293b'); ci(g,x+dir*3,y-11,1.8,'#1e293b');
+  const mp=document.createElementNS('http://www.w3.org/2000/svg','path');
+  mp.setAttribute('d',`M${x-4},${y-4} Q${x},${y-1} ${x+4},${y-4}`);
+  mp.setAttribute('stroke','#c0392b'); mp.setAttribute('fill','none'); mp.setAttribute('stroke-width','1.5');
+  g.appendChild(mp);
+  const hb=document.createElementNS('http://www.w3.org/2000/svg','rect');
+  hb.setAttribute('x',x-10); hb.setAttribute('y',y-14);
+  hb.setAttribute('width',20); hb.setAttribute('height',5); hb.setAttribute('rx',2);
+  hb.setAttribute('fill',idx%2===0?'#facc15':'#4ade80'); g.appendChild(hb);
+  g.setAttribute('transform',`rotate(${lean*20},${x},${y+10})`);
+  return g;
+}
+function ci(g,cx,cy,r,f){const e=document.createElementNS('http://www.w3.org/2000/svg','circle');e.setAttribute('cx',cx);e.setAttribute('cy',cy);e.setAttribute('r',r);e.setAttribute('fill',f);g.appendChild(e);}
+function ell(g,cx,cy,rx,ry,f){const e=document.createElementNS('http://www.w3.org/2000/svg','ellipse');e.setAttribute('cx',cx);e.setAttribute('cy',cy);e.setAttribute('rx',rx);e.setAttribute('ry',ry);e.setAttribute('fill',f);g.appendChild(e);}
+function ln(g,x1,y1,x2,y2,s,w){const e=document.createElementNS('http://www.w3.org/2000/svg','line');e.setAttribute('x1',x1);e.setAttribute('y1',y1);e.setAttribute('x2',x2);e.setAttribute('y2',y2);e.setAttribute('stroke',s);e.setAttribute('stroke-width',w);e.setAttribute('stroke-linecap','round');g.appendChild(e);}
+function rc(g,x,y,w,h,f,rx){const e=document.createElementNS('http://www.w3.org/2000/svg','rect');e.setAttribute('x',x);e.setAttribute('y',y);e.setAttribute('width',w);e.setAttribute('height',h);e.setAttribute('fill',f);e.setAttribute('rx',rx);g.appendChild(e);}
+
+// ============================================================
+// TIMER
+// ============================================================
+function startTimer() {
+  roundTime = TIMER_BY_DIFF[difficulty];
+  document.getElementById('timerNum').textContent = roundTime;
+  document.getElementById('timerNum').style.color = '#facc15';
+  timerInterval = setInterval(()=>{
+    roundTime--;
+    document.getElementById('timerNum').textContent = roundTime;
+    if(roundTime<=5) document.getElementById('timerNum').style.color='#f87171';
+    if(roundTime<=0) endRound(blueRoundScore>=redRoundScore?'blue':'red');
+  },1000);
+}
+
+// ============================================================
+// ROUND / GAME FLOW
+// ============================================================
+function endRound(winner) {
+  if(roundEnded) return;
+  roundEnded = true;
+  cancelAnimationFrame(animFrame);
+  clearInterval(timerInterval);
+  if(winner==='blue') blueWins++; else redWins++;
+  updateWinDots();
+  playSound(winner);
+
+  document.getElementById('flTitle').textContent = `第 ${currentRound} 局結束`;
+  document.getElementById('flTeam').textContent = winner==='blue'?'🔵 藍隊勝！':'🔴 紅隊勝！';
+  document.getElementById('flTeam').style.color = winner==='blue'?'#60a5fa':'#f87171';
+
+  const over = blueWins>=winsNeeded || redWins>=winsNeeded;
+  document.getElementById('flSub').textContent = over?'比賽結束！':`準備第 ${currentRound+1} 局…`;
+  document.getElementById('roundFlash').classList.add('show');
+
+  setTimeout(()=>{
+    document.getElementById('roundFlash').classList.remove('show');
+    if(over) { saveHistory(winner); showEndScreen(winner); }
+    else { currentRound++; initRound(); }
+  }, 2400);
+}
+
+function initRound() {
+  roundEnded = false; tugPos = 0;
+  blueRoundScore = 0; redRoundScore = 0;
+  cooldown = {blue:false, red:false};
+  document.getElementById('blueScore').textContent = 0;
+  document.getElementById('redScore').textContent = 0;
+  document.getElementById('roundInfo').textContent = `第 ${currentRound} 局`;
+  document.getElementById('timerNum').style.color = '#facc15';
+  renderQuestion('blue'); renderQuestion('red');
+  startTimer(); drawScene();
+}
+
+function updateWinDots() {
+  ['blue','red'].forEach(side=>{
+    const div=document.getElementById(side+'Wins'); div.innerHTML='';
+    for(let i=0;i<winsNeeded;i++){
+      const d=document.createElement('div');
+      const filled = i < (side==='blue' ? blueWins : redWins);
+      d.className='wd' + (filled ? (side==='blue' ? ' wb' : ' wr') : '');
+      div.appendChild(d);
+    }
+  });
+}
+
+// ============================================================
+// START / END
+// ============================================================
+function startGame() {
+  blueWins=0; redWins=0; currentRound=1;
+  window._playerName = (document.getElementById('playerName')?.value.trim()) || '匿名';
+  showScreen('gameScreen');
+  const badge=document.getElementById('diffBadge');
+  badge.textContent={easy:'🟢 簡單',medium:'🔵 中等',hard:'🔴 困難'}[difficulty];
+  badge.className='diff-badge '+difficulty;
+  updateWinDots();
+  initRound();
+}
+
+function showEndScreen(w) {
+  cancelAnimationFrame(animFrame); clearInterval(timerInterval);
+  showScreen('endScreen');
+  const cn=document.getElementById('champName');
+  cn.textContent=w==='blue'?'🔵 藍隊':'🔴 紅隊';
+  cn.className='champ-name '+w;
+  const winCount = w==='blue'?blueWins:redWins;
+  document.getElementById('champSub').textContent=`贏得 ${winCount} 局`;
+  document.getElementById('endBlue').textContent=blueWins;
+  document.getElementById('endRed').textContent=redWins;
+  startConfetti();
+  // Save to Firestore
+  const name = (window._playerName||'匿名') + '(' + (w==='blue'?'藍':'紅') + '隊勝)';
+  const score = winCount * 100 + (w==='blue'?blueWins:0);
+  if(window._fbSave) window._fbSave(name, score).catch(()=>{});
+  // Load leaderboard
+  const lbList = document.getElementById('lbList');
+  if(window._fbLoad) {
+    window._fbLoad().then(rows=>{
+      if(!rows.length){lbList.textContent='尚無紀錄';return;}
+      lbList.innerHTML = rows.map((r,i)=>
+        `<div style="padding:4px 0;border-bottom:1px solid #f1f5f9">
+          <span style="color:#f59e0b;font-weight:800">${['🥇','🥈','🥉'][i]||`${i+1}.`}</span>
+          <span style="font-weight:700;margin:0 6px">${r.name}</span>
+          <span style="color:#94a3b8">${r.date||''}</span>
+        </div>`
+      ).join('');
+    }).catch(()=>{ lbList.textContent='排行榜載入失敗'; });
+  } else { lbList.textContent=''; }
+}
+
+function goStart() {
+  cancelAnimationFrame(animFrame); clearInterval(timerInterval); stopConfetti();
+  showScreen('startScreen');
+  showTab('setup');
+}
+
+// ============================================================
+// HISTORY (localStorage)
+// ============================================================
+const HIST_KEY = 'tugwar_history_v2';
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(HIST_KEY)||'[]'); } catch(e){return[];}
+}
+function saveHistory(winner) {
+  const hist = loadHistory();
+  const topicNames = {multiply:'乘法',add:'加減法',mixed:'四則混合','ineq-symbol':'不等式符號','ineq-graph':'不等式圖解','ineq-solve':'一次不等式'};
+  hist.unshift({
+    date: new Date().toLocaleDateString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
+    topic: topicNames[topic]||topic,
+    difficulty,
+    winner,
+    blueWins, redWins
+  });
+  localStorage.setItem(HIST_KEY, JSON.stringify(hist.slice(0,30)));
+}
+function clearHistory() {
+  localStorage.removeItem(HIST_KEY); renderHistory();
+}
+function renderHistory() {
+  const hist=loadHistory(), wrap=document.getElementById('histList');
+  if(!hist.length){wrap.innerHTML='<div class="hist-empty">📭 尚無比賽紀錄</div>';return;}
+  const diffMap={easy:'🟢 簡單',medium:'🔵 中等',hard:'🔴 困難'};
+  wrap.innerHTML = hist.map(h=>`
+    <div class="hist-row">
+      <span class="hist-date">${h.date}</span>
+      <span class="hist-topic">${h.topic} ${diffMap[h.difficulty]||''}</span>
+      <span class="hist-score">${h.blueWins}-${h.redWins}</span>
+      <span class="hist-winner ${h.winner}">${h.winner==='blue'?'🔵 藍隊':'🔴 紅隊'}</span>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// FEEDBACK & SOUND
+// ============================================================
+function spawnFeedback(emoji, side) {
+  const el=document.createElement('div');
+  el.className='float-fb'; el.textContent=emoji;
+  const panel=document.getElementById(side+'Panel');
+  const r=panel.getBoundingClientRect();
+  el.style.left=(r.left+r.width/2-16)+'px';
+  el.style.top=(r.top+20)+'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 900);
+}
+
+let audioCtx;
+function getAC(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+function playSound(type){
+  try{
+    const ac=getAC(), o=ac.createOscillator(), g=ac.createGain();
+    o.connect(g);g.connect(ac.destination);
+    if(type==='correct'){o.frequency.setValueAtTime(523,ac.currentTime);o.frequency.setValueAtTime(659,ac.currentTime+.1);g.gain.setValueAtTime(.18,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.3);o.start();o.stop(ac.currentTime+.3);}
+    else if(type==='wrong'){o.frequency.setValueAtTime(180,ac.currentTime);g.gain.setValueAtTime(.15,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.22);o.start();o.stop(ac.currentTime+.22);}
+    else{o.type='sine';[440,554,659].forEach((f,i)=>o.frequency.setValueAtTime(f,ac.currentTime+i*.1));g.gain.setValueAtTime(.22,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.5);o.start();o.stop(ac.currentTime+.5);}
+  }catch(e){}
+}
+
+// ============================================================
+// CONFETTI
+// ============================================================
+let cfAF;
+function startConfetti(){
+  const cv=document.getElementById('confettiCanvas');
+  const ctx=cv.getContext('2d');
+  cv.width=window.innerWidth; cv.height=window.innerHeight;
+  const ps=Array.from({length:90},()=>({x:Math.random()*cv.width,y:Math.random()*-cv.height,r:Math.random()*8+4,d:Math.random()*3+1.2,color:['#2563eb','#dc2626','#facc15','#4ade80','#f97316','#a855f7'][Math.floor(Math.random()*6)],ang:Math.random()*360,sp:(Math.random()-.5)*6}));
+  function draw(){ctx.clearRect(0,0,cv.width,cv.height);ps.forEach(p=>{ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.ang*Math.PI/180);ctx.fillStyle=p.color;ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*1.6);ctx.restore();p.y+=p.d;p.ang+=p.sp;if(p.y>cv.height){p.y=-20;p.x=Math.random()*cv.width;}});cfAF=requestAnimationFrame(draw);}
+  draw();
+}
+function stopConfetti(){cancelAnimationFrame(cfAF);const cv=document.getElementById('confettiCanvas');if(cv)cv.getContext('2d').clearRect(0,0,cv.width,cv.height);}
+
+// ============================================================
+// INIT
+// ============================================================
+renderHistory();
+document.getElementById('diff-hint').textContent='⏱ 計時 30 秒・答錯無懲罰';
+</script>
+</body>
+</html>
