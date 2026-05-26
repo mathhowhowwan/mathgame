@@ -108,18 +108,18 @@
     .score-lbl { font-size:.6rem; color:var(--chalk-dim); }
 
     .q-card { background:rgba(0,0,0,.2); border:1.5px solid rgba(240,236,224,.13); border-radius:10px; padding:1.5rem; margin-bottom:.9rem; }
-    .type-tag { display:inline-block; padding:.2rem .65rem; border-radius:4px; font-size:.72rem; font-weight:700; letter-spacing:.04em; margin-bottom:.7rem; }
+    .type-tag { display:inline-block; padding:.2rem .65rem; border-radius:4px; font-size:.85rem; font-weight:700; letter-spacing:.04em; margin-bottom:.7rem; }
     .tag-basic { background:rgba(90,180,90,.18); color:#90d090; border:1px solid rgba(90,180,90,.35); }
     .tag-word  { background:rgba(144,196,240,.18); color:var(--chalk-blue); border:1px solid rgba(144,196,240,.35); }
     .tag-chain { background:rgba(240,160,180,.18); color:var(--chalk-pink); border:1px solid rgba(240,160,180,.35); }
-    .formula-box { background:transparent; border:1.5px dashed rgba(240,236,224,.22); border-radius:8px; padding:.5rem 1rem; font-size:1.05rem; color:var(--chalk-yellow); font-weight:700; text-align:center; margin-bottom:.9rem; font-family:'Caveat',cursive; letter-spacing:.05em; }
-    .q-text { font-size:1rem; line-height:1.8; }
-    .q-blank { color:var(--chalk-yellow); font-weight:900; font-size:1.3rem; font-family:'Caveat',cursive; }
+    .formula-box { background:transparent; border:1.5px dashed rgba(240,236,224,.22); border-radius:8px; padding:.5rem 1rem; font-size:1.3rem; color:var(--chalk-yellow); font-weight:700; text-align:center; margin-bottom:.9rem; font-family:'Caveat',cursive; letter-spacing:.05em; }
+    .q-text { font-size:1.2rem; line-height:1.9; }
+    .q-blank { color:var(--chalk-yellow); font-weight:900; font-size:1.5rem; font-family:'Caveat',cursive; }
 
     .prop-line { font-size:1.7rem; font-family:'Caveat',cursive; font-weight:700; text-align:center; margin:.5rem 0; letter-spacing:.12em; }
 
     .opts { display:grid; grid-template-columns:1fr 1fr; gap:.7rem; margin-bottom:.9rem; }
-    .opt-btn { background:rgba(0,0,0,.25); border:2px solid rgba(240,236,224,.18); border-radius:8px; padding:.95rem .6rem; font-size:1.3rem; font-weight:700; font-family:'Caveat',cursive; color:var(--chalk); cursor:pointer; transition:all .18s; position:relative; overflow:hidden; }
+    .opt-btn { background:rgba(0,0,0,.25); border:2px solid rgba(240,236,224,.18); border-radius:8px; padding:.95rem .6rem; font-size:1.55rem; font-weight:700; font-family:'Caveat',cursive; color:var(--chalk); cursor:pointer; transition:all .18s; position:relative; overflow:hidden; }
     .opt-btn:hover:not(:disabled) { border-color:rgba(240,236,224,.5); background:rgba(240,236,224,.07); transform:translateY(-2px); }
     .opt-btn.correct { background:rgba(90,180,90,.2); border-color:var(--correct); color:var(--correct); }
     .opt-btn.wrong   { background:rgba(200,60,60,.15); border-color:var(--wrong); color:var(--wrong); }
@@ -219,6 +219,7 @@
       </div>
       <button class="btn-main" onclick="startGame()">🚀 開始挑戰！</button>
       <button class="btn-secondary" onclick="openBoard()">🏆 查看全班排行榜</button>
+      <a href="https://mathhowhowwan.github.io/mathgame/" class="btn-home" style="display:block;text-align:center;text-decoration:none;">🏠 回遊戲主頁</a>
       <div class="best-note" id="best-start">載入中...</div>
     </div>
   </div>
