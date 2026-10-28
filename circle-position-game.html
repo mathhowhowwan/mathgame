@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>靶心判官：圓與點、線的位置關係</title>
+<style>[hidden]{display:none!important}</style>
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js';
+  import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp }
+    from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
+  const app = initializeApp({
+    apiKey: "AIzaSyCHYtmrbMTxQhsSm9qjspiz-OVs2Jwv9jA",
+    authDomain: "my-teaching-tools-ae1ac.firebaseapp.com",
+    projectId: "my-teaching-tools-ae1ac",
+    storageBucket: "my-teaching-tools-ae1ac.firebasestorage.app",
+    messagingSenderId: "817693080761",
+    appId: "1:817693080761:web:27f1226f1f024713fc6f68"
+  });
+  const db = getFirestore(app);
+  const COL = 'circle-position-game_scores';
+  window._fbSave = async (name, score, extra) => {
+    await addDoc(collection(db, COL), Object.assign({ name, score, timestamp: serverTimestamp(), date: new Date().toLocaleDateString('zh-TW') }, extra || {}));
+  };
+  window._fbLoad = async () => {
+    const snap = await getDocs(query(collection(db, COL), orderBy('score','desc'), limit(100)));
+    return snap.docs.map(d => d.data());
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+/* 版面：黑板木框單欄，闖關畫面為「題目 → 圖 → 作答 → 講解」由上而下 */
+:root{
+  --bg:#0e1a15; --board:#1d3a30; --board2:#142a22; --chalk:#f3efe4; --dim:#b3c1b4;
+  --yellow:#ffd966; --pink:#ff9fb5; --blue:#8fd3ff; --green:#9be28f; --red:#ff7a7a;
+  --wood:#8a5a2b; --ink:#10241c; --line:rgba(243,239,228,.4);
+  --font:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--chalk);font-family:var(--font);font-size:16px;line-height:1.6;
+  padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.frame{max-width:600px;margin:0 auto;background:radial-gradient(circle at 30% 15%,var(--board),var(--board2));
+  border:10px solid var(--wood);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.5),inset 0 0 40px rgba(0,0,0,.35);overflow:hidden}
+.screen{display:none;padding:16px}
+.screen.active{display:block;animation:fade .3s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h1{font-size:2.3rem;font-weight:900;text-align:center;color:var(--yellow);letter-spacing:.25em;text-indent:.25em;margin-top:4px}
+h2{font-size:1.5rem;font-weight:900;text-align:center;color:var(--yellow)}
+.sub{text-align:center;color:var(--blue);margin:2px 0 12px;font-size:.95rem}
+.card{border:2px dashed var(--line);border-radius:12px;padding:12px 14px;margin:10px 0;background:rgba(0,0,0,.16)}
+.card .h{font-weight:700;color:var(--yellow);margin-bottom:6px}
+label{display:block;font-size:.9rem;color:var(--dim);margin-top:6px}
+input{width:100%;font:inherit;font-weight:700;padding:9px 12px;border-radius:10px;border:2px solid var(--line);background:rgba(0,0,0,.25);color:var(--chalk)}
+input:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.warn{color:var(--red);font-weight:700;margin:6px 2px}
+.big{display:block;width:100%;font:inherit;font-weight:900;font-size:1.2rem;padding:12px;margin:10px 0;border-radius:12px;border:3px solid var(--yellow);background:rgba(255,217,102,.14);color:var(--yellow);cursor:pointer;transition:.15s}
+.big:hover{background:rgba(255,217,102,.28)}
+.big.alt{border-color:var(--blue);color:var(--blue);background:rgba(143,211,255,.1)}
+.big.alt:hover{background:rgba(143,211,255,.22)}
+a.big{text-align:center;text-decoration:none}
+.big.ghost{border:2px dashed var(--line);color:var(--chalk);background:transparent;font-size:1rem;font-weight:700}
+.stages{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.stages button{font:inherit;font-weight:700;padding:9px 8px;border-radius:10px;border:2px dashed var(--line);background:rgba(255,255,255,.05);color:var(--chalk);cursor:pointer;text-align:left}
+.stages button:hover{background:rgba(255,255,255,.14)}
+.stages b{color:var(--yellow);margin-right:6px}
+details summary{cursor:pointer;font-weight:700;color:var(--yellow)}
+details ul{margin:8px 0 0 1.1em;font-size:.95rem}
+details li{margin:3px 0}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;font-size:.95rem}
+.hud b{color:var(--yellow);font-size:1.15rem;font-variant-numeric:tabular-nums}
+.hearts{letter-spacing:2px;color:var(--pink);font-size:1.1rem}
+.hearts .off{color:rgba(243,239,228,.25)}
+.timebar{height:8px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden;margin-bottom:8px}
+.timebar i{display:block;height:100%;width:100%;background:var(--green);transition:width .1s linear}
+.tag{display:inline-block;font-size:.85rem;font-weight:700;padding:1px 10px;border-radius:12px;background:rgba(143,211,255,.18);color:var(--blue);margin-bottom:4px}
+.tag.warn{background:rgba(255,122,122,.2);color:var(--red)}
+.prompt{font-size:1.1rem;font-weight:700;line-height:1.65;margin-bottom:8px;min-height:3.3em;text-wrap:pretty}
+.cvwrap{position:relative;border:2px solid var(--line);border-radius:10px;background:rgba(0,0,0,.18)}
+canvas{width:100%;height:auto;display:block;touch-action:none;border-radius:8px}
+#readout{text-align:center;font-weight:700;color:var(--yellow);min-height:1.6em;margin-top:6px}
+.ctl{display:grid;gap:8px;margin:10px 0}
+.ctl.two{grid-template-columns:repeat(2,1fr)}
+.ctl.three{grid-template-columns:repeat(3,1fr)}
+.ctl.one{grid-template-columns:1fr}
+.opt{font:inherit;font-weight:900;font-size:1.05rem;padding:12px 8px;border-radius:10px;border:2px dashed var(--chalk);background:rgba(255,255,255,.06);color:var(--chalk);cursor:pointer;transition:.12s;min-width:0;overflow-wrap:anywhere}
+.opt:hover:not(:disabled){background:rgba(255,255,255,.16);transform:translateY(-2px)}
+.opt:disabled{cursor:default}
+.opt.right{background:rgba(155,226,143,.28);border:2px solid var(--green)}
+.opt.bad{background:rgba(255,122,122,.28);border:2px solid var(--red)}
+.slider-row{display:flex;align-items:center;gap:10px;font-weight:700}
+.slider-row input{padding:0;border:0;background:none;height:28px;accent-color:var(--yellow);flex:1}
+.fb{border-radius:10px;line-height:1.7;font-size:1rem}
+.fb.good,.fb.miss{padding:10px 12px;margin-top:6px}
+.fb.good{background:rgba(155,226,143,.16);border:2px solid var(--green)}
+.fb.miss{background:rgba(255,122,122,.15);border:2px solid var(--red)}
+#next{display:none}
+.pop{position:absolute;left:50%;top:40%;transform:translateX(-50%);font-size:2rem;font-weight:900;color:var(--yellow);text-shadow:2px 2px 0 #000;pointer-events:none;animation:up 1s forwards}
+@keyframes up{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,-70px)}}
+.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-5px)}}
+.stars{font-size:2.3rem;text-align:center;letter-spacing:6px;color:var(--yellow)}
+.rank{text-align:center;font-weight:900;font-size:1.3rem;color:var(--yellow);margin:2px 0 6px}
+.stat{display:flex;justify-content:space-around;text-align:center;gap:8px}
+.stat b{display:block;font-size:1.6rem;color:var(--yellow);font-variant-numeric:tabular-nums}
+.rev{font-size:.95rem;border-bottom:1px dotted var(--line);padding:6px 0}
+.rev em{color:var(--green);font-style:normal}
+.cloud{text-align:center;font-size:.95rem;min-height:1.5em;margin:4px 0}
+.cloud.ok{color:var(--green)}.cloud.no{color:var(--pink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}
+.chips button{font:inherit;font-weight:700;padding:3px 12px;border-radius:16px;border:2px solid var(--line);background:transparent;color:var(--chalk);cursor:pointer}
+.chips button.on{border-color:var(--yellow);background:rgba(255,217,102,.2);color:var(--yellow)}
+ol.board{list-style:none;margin:8px 0}
+ol.board li{display:grid;grid-template-columns:2.4em 1fr auto auto;gap:8px;align-items:center;padding:8px 6px;border-bottom:1px dotted var(--line);min-width:0}
+ol.board li.me{background:rgba(255,217,102,.14);border-radius:8px}
+ol.board .no{font-weight:900;color:var(--yellow);text-align:center;font-variant-numeric:tabular-nums}
+ol.board .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+ol.board .cl{font-size:.85rem;color:var(--dim)}
+ol.board .sc{font-weight:900;color:var(--yellow);font-variant-numeric:tabular-nums}
+ol.board .st{color:var(--yellow);font-size:.85rem;letter-spacing:1px}
+.note{font-size:.88rem;color:var(--dim);text-align:center;margin:6px 0}
+.empty{text-align:center;color:var(--dim);padding:18px 0}
+@media (max-width:400px){h1{font-size:1.9rem}.opt{font-size:.98rem;padding:11px 6px}ol.board li{grid-template-columns:2em 1fr auto}ol.board .st{display:none}}
+@media (prefers-reduced-motion:reduce){.screen.active,.pop,.shake{animation:none}.opt:hover:not(:disabled){transform:none}}
+</style>
+
+</head>
+<body>
+
+<div class="frame" id="frame">
+
+<section id="start" class="screen active">
+  <h1>靶心判官</h1>
+  <p class="sub">九年級上　2-1 點、直線與圓之間的位置關係</p>
+  <div class="card">
+    <div class="row2">
+      <div><label for="pname">暱稱</label><input id="pname" maxlength="10" autocomplete="off" placeholder="例如：小明"></div>
+      <div><label for="pcls">班級</label><input id="pcls" maxlength="8" autocomplete="off" placeholder="例如：901"></div>
+    </div>
+    <div class="note" style="text-align:left">成績會以暱稱和班級顯示在排行榜上，請不要填真實全名。</div>
+  </div>
+  <div id="warn" class="warn" hidden></div>
+  <button class="big" id="btnRank">開始闖關　共 6 關 18 題</button>
+  <button class="big alt" id="btnBoard">排行榜</button>
+  <div class="card">
+    <div class="h">關卡練習（不計入排行榜）</div>
+    <div class="stages" id="stageBtns"></div>
+  </div>
+  <details class="card">
+    <summary>重點整理</summary>
+    <ul>
+      <li>圓的名詞：弦、直徑、弧、弓形、扇形、圓心角。</li>
+      <li>弧長 ＝ 2πr × x/360；扇形面積 ＝ πr² × x/360。</li>
+      <li>點與圓：OP ＜ r 在圓內，OP ＝ r 在圓上，OP ＞ r 在圓外。</li>
+      <li>直線與圓：圓心到直線的距離 d ＞ r 不相交，d ＝ r 相切，d ＜ r 相割。</li>
+      <li>切線性質：圓心與切點的連線垂直切線。切線段性質：PA ＝ PB，PO 平分 ∠APB，PO 垂直平分 AB。</li>
+      <li>弦與弦心距：弦的中垂線過圓心；OA² ＝ AM² ＋ OM²；同圓中弦愈長，弦心距愈小。</li>
+    </ul>
+  </details>
+  <a class="big ghost" href="https://mathhowhowwan.github.io/mathgame/">回遊戲主頁</a>
+</section>
+
+<section id="game" class="screen">
+  <div class="hud"><div>分數 <b id="score">0</b></div><div class="hearts" id="hearts"></div><div id="qinfo"></div></div>
+  <div class="timebar"><i id="tbar"></i></div>
+  <span class="tag" id="tag"></span>
+  <div class="prompt" id="prompt"></div>
+  <div class="cvwrap" id="cvwrap"><canvas id="cv" width="520" height="400"></canvas></div>
+  <div id="readout"></div>
+  <div class="ctl" id="ctl"></div>
+  <div class="fb" id="fb"></div>
+  <button class="big" id="next">下一題</button>
+  <a class="big ghost" href="https://mathhowhowwan.github.io/mathgame/">回遊戲主頁</a>
+</section>
+
+<section id="end" class="screen">
+  <h2 id="endTitle">成績單</h2>
+  <div class="stars" id="stars"></div>
+  <div class="rank" id="rank"></div>
+  <div class="card stat">
+    <div>總分<b id="fScore">0</b></div>
+    <div>答對<b id="fRight">0</b></div>
+    <div>個人最高<b id="fBest">0</b></div>
+  </div>
+  <div class="cloud" id="cloud"></div>
+  <div class="card" id="review"></div>
+  <button class="big" id="btnAgain">再玩一次</button>
+  <button class="big alt" id="btnEndBoard">看排行榜</button>
+  <button class="big ghost" id="btnHome">回首頁</button>
+  <a class="big ghost" href="https://mathhowhowwan.github.io/mathgame/">回遊戲主頁</a>
+</section>
+
+<section id="board" class="screen">
+  <h2>排行榜</h2>
+  <div class="chips" id="chips"></div>
+  <ol class="board" id="boardList"></ol>
+  <div class="note" id="boardNote"></div>
+  <button class="big ghost" id="btnBack">回首頁</button>
+  <a class="big ghost" href="https://mathhowhowwan.github.io/mathgame/">回遊戲主頁</a>
+</section>
+
+</div>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const ri=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[ri(0,a.length-1)];
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=ri(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+const fmt=n=>Number.isInteger(n)?String(n):n.toFixed(1);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const gcd=(a,b)=>b?gcd(b,a%b):Math.abs(a);
+const rad=d=>d*Math.PI/180;
+const U=v=>v+' 公分';
+function piStr(n,d){const g=gcd(n,d);n/=g;d/=g;const p=n===1?'π':n+'π';return d===1?p:p+'/'+d}
+function fracStr(n,d){const g=gcd(n,d);n/=g;d/=g;return d===1?String(n):n+'/'+d}
+const sgn=()=>Math.random()<.5?1:-1;
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+/* ---------- 音效 ---------- */
+let AC;
+function tone(f,d,t,v,w){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=t||'sine';o.frequency.value=f;const s=AC.currentTime+(w||0);g.gain.setValueAtTime(v||.12,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(AC.destination);o.start(s);o.stop(s+d)}catch(e){}}
+function sfx(k){
+  if(k==='ok'){tone(660,.12,'triangle');tone(880,.2,'triangle',.12,.1)}
+  else if(k==='bad'){tone(220,.25,'sawtooth',.09);tone(160,.3,'sawtooth',.09,.15)}
+  else if(k==='win'){[523,659,784,1047].forEach((f,i)=>tone(f,.25,'triangle',.13,i*.12))}
+  else tone(500,.05,'square',.05);
+}
+
+/* ---------- 畫布 ---------- */
+const cv=$('cv'),ctx=cv.getContext('2d');
+const COL={chalk:'#f3efe4',yel:'#ffd966',pink:'#ff9fb5',blue:'#8fd3ff',green:'#9be28f'};
+const FONT='"Noto Sans TC",sans-serif';
+function txt(c,s,x,y,col,size,al){c.fillStyle=col||COL.chalk;c.font='700 '+(size||16)+'px '+FONT;c.textAlign=al||'left';c.fillText(s,x,y);c.textAlign='left'}
+function line(c,x1,y1,x2,y2,col,w,dash){c.beginPath();c.setLineDash(dash||[]);c.strokeStyle=col||COL.chalk;c.lineWidth=w||2;c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();c.setLineDash([])}
+function dot(c,x,y,r,col){c.beginPath();c.arc(x,y,r||4,0,Math.PI*2);c.fillStyle=col||COL.chalk;c.fill()}
+function circ(c,x,y,R,fill){c.beginPath();c.arc(x,y,R,0,Math.PI*2);if(fill){c.fillStyle=fill;c.fill()}c.strokeStyle=COL.chalk;c.lineWidth=3;c.stroke()}
+function rightAngle(c,x,y,ux,uy,vx,vy,s){s=s||11;c.beginPath();c.moveTo(x+ux*s,y+uy*s);c.lineTo(x+(ux+vx)*s,y+(uy+vy)*s);c.lineTo(x+vx*s,y+vy*s);c.strokeStyle=COL.chalk;c.lineWidth=1.5;c.stroke()}
+function gridBg(c){c.strokeStyle='rgba(243,239,228,.06)';c.lineWidth=1;c.beginPath();for(let k=-15;k<=15;k++){c.moveTo(260+k*18,0);c.lineTo(260+k*18,400)}for(let k=-12;k<=12;k++){c.moveTo(0,200+k*18);c.lineTo(520,200+k*18)}c.stroke()}
+let cur=null,G=null;
+function redraw(){ctx.clearRect(0,0,520,400);gridBg(ctx);if(cur&&cur.draw)cur.draw(ctx)}
+
+/* 圓的名詞 */
+function sceneTerms(kind,a1,delta){return c=>{
+  const R=130,x=260,y=200,a2=a1+delta,H='rgba(255,217,102,.33)';
+  const P=a=>[x+R*Math.cos(a),y+R*Math.sin(a)],A=P(a1),B=P(a2);
+  if(kind==='segment'){c.beginPath();c.arc(x,y,R,a1,a2);c.closePath();c.fillStyle=H;c.fill()}
+  if(kind==='sector'){c.beginPath();c.moveTo(x,y);c.arc(x,y,R,a1,a2);c.closePath();c.fillStyle=H;c.fill()}
+  circ(c,x,y,R);
+  if(kind==='arc'){c.beginPath();c.arc(x,y,R,a1,a2);c.strokeStyle=COL.yel;c.lineWidth=8;c.stroke()}
+  if(kind==='chord'||kind==='diameter'||kind==='segment')line(c,A[0],A[1],B[0],B[1],COL.yel,kind==='segment'?2:5);
+  if(kind==='sector'||kind==='angle'){line(c,x,y,A[0],A[1],COL.chalk,2);line(c,x,y,B[0],B[1],COL.chalk,2)}
+  if(kind==='angle'){c.beginPath();c.arc(x,y,38,a1,a2);c.strokeStyle=COL.yel;c.lineWidth=5;c.stroke()}
+  dot(c,x,y,4);txt(c,'O',x-18,y-8,COL.chalk,17);
+  [[A,a1,'A'],[B,a2,'B']].forEach(([p,a,n])=>{dot(c,p[0],p[1],4);txt(c,n,x+(R+18)*Math.cos(a)-6,y+(R+18)*Math.sin(a)+6,COL.chalk,17)});
+}}
+/* 扇形 */
+function sceneSector(lr,lx,xd,mode){return c=>{
+  const R=135,x=260,y=200,a1=rad(-xd/2),a2=rad(xd/2);
+  c.beginPath();c.moveTo(x,y);c.arc(x,y,R,a1,a2);c.closePath();c.fillStyle=mode==='area'?'rgba(255,159,181,.35)':'rgba(255,159,181,.14)';c.fill();
+  circ(c,x,y,R);
+  if(mode==='arc'){c.beginPath();c.arc(x,y,R,a1,a2);c.strokeStyle=COL.yel;c.lineWidth=7;c.stroke()}
+  const A=[x+R*Math.cos(a1),y+R*Math.sin(a1)],B=[x+R*Math.cos(a2),y+R*Math.sin(a2)];
+  line(c,x,y,A[0],A[1],COL.chalk,2);line(c,x,y,B[0],B[1],COL.chalk,2);
+  dot(c,x,y,4);txt(c,'O',x-20,y+6,COL.chalk,17);
+  txt(c,'A',A[0]-4,A[1]-12,COL.chalk,17);txt(c,'B',B[0]-4,B[1]+24,COL.chalk,17);
+  txt(c,lx,x+34,y+6,COL.yel,16);
+  txt(c,lr,(x+A[0])/2-10,(y+A[1])/2-10,COL.pink,16);
+}}
+/* 點與圓（方格座標，1 格＝1 公分） */
+function gridScene(s){return c=>{
+  const S=18,CX=260,CY=200;
+  if(s.r!=null){circ(c,CX,CY,s.r*S,'rgba(143,211,255,.12)');
+    if(s.showR){line(c,CX,CY,CX,CY+s.r*S,COL.pink,2,[6,5]);txt(c,'r = '+fmt(s.r),CX+8,CY+s.r*S/2+5,COL.pink,15)}}
+  s.pts.forEach(p=>{const x=CX+p.x*S,y=CY+p.y*S;
+    if(p.seg){line(c,CX,CY,x,y,COL.yel,2,[5,5]);txt(c,'O'+p.id+' = '+p.dl,(CX+x)/2+4,(CY+y)/2-8,COL.yel,14)}
+    dot(c,x,y,8,p.color);c.beginPath();c.arc(x,y,8,0,Math.PI*2);c.strokeStyle=COL.chalk;c.lineWidth=2;c.stroke();
+    txt(c,p.name,x+11,y-11,COL.chalk,17)});
+  dot(c,CX,CY,4);txt(c,'O',CX-18,CY-8,COL.chalk,17);
+}}
+/* 會考：兩圓與三角形 */
+function sceneTri(b,cc,a){return c=>{
+  const L=105,Bx=210,By=270,Cx=Bx+L,Cy=By;
+  const AB=L*Math.sin(rad(cc))/Math.sin(rad(a));
+  const Ax=Bx+AB*Math.cos(rad(b)),Ay=By-AB*Math.sin(rad(b));
+  c.beginPath();c.arc(Bx,By,L,0,Math.PI*2);c.fillStyle='rgba(143,211,255,.10)';c.fill();c.strokeStyle=COL.blue;c.lineWidth=2;c.stroke();
+  c.beginPath();c.arc(Cx,Cy,L,0,Math.PI*2);c.fillStyle='rgba(255,159,181,.10)';c.fill();c.strokeStyle=COL.pink;c.lineWidth=2;c.stroke();
+  line(c,Bx,By,Cx,Cy,COL.chalk,3);line(c,Bx,By,Ax,Ay,COL.chalk,3);line(c,Cx,Cy,Ax,Ay,COL.chalk,3);
+  [[Bx,By,'B'],[Cx,Cy,'C'],[Ax,Ay,'A']].forEach(p=>{dot(c,p[0],p[1],5);txt(c,p[2],p[0]+(p[2]==='A'?8:-4),p[1]+(p[2]==='A'?-10:24),COL.chalk,18)});
+  txt(c,'∠B = '+b+'°',Bx-78,By+24,COL.blue,15);txt(c,'∠C = '+cc+'°',Cx+12,Cy+24,COL.pink,15);
+  txt(c,'圓 B、圓 C 的半徑都是 BC',260,392,COL.chalk,14,'center');
+}}
+/* 直線與圓：一條直線 */
+function sceneLineD(r,d){return c=>{
+  const R=105,Ox=260,Oy=170,dp=Math.min(d/r,1.7)*R,y=Oy+dp;
+  circ(c,Ox,Oy,R,'rgba(143,211,255,.10)');
+  line(c,40,y,480,y,COL.pink,3);txt(c,'L',484,y+5,COL.pink,18);
+  line(c,Ox,Oy,Ox,y,COL.yel,2,[6,5]);rightAngle(c,Ox,y,0,-1,1,0,10);
+  const a=rad(-150);line(c,Ox,Oy,Ox+R*Math.cos(a),Oy+R*Math.sin(a),COL.chalk,1.5);
+  txt(c,'r = '+fmt(r),Ox+R*Math.cos(a)/2-18,Oy+R*Math.sin(a)/2-26,COL.chalk,15);
+  if(d<r){const h=Math.sqrt(R*R-dp*dp);dot(c,Ox-h,y,5,COL.yel);dot(c,Ox+h,y,5,COL.yel)}
+  else if(d===r)dot(c,Ox,y,6,COL.yel);
+  dot(c,Ox,Oy,4);txt(c,'O',Ox-18,Oy-8,COL.chalk,17);txt(c,'P',Ox+8,y+20,COL.chalk,17);
+  txt(c,'OP = '+fmt(d),Ox+10,(Oy+y)/2+4,COL.yel,15);
+}}
+function sceneCircleR(r){return c=>{circ(c,260,200,120,'rgba(143,211,255,.10)');line(c,260,200,260+120*Math.cos(rad(-30)),200+120*Math.sin(rad(-30)),COL.pink,2);dot(c,260,200,4);txt(c,'O',242,192,COL.chalk,17);txt(c,'r = '+r+' 公分',270,228,COL.pink,16)}}
+/* 直線與圓：四條直線 */
+function sceneLines4(r,items){return c=>{
+  const s=75/r,Ox=260,Oy=200;
+  circ(c,Ox,Oy,r*s,'rgba(143,211,255,.10)');dot(c,Ox,Oy,4);txt(c,'O',Ox-18,Oy-8,COL.chalk,17);
+  items.forEach((it,k)=>{const y=Oy+(k%2===0?1:-1)*it.d*s;line(c,30,y,490,y,COL.pink,2);
+    txt(c,it.n+'：距離 '+fmt(it.d),34,y-6,COL.yel,14)});
+}}
+/* 切線 */
+function sceneTan(o){return c=>{
+  const cp=Math.cos(o.phi),sp=Math.sin(o.phi),R=Math.min(105,470/(1+1/cp)),Ox=R+25,Oy=200;
+  const Bx=Ox+R/cp,Ax=Ox+R*cp,Ay=Oy-R*sp,A2y=Oy+R*sp;
+  circ(c,Ox,Oy,R,'rgba(143,211,255,.10)');
+  line(c,Ox,Oy,Ax,Ay,COL.pink,2,[6,5]);line(c,Ax,Ay,Bx,Oy,COL.yel,3);line(c,Ox,Oy,Bx,Oy,COL.chalk,1.5,[5,5]);
+  const ra=(px,py)=>{const ux=(Ox-px)/R,uy=(Oy-py)/R,l=Math.hypot(Bx-px,Oy-py),vx=(Bx-px)/l,vy=(Oy-py)/l;rightAngle(c,px,py,ux,uy,vx,vy,11)};
+  ra(Ax,Ay);
+  if(o.two){line(c,Ox,Oy,Ax,A2y,COL.pink,2,[6,5]);line(c,Ax,A2y,Bx,Oy,COL.yel,3);line(c,Ax,Ay,Ax,A2y,COL.chalk,1.2,[4,4]);ra(Ax,A2y);
+    txt(c,o.t2,Ax-6,A2y+24,COL.chalk,17);dot(c,Ax,A2y,4)}
+  dot(c,Ox,Oy,4);dot(c,Ax,Ay,4);dot(c,Bx,Oy,4);
+  txt(c,'O',Ox-20,Oy+6,COL.chalk,17);txt(c,o.t1,Ax-6,Ay-12,COL.chalk,17);txt(c,o.ext,Bx+10,Oy+6,COL.chalk,17);
+  if(o.lr)txt(c,o.lr,(Ox+Ax)/2-38,(Oy+Ay)/2-6,COL.pink,15);
+  if(o.lt)txt(c,o.lt,(Ax+Bx)/2+8,(Ay+Oy)/2-8,COL.yel,15);
+  if(o.lo){if(o.two)txt(c,o.lo,Bx+10,Oy+30,COL.chalk,15);else txt(c,o.lo,(Ox+Bx)/2-30,Oy+22,COL.chalk,15)}
+}}
+/* 弦與弦心距 */
+function sceneChord(o){return c=>{
+  const R=120,Ox=260,Oy=170,dp=o.d/o.r*R,y=Oy+dp,hf=Math.sqrt(Math.max(0,R*R-dp*dp));
+  circ(c,Ox,Oy,R,'rgba(143,211,255,.10)');
+  line(c,Ox-hf,y,Ox+hf,y,COL.yel,3);line(c,Ox,Oy,Ox,y,COL.pink,2,[6,5]);line(c,Ox,Oy,Ox-hf,y,COL.chalk,1.5,[5,5]);
+  rightAngle(c,Ox,y,0,-1,1,0,11);
+  if(o.tunnel)line(c,Ox,Oy-R,Ox,y,COL.green,3);
+  [[Ox,Oy],[Ox-hf,y],[Ox+hf,y],[Ox,y]].forEach(p=>dot(c,p[0],p[1],4));
+  txt(c,'O',Ox+8,Oy-8,COL.chalk,17);txt(c,'A',Ox-hf-20,y+8,COL.chalk,17);txt(c,'B',Ox+hf+8,y+8,COL.chalk,17);
+  txt(c,o.tunnel?'D':'M',Ox+8,y+20,COL.chalk,17);
+  if(o.tunnel)txt(c,'C',Ox+8,Oy-R-8,COL.chalk,17);
+  if(o.ld)txt(c,o.ld,Ox+10,(Oy+y)/2+2,COL.pink,15);
+  if(o.lr)txt(c,o.lr,Ox-hf/2-46,(Oy+y)/2-8,COL.chalk,15);
+  if(o.lab)txt(c,o.lab,14,y+5,COL.yel,15);
+  if(o.lc)txt(c,o.lc,Ox+12,Oy-R/2,COL.green,15);
+}}
+function sceneChords2(la,lb){return c=>{
+  const R=130,Ox=260,Oy=200,k=0.88*R/(Math.max(la,lb)/2);
+  const ha=la/2*k,hb=lb/2*k,da=Math.sqrt(R*R-ha*ha),db=Math.sqrt(R*R-hb*hb),ya=Oy-da,yb=Oy+db;
+  circ(c,Ox,Oy,R,'rgba(143,211,255,.10)');
+  line(c,Ox-ha,ya,Ox+ha,ya,COL.yel,3);line(c,Ox-hb,yb,Ox+hb,yb,COL.pink,3);
+  line(c,Ox,Oy,Ox,ya,COL.yel,1.5,[5,5]);line(c,Ox,Oy,Ox,yb,COL.pink,1.5,[5,5]);
+  rightAngle(c,Ox,ya,0,1,1,0,9);rightAngle(c,Ox,yb,0,-1,1,0,9);
+  dot(c,Ox,Oy,4);txt(c,'O',Ox+8,Oy+4,COL.chalk,16);
+  txt(c,'M',Ox+8,ya-6,COL.chalk,16);txt(c,'N',Ox+8,yb+20,COL.chalk,16);
+  txt(c,'A',Ox-ha-16,ya+5,COL.chalk,16);txt(c,'B',Ox+ha+6,ya+5,COL.chalk,16);
+  txt(c,'C',Ox-hb-16,yb+5,COL.chalk,16);txt(c,'D',Ox+hb+6,yb+5,COL.chalk,16);
+  txt(c,'AB = '+la,14,ya+5,COL.yel,15);txt(c,'CD = '+lb,14,yb+5,COL.pink,15);
+}}
+
+/* ---------- 題目工具 ---------- */
+function uniq(arr,ans){return [...new Set(arr.map(String))].filter(v=>v!==String(ans))}
+function mc(o){
+  const w=uniq(o.wrong,o.ans);
+  return{kind:'mc',tag:o.tag,prompt:o.prompt,draw:o.draw||null,opts:shuf([String(o.ans),...w.slice(0,3)]),ans:String(o.ans),expl:o.expl,cols:o.cols||'two',after:o.after};
+}
+function numW(ans,extras){
+  const ex=[...new Set(extras||[])].filter(v=>v>0&&v!==ans);
+  const fl=[ans+1,ans-1,ans+2,ans-2,ans+3,ans*2].filter(v=>v>0&&v!==ans&&!ex.includes(v));
+  return [...shuf(ex),...shuf(fl)].slice(0,3);
+}
+function tf(tag,prompt,truth,expl,draw){
+  return mc({tag,prompt,draw,ans:truth?'正確':'錯誤',wrong:[truth?'錯誤':'正確'],expl:(truth?'正確。':'錯誤。')+expl,cols:'two'});
+}
+const TRI=[[3,4,5],[5,12,13],[6,8,10],[8,15,17],[9,12,15],[7,24,25],[12,16,20],[20,21,29],[15,20,25],[10,24,26]];
+const REL={in:'內',on:'上',out:'外'},SYM={in:'＜',on:'＝',out:'＞'},WORD={in:'小於',on:'等於',out:'大於'};
+const cls=(d,r,tol)=>Math.abs(d-r)<=(tol||0)?'on':(d<r?'in':'out');
+
+/* ---------- 第 1 關：圓的名詞 ---------- */
+const TERM_NAMES=['弦','直徑','弧','弓形','扇形','圓心角'];
+const TERM_EXPL={chord:['弦','連接圓上相異兩點的線段叫弦。'],diameter:['直徑','通過圓心的弦叫直徑，它是該圓最長的弦。'],arc:['弧','圓上兩點之間的一段圓周叫弧。'],segment:['弓形','一條弦與一弧所圍成的圖形叫弓形。'],sector:['扇形','兩條半徑與一弧所圍成的圖形叫扇形。'],angle:['圓心角','頂點在圓心、兩邊是半徑的角叫圓心角。']};
+function gTermsImg(){
+  const kind=pick(Object.keys(TERM_EXPL));
+  const a1=rad(ri(0,359)),delta=kind==='diameter'?Math.PI:rad(ri(70,130));
+  const [name,why]=TERM_EXPL[kind];
+  return mc({tag:'認識圓的名詞',prompt:'圖中以黃色標示的部分，名稱是什麼？',draw:sceneTerms(kind,a1,delta),ans:name,wrong:shuf(TERM_NAMES.filter(n=>n!==name)),expl:why,cols:'three'});
+}
+const TERM_TF=[['直徑是圓中最長的弦',true,'通過圓心的弦是直徑，它是該圓最長的弦。'],['每一條弦都通過圓心',false,'只有通過圓心的弦才是直徑，一般的弦不一定通過圓心。'],['弦是直徑時，它把圓分成的兩個弧一樣大，稱為半圓',true,'這就是半圓的定義。'],['扇形是由兩條半徑與一弧所圍成的圖形',true,'這就是扇形的定義。'],['弓形是由兩條半徑與一弧所圍成的圖形',false,'弓形由一條弦與一弧圍成；兩條半徑與一弧圍成的是扇形。'],['圓心角的頂點在圓周上',false,'圓心角的頂點在圓心，兩邊是圓的半徑。'],['圓上任意一點到圓心的距離都等於半徑',true,'圓就是與定點（圓心）距離相等的所有點所組成的圖形。']];
+function gTermsTF(){const t=pick(TERM_TF);return tf('圓的名詞：判斷對錯','下列敘述是否正確？「'+t[0]+'」',t[1],t[2])}
+
+/* ---------- 第 2 關：弧長與扇形面積 ---------- */
+const XS=[30,45,60,72,90,120,135,150,180,240];
+function gSecArc(){const r=ri(3,12),x=pick(XS),ans=piStr(r*x,180);
+  return mc({tag:'求弧長',prompt:'⊙O 的半徑為 '+r+'，圓心角 ∠AOB = '+x+'°，求 AB 弧的長度。',draw:sceneSector('r = '+r,x+'°',x,'arc'),ans,
+    wrong:[piStr(r*x,360),piStr(r*r*x,360),piStr(2*r*(360-x),360),piStr(r*x,90)],
+    expl:'弧長 = 2π × '+r+' × '+x+'/360 = '+ans+'。'})}
+function gSecArea(){const r=ri(3,12),x=pick(XS),ans=piStr(r*r*x,360);
+  return mc({tag:'求扇形面積',prompt:'⊙O 的半徑為 '+r+'，圓心角 ∠AOB = '+x+'°，求扇形 AOB 的面積。',draw:sceneSector('r = '+r,x+'°',x,'area'),ans,
+    wrong:[piStr(2*r*x,360),piStr(r*r*x,180),piStr(r*x,360),piStr(r*r*(360-x),360)],
+    expl:'扇形面積 = π × '+r+'² × '+x+'/360 = '+ans+'。'})}
+function gSecPer(){const r=ri(3,12),x=pick(XS),a=piStr(r*x,180),ans=a+' + '+2*r;
+  return mc({tag:'求扇形周長',prompt:'⊙O 的半徑為 '+r+'，圓心角 ∠AOB = '+x+'°，求扇形 AOB 的周長。',draw:sceneSector('r = '+r,x+'°',x,'arc'),ans,
+    wrong:[a+' + '+r,a,piStr(r*x,360)+' + '+2*r,piStr(r*r*x,360)+' + '+2*r],
+    expl:'周長 = 弧 AB + OA + OB = '+a+' + '+r+' + '+r+' = '+ans+'。（別忘了兩條半徑）'})}
+function xWrongs(x){return shuf([360-x,x+30,x-30,x*2,x/2,180].filter(v=>Number.isInteger(v)&&v>0&&v<360&&v!==x)).slice(0,3).map(v=>v+'°')}
+function gSecAngA(){const r=ri(3,12),x=pick(XS.filter(v=>v<=180)),A=piStr(r*r*x,360);
+  return mc({tag:'由面積求圓心角',prompt:'已知一扇形的面積為 '+A+'，半徑為 '+r+'，求此扇形的圓心角。',draw:sceneSector('r = '+r,'?',x,'area'),ans:x+'°',wrong:xWrongs(x),
+    expl:'設圓心角為 x°：π × '+r+'² × x/360 = '+A+'，解得 x = '+x+'。'})}
+function gSecAngL(){const r=ri(3,12),x=pick(XS.filter(v=>v<=180)),L=piStr(r*x,180);
+  return mc({tag:'由弧長求圓心角',prompt:'已知半徑為 '+r+' 的圓中，有一弧長為 '+L+'，求此弧所對的圓心角。',draw:sceneSector('r = '+r,'?',x,'arc'),ans:x+'°',wrong:xWrongs(x),
+    expl:'設圓心角為 y°：2π × '+r+' × y/360 = '+L+'，解得 y = '+x+'。'})}
+
+/* ---------- 第 3 關：點與圓 ---------- */
+function gA(){
+  const r=ri(3,8),st=pick(['in','on','out']);
+  const d=st==='in'?ri(2,2*r-1)/2:st==='on'?r:r+ri(1,8)/2;
+  const warn=Math.random()<.5;
+  const ang=(Math.random()<.5?0:Math.PI)+(Math.random()-.5)*1.4;
+  let dd=d;
+  if(warn)dd=st==='in'?r+1+Math.random()*2:st==='out'?Math.max(1.5,r-1-Math.random()*2):(Math.random()<.5?Math.max(1.5,r-1.5):r+1.5);
+  const pt={id:'P',name:'P',color:COL.yel,x:dd*Math.cos(ang),y:dd*Math.sin(ang),seg:!warn,dl:fmt(d)};
+  const q=mc({tag:warn?'圖形不一定按比例，請用數字判斷':'判斷點的位置',prompt:'⊙O 的半徑 r = '+r+' 公分，點 P 到圓心的距離 OP = '+fmt(d)+' 公分。點 P 在圓的哪裡？',
+    draw:gridScene({r,showR:true,pts:[pt]}),ans:'圓'+REL[st],wrong:['圓內','圓上','圓外'],cols:'three',
+    expl:'OP = '+fmt(d)+' '+SYM[st]+' r = '+r+'（OP '+WORD[st]+'半徑），所以點 P 在圓'+REL[st]+'。',
+    after(){pt.x=d*Math.cos(ang);pt.y=d*Math.sin(ang);pt.seg=true}});
+  q.warn=warn;return q;
+}
+function gB(){
+  const kind=ri(1,2),st=pick(['in','on','out']);let prompt,good,bad,expl,scene;
+  if(kind===1){const r=ri(4,8);prompt='⊙O 的半徑為 '+r+' 公分，若點 P 在圓'+REL[st]+'，則 OP 的長度可能是下列哪一個？';
+    if(st==='in'){good=ri(1,r-1);bad=[r,r+1,r+2]}else if(st==='on'){good=r;bad=[r-1,r+1,r+2]}else{good=r+ri(1,3);bad=[r,r-1,r-2]}
+    expl='點在圓'+REL[st]+' ⇒ OP '+SYM[st]+' r，所以 OP '+(st==='on'?'= ':st==='in'?'要小於 ':'要大於 ')+r+' 公分，只有 '+good+' 公分符合。';
+    scene={r,showR:true,pts:[]}}
+  else{const d=ri(4,8);prompt='已知 OP = '+d+' 公分，若點 P 在圓'+REL[st]+'，則 ⊙O 的半徑 r 可能是下列哪一個？';
+    if(st==='in'){good=d+ri(1,3);bad=[d,d-1,d-2]}else if(st==='on'){good=d;bad=[d-1,d+1,d+2]}else{good=d-ri(1,3);bad=[d,d+1,d+2]}
+    expl='點在圓'+REL[st]+' ⇒ OP '+SYM[st]+' r，已知 OP = '+d+'，所以 r '+(st==='on'?'= ':st==='in'?'要大於 ':'要小於 ')+d+' 公分，只有 '+good+' 公分符合。';
+    scene={r:null,pts:[{id:'P',name:'P',color:COL.yel,x:d,y:0,seg:true,dl:String(d)}]}}
+  return mc({tag:'由位置推數值',prompt,draw:gridScene(scene),ans:U(good),wrong:bad.filter(v=>v>0).map(U),expl});
+}
+function gC(){
+  const r=ri(3,6),st=pick(['in','on','out']);
+  const p={id:'P',name:'P',color:COL.yel,x:st==='out'?1:-(r+3)*.9,y:st==='out'?1:-2,seg:false,dl:''};
+  const dist=()=>Math.hypot(p.x,p.y);
+  const q={kind:'drag',tag:'拖曳射擊',prompt:'在畫布上按住並拖動，把點 P 放到「圓'+REL[st]+'」，再按「射擊」。（誤差 0.15 公分內算在圓上）',draw:null};
+  const sc={r,showR:true,pts:[p]};
+  const base=gridScene(sc);
+  q.draw=c=>{base(c);const d=dist(),px=260+p.x*18,py=200+p.y*18;line(c,260,200,px,py,COL.yel,2,[5,5]);txt(c,'OP = '+d.toFixed(1),(260+px)/2+6,(200+py)/2-10,COL.yel,14);dot(c,px,py,8,COL.yel);txt(c,'P',px+11,py-11,COL.chalk,17);dot(c,260,200,4)};
+  const read=()=>{const d=dist(),k=cls(d,r,.15);$('readout').textContent='OP = '+d.toFixed(1)+' 公分　r = '+r+' 公分　→ 現在在圓'+REL[k]};
+  q.onmove=pt=>{p.x=clamp((pt.x-260)/18,-13,13);p.y=clamp((pt.y-200)/18,-10,10);read();redraw()};
+  q.mount=ctl=>{read();ctl.classList.add('one');const b=document.createElement('button');b.className='opt';b.textContent='射擊';
+    b.onclick=()=>{const d=dist(),k=cls(d,r,.15),ok=k===st;
+      const ex=ok?'OP ≈ '+d.toFixed(1)+' '+SYM[k]+' r = '+r+'，點 P 正好落在圓'+REL[k]+'。':'你的點在圓'+REL[k]+'（OP ≈ '+d.toFixed(1)+'，r = '+r+'）；要在圓'+REL[st]+'，必須 OP '+SYM[st]+' r。';
+      b.classList.add(ok?'right':'bad');submit(ok,ex)};ctl.appendChild(b)};
+  return q;
+}
+function gD(){
+  const P=[{t:['in','on','out'],f:(a,b,c)=>'r = '+b},{t:['in','in','out'],f:(a,b,c)=>b+' ＜ r ＜ '+c},{t:['in','out','out'],f:(a,b,c)=>a+' ＜ r ＜ '+b},{t:['on','out','out'],f:(a,b,c)=>'r = '+a},{t:['in','in','on'],f:(a,b,c)=>'r = '+c}];
+  const pat=pick(P),t=pat.t,dA=ri(2,4),dB=dA+ri(1,3),dC=dB+ri(1,3),ds=[dA,dB,dC],angs=[-.6,.15,.8],names=['A','B','C'];
+  const pts=names.map((n,k)=>({id:n,name:n,color:COL.blue,x:ds[k]*Math.cos(angs[k])*sgn(),y:ds[k]*Math.sin(angs[k]),seg:true,dl:String(ds[k])}));
+  const sc={r:1,showR:false,pts};
+  const q={kind:'slider',tag:'調整半徑',prompt:'OA = '+dA+'、OB = '+dB+'、OC = '+dC+'（公分）。調整半徑 r，使點 A 在圓'+REL[t[0]]+'、點 B 在圓'+REL[t[1]]+'、點 C 在圓'+REL[t[2]]+'。',draw:gridScene(sc)};
+  const range=pat.f(dA,dB,dC);
+  q.mount=ctl=>{ctl.classList.add('one');$('readout').textContent='r = 1 公分';
+    const row=document.createElement('div');row.className='slider-row';
+    row.innerHTML='<span>r</span><input type="range" id="rs" min="1" max="10" step="0.5" value="1" aria-label="半徑"><span id="rv" style="min-width:72px">1 公分</span>';ctl.appendChild(row);
+    const rs=row.querySelector('input'),rv=row.querySelector('#rv');
+    rs.oninput=()=>{sc.r=+rs.value;rv.textContent=fmt(sc.r)+' 公分';$('readout').textContent='r = '+fmt(sc.r)+' 公分';redraw()};
+    const b=document.createElement('button');b.className='opt';b.textContent='確認半徑';
+    b.onclick=()=>{const ok=ds.every((d,k)=>cls(d,sc.r)===t[k]);
+      pts.forEach((p,k)=>{const g=cls(ds[k],sc.r)===t[k];p.color=g?COL.green:'#ff7a7a';p.name=names[k]+(g?' ✔':' ✘')});
+      b.classList.add(ok?'right':'bad');submit(ok,'OA = '+dA+'、OB = '+dB+'、OC = '+dC+'。要滿足條件，半徑需要 '+range+'。'+(ok?'你選的 r = '+fmt(sc.r)+' 符合！':'你選的 r = '+fmt(sc.r)+' 不符合。'))};ctl.appendChild(b)};
+  return q;
+}
+function gE(){
+  let b,cc,a;do{b=ri(45,75);cc=ri(45,75);a=180-b-cc}while(a<30||b===a||cc===a);
+  const outB=cc>a,inC=b<a,ans='在圓 B '+(outB?'外部':'內部')+'，在圓 C '+(inC?'內部':'外部');
+  const all=[];['外部','內部'].forEach(x=>['內部','外部'].forEach(y=>all.push('在圓 B '+x+'，在圓 C '+y)));
+  return mc({tag:'歷屆試題（教育會考）',prompt:'△ABC 中，∠B = '+b+'°，∠C = '+cc+'°。分別以 B、C 為圓心，BC 長為半徑畫圓 B、圓 C。關於 A 點的位置，下列何者正確？',draw:sceneTri(b,cc,a),ans,wrong:all,
+    expl:'∠A = 180° − '+b+'° − '+cc+'° = '+a+'°。AB 對 ∠C = '+cc+'°，BC 對 ∠A = '+a+'°，'+(outB?'∠C 較大 ⇒ AB ＞ BC，A 在圓 B 外部':'∠C 較小 ⇒ AB ＜ BC，A 在圓 B 內部')+'；AC 對 ∠B = '+b+'°，'+(b>a?'∠B 較大 ⇒ AC ＞ BC，A 在圓 C 外部':'∠B 較小 ⇒ AC ＜ BC，A 在圓 C 內部')+'。',cols:'one'});
+}
+
+/* ---------- 第 4 關：直線與圓 ---------- */
+function gL1(){
+  const r=ri(3,9),st=pick(['sep','tan','sec']),d=st==='sep'?r+ri(1,3):st==='tan'?r:ri(1,r-1);
+  const ans=st==='sep'?'不相交（0 個交點）':st==='tan'?'相切（1 個交點）':'相割（2 個交點）';
+  const k=st==='sep'?'out':st==='tan'?'on':'in';
+  return mc({tag:'直線與圓的關係',prompt:'⊙O 的半徑為 '+r+' 公分，圓心 O 到直線 L 的距離 OP = '+d+' 公分（OP ⊥ L）。直線 L 與圓 O 的關係是？',draw:sceneLineD(r,d),ans,
+    wrong:['不相交（0 個交點）','相切（1 個交點）','相割（2 個交點）'],cols:'one',expl:'OP = '+d+' '+SYM[k]+' r = '+r+'，所以直線與圓'+ans.slice(0,2)+'。'});
+}
+function gL2(){
+  const r=pick([4,5,6,8,10]),ds=shuf([2*r,r+ri(1,3),r,r-ri(1,Math.min(3,r-1))]),nm=['L','M','N','H'];
+  const items=nm.map((n,k)=>({n,d:ds[k]}));const ask=pick(['tan','sec','sep']);
+  const tanN=items.find(i=>i.d===r).n,secN=items.filter(i=>i.d<r).map(i=>i.n).join('、'),sepN=items.filter(i=>i.d>r).map(i=>i.n).join('、');
+  const dl=items.map(i=>i.n+'＝'+i.d).join('、');
+  let prompt,ans,ex;
+  if(ask==='tan'){prompt='圓 O 的半徑為 '+r+' 公分，圓心 O 到直線 L、M、N、H 的距離分別為 '+items.map(i=>i.d).join('、')+' 公分。哪一條直線是圓 O 的切線？';ans=tanN;ex='切線的條件是距離 ＝ 半徑 '+r+'，所以是直線 '+tanN+'。'}
+  else if(ask==='sec'){prompt='圓 O 的半徑為 '+r+' 公分，圓心 O 到直線 L、M、N、H 的距離分別為 '+items.map(i=>i.d).join('、')+' 公分。圓 O 的割線有幾條？';ans=items.filter(i=>i.d<r).length+' 條';ex='割線的條件是距離 ＜ 半徑 '+r+'，符合的是 '+secN+'。'}
+  else{prompt='圓 O 的半徑為 '+r+' 公分，圓心 O 到直線 L、M、N、H 的距離分別為 '+items.map(i=>i.d).join('、')+' 公分。與圓 O 沒有交點的直線有幾條？';ans=items.filter(i=>i.d>r).length+' 條';ex='沒有交點的條件是距離 ＞ 半徑 '+r+'，符合的是 '+sepN+'。'}
+  const opts=ask==='tan'?['L','M','N','H']:['1 條','2 條','3 條','4 條'];
+  return mc({tag:'判斷四條直線',prompt,draw:sceneLines4(r,items),ans,wrong:opts,cols:ask==='tan'?'two':'two',expl:ex});
+}
+function gL3(){
+  const r=ri(4,9),st=pick(['sec','tan','sep']),nm={sec:'相割（交於兩點）',tan:'相切',sep:'不相交'};let good,bad;
+  if(st==='sec'){good=ri(1,r-1);bad=[r,r+1,r+2]}else if(st==='tan'){good=r;bad=[r-1,r+1,r+2]}else{good=r+ri(1,3);bad=[r,r-1,r-2]}
+  const k=st==='sec'?'in':st==='tan'?'on':'out';
+  return mc({tag:'由關係推距離',prompt:'⊙O 的半徑為 '+r+' 公分。若直線 L 與圓 O '+nm[st]+'，則圓心 O 到 L 的距離可能是下列哪一個？',draw:sceneCircleR(r),ans:U(good),wrong:bad.filter(v=>v>0).map(U),
+    expl:'直線與圓'+nm[st].slice(0,2)+' ⇒ 圓心到直線的距離 '+SYM[k]+' r = '+r+'，只有 '+good+' 公分符合。'});
+}
+function gL4(){
+  const r=ri(4,8),inside=Math.random()<.45,a=inside?ri(2,r-1):r+ri(0,3);
+  const ans=inside?'相交於兩點':'無法確定';
+  const pt={id:'A',name:'A',color:COL.yel,x:a,y:0,seg:true,dl:String(a)};
+  return mc({tag:'概念辨析',prompt:'圓 O 的半徑為 '+r+'，A 為直線 L 上的一點，且 OA = '+a+'，則直線 L 與圓 O 的關係為何？',draw:gridScene({r,showR:true,pts:[pt]}),ans,
+    wrong:['不相交','相交於一點','相交於兩點','無法確定'],
+    expl:inside?'OA = '+a+' ＜ r = '+r+'，A 點在圓內，通過圓內一點的直線一定交圓於兩點。':'OA = '+a+(a===r?' ＝ ':' ＞ ')+'r = '+r+'，A 點在圓'+(a===r?'上':'外')+'，直線 L 可能不相交、相切或相割，無法確定。'});
+}
+const LINE_TF=[['直線與圓相切時，圓心到直線的距離等於半徑',true,'相切 ⇒ d ＝ r。'],['直線與圓相割時，圓心到直線的距離大於半徑',false,'相割（交於兩點）⇒ d ＜ r。'],['圓心到直線的距離小於半徑，則直線與圓不相交',false,'d ＜ r 時直線穿過圓內，交於兩點。'],['圓的切線與圓只有一個交點',true,'這就是切線的定義。'],['圓心到直線的距離大於半徑，則直線上所有的點都在圓外',true,'d ＞ r ⇒ 不相交，直線上所有點都在圓外。']];
+function gLTF(){const t=pick(LINE_TF);return tf('直線與圓：判斷對錯','下列敘述是否正確？「'+t[0]+'」',t[1],t[2])}
+
+/* ---------- 第 5 關：切線段 ---------- */
+function gT1(){
+  const T=pick(TRI),sw=Math.random()<.5,r=sw?T[0]:T[1],t=sw?T[1]:T[0],OB=T[2],v=ri(0,2),phi=Math.acos(r/OB);
+  let prompt,ans,lab;
+  if(v===0){prompt='直線 AB 為圓 O 的切線，切點為 A。若圓 O 的半徑為 '+r+'、OB = '+OB+'，則切線段 AB 的長度為多少？';ans=t;lab={lr:'r = '+r,lt:'AB = ?',lo:'OB = '+OB}}
+  else if(v===1){prompt='直線 AB 切圓 O 於 A 點，若 AB = '+t+'、OB = '+OB+'，則圓 O 的半徑為多少？';ans=r;lab={lr:'r = ?',lt:'AB = '+t,lo:'OB = '+OB}}
+  else{prompt='直線 AB 切圓 O 於 A 點，若圓 O 的半徑為 '+r+'、AB = '+t+'，則 OB 的長度為多少？';ans=OB;lab={lr:'r = '+r,lt:'AB = '+t,lo:'OB = ?'}}
+  return mc({tag:'求切線段長',prompt,draw:sceneTan({phi,two:false,ext:'B',t1:'A',lr:lab.lr,lt:lab.lt,lo:lab.lo}),ans:U(ans),wrong:numW(ans,[r,t,OB,t+r].filter(x=>x!==ans)).map(U),
+    expl:'連接 OA，OA ⊥ AB（切線性質），△OAB 是直角三角形：OB² = OA² + AB²，即 '+OB+'² = '+r+'² + '+t+'²。所以答案是 '+ans+' 公分。'});
+}
+function gT2(){
+  const v=ri(0,2);let prompt,ans,ex,theta;
+  if(v===0){const al=pick([30,40,50,60,70,80,100,110,120]);theta=180-al;prompt='P 為圓 O 外一點，PA、PB 分別切圓 O 於 A、B 兩點。若 ∠APB = '+al+'°，則 ∠AOB 為多少度？';ans=theta;ex='OA ⊥ PA、OB ⊥ PB，四邊形 OAPB 內角和 360°：∠AOB = 360° − 90° − 90° − '+al+'° = '+theta+'°。'}
+  else if(v===1){theta=pick([60,80,100,120,130,150]);ans=180-theta;prompt='P 為圓 O 外一點，PA、PB 分別切圓 O 於 A、B 兩點。若 ∠AOB = '+theta+'°，則 ∠APB 為多少度？';ex='四邊形 OAPB 內角和 360°：∠APB = 360° − 90° − 90° − '+theta+'° = '+ans+'°。'}
+  else{theta=pick([60,80,100,120,140]);ans=90-theta/2;prompt='P 為圓 O 外一點，PA、PB 分別切圓 O 於 A、B 兩點。若 ∠AOB = '+theta+'°，則 ∠APO 為多少度？';ex='∠APB = 180° − '+theta+'° = '+(180-theta)+'°，PO 平分 ∠APB（切線段性質），所以 ∠APO = '+ans+'°。'}
+  const phi=rad(theta/2),al2=180-theta;
+  const extra=v===0?[al2/1,90-al2/2,180-al2/2].map(Math.round):v===1?[theta,90-theta/2,180-theta/2].map(Math.round):[theta/2,180-theta,90-theta].map(Math.round);
+  const d=v===0?theta:null;
+  return mc({tag:'切線段性質：角度',prompt,draw:sceneTan({phi:rad((v===0?theta:theta)/2),two:true,ext:'P',t1:'A',t2:'B',lo:'OP'}),ans:ans+'°',wrong:numW(ans,extra).map(x=>x+'°'),expl:ex});
+}
+function gT3(){
+  const T=pick(TRI),sw=Math.random()<.5,r=sw?T[0]:T[1],t=sw?T[1]:T[0],OP=T[2],phi=Math.acos(r/OP),mn=Math.random()<.5;
+  if(!mn){const ans=2*r+2*t;
+    return mc({tag:'例題：四邊形周長',prompt:'PM、PN 切圓 O 於 M、N 兩點。若圓 O 的半徑為 '+r+'、OP = '+OP+'，則四邊形 OMPN 的周長是多少？',draw:sceneTan({phi,two:true,ext:'P',t1:'M',t2:'N',lr:'r = '+r,lo:'OP = '+OP}),ans:U(ans),wrong:numW(ans,[r+t,2*t,r+2*t,2*r+t,2*OP]).map(U),
+      expl:'PM ⊥ OM，PM = √('+OP+'² − '+r+'²) = '+t+'。PN = PM = '+t+'（切線段等長）。周長 = '+r+' + '+t+' + '+t+' + '+r+' = '+ans+'。'})}
+  const ans=fracStr(2*r*t,OP);
+  return mc({tag:'例題：求 MN 的長度',prompt:'PM、PN 切圓 O 於 M、N 兩點。若圓 O 的半徑為 '+r+'、OP = '+OP+'，則 MN 的長度是多少？',draw:sceneTan({phi,two:true,ext:'P',t1:'M',t2:'N',lr:'r = '+r,lo:'OP = '+OP}),ans,
+    wrong:[fracStr(r*t,OP),fracStr(4*r*t,OP),fracStr(2*t*t,OP),fracStr(2*r*r,OP),fracStr(2*r*OP,t)],
+    expl:'PM = √('+OP+'² − '+r+'²) = '+t+'。設 MN 交 OP 於 R，OP 垂直平分 MN。用 △OMP 面積：'+r+'×'+t+'/2 = '+OP+'×MR/2，MR = '+fracStr(r*t,OP)+'，MN = 2MR = '+ans+'。'});
+}
+const TAN_TF=[['圓的切線與切線段長是同一個概念',false,'切線是一條直線，不可測量長度；切線段長是圓外一點到切點的距離，可以測量。'],['圓心與切點的連線，必垂直於這條切線',true,'這是切線性質。'],['由圓外一點作圓的兩條切線，這兩條切線段等長',true,'連接 OA、OB、OP，用 RHS 全等可得 PA = PB。'],['P 為圓外一點，PA、PB 切圓 O 於 A、B，則 PO 平分 ∠APB',true,'△OAP ≅ △OBP，所以 ∠APO = ∠BPO。'],['P 為圓外一點，PA、PB 切圓 O 於 A、B，則 AB 垂直平分 PO',false,'應該是 PO 垂直平分 AB。'],['過圓上一點且垂直於該點半徑的直線，是圓的切線',true,'這是切線性質的另一半。'],['圓心到切線的距離等於圓的半徑',true,'相切 ⇒ d ＝ r。']];
+function gTTF(){const t=pick(TAN_TF);return tf('切線：判斷對錯','下列敘述是否正確？「'+t[0]+'」',t[1],t[2])}
+
+/* ---------- 第 6 關：弦與弦心距 ---------- */
+function chordTri(){const T=pick(TRI),sw=Math.random()<.5;return{d:sw?T[0]:T[1],h:sw?T[1]:T[0],r:T[2]}}
+function gC1(){
+  const {d,h,r}=chordTri(),v=ri(0,2);let prompt,ans,ex,lab;
+  if(v===0){prompt='AB 是圓 O 上一弦，OM 為其弦心距（OM ⊥ AB）。若 OM = '+d+'、圓 O 的半徑為 '+r+'，則 AB 的長度為多少？';ans=2*h;lab={ld:'OM = '+d,lr:'r = '+r,lab:'AB = ?'};ex='連接 OA，AM = √('+r+'² − '+d+'²) = '+h+'。OM 垂直平分 AB，所以 AB = 2 × '+h+' = '+ans+'。'}
+  else if(v===1){prompt='AB 是圓 O 上一弦，OM 為其弦心距。若 AB = '+2*h+'、圓 O 的半徑為 '+r+'，則弦心距 OM 為多少？';ans=d;lab={ld:'OM = ?',lr:'r = '+r,lab:'AB = '+2*h};ex='AM = '+2*h+' ÷ 2 = '+h+'，OM = √('+r+'² − '+h+'²) = '+d+'。'}
+  else{prompt='AB 是圓 O 上一弦，OM 為其弦心距。若 AB = '+2*h+'、OM = '+d+'，則圓 O 的半徑為多少？';ans=r;lab={ld:'OM = '+d,lr:'r = ?',lab:'AB = '+2*h};ex='AM = '+2*h+' ÷ 2 = '+h+'，r = OA = √('+d+'² + '+h+'²) = '+r+'。'}
+  return mc({tag:'弦心距的應用',prompt,draw:sceneChord({r,d,...lab}),ans:U(ans),wrong:numW(ans,[d,h,r,2*h,d+h].filter(x=>x!==ans)).map(U),expl:ex});
+}
+function gC2(){
+  const {d,h,r}=chordTri(),CD=r+d;
+  return mc({tag:'例題：隧道的半徑',prompt:'某隧道的橫切面為圓 O 的一部分，CD 過圓心 O 且垂直路面 AB。已知路面寬 AB = '+2*h+' 公尺，隧道高度 CD = '+CD+' 公尺，則隧道的半徑為多少公尺？',
+    draw:sceneChord({r,d,tunnel:true,lab:'AB = '+2*h,lc:'CD = '+CD}),ans:r+' 公尺',wrong:numW(r,[CD/2,h,CD-h,d].filter(Number.isInteger)).map(v=>v+' 公尺'),
+    expl:'設半徑為 x，則 OD = '+CD+' − x，AD = '+h+'。在 △OAD 中 x² = ('+CD+' − x)² + '+h+'²，解得 x = '+r+'。'});
+}
+function gC3(){
+  const ls=[6,8,10,12,14,16,18,20],la=pick(ls),lb=Math.random()<.25?la:pick(ls.filter(v=>v!==la));
+  const ans=la===lb?'OM = ON':la>lb?'OM ＜ ON':'OM ＞ ON';
+  return mc({tag:'弦長與弦心距',prompt:'同一個圓 O 中，AB = '+la+'、CD = '+lb+'，OM、ON 分別是 AB、CD 的弦心距。OM 與 ON 的大小關係為何？',draw:sceneChords2(la,lb),ans,wrong:['OM ＞ ON','OM ＜ ON','OM = ON'],cols:'three',
+    expl:la===lb?'同圓中兩弦等長，弦心距相等。':'同圓中，弦愈長，弦心距愈小。AB '+(la>lb?'比 CD 長，所以 OM ＜ ON。':'比 CD 短，所以 OM ＞ ON。')});
+}
+const CH_TF=[['同一圓中，弦愈長，其弦心距也愈長',false,'同圓中弦愈長，弦心距愈小。'],['同一圓中，若兩弦的弦心距相等，則兩弦等長',true,'這是弦心距的性質。'],['半徑相等的兩圓中，若弦心距相等，則所對的弦也等長',true,'等圓可視為在同一圓上討論，性質依然成立。'],['不等的兩圓中，弦心距愈長，圓愈大',false,'不同大小的圓不能只比較弦心距，還要看弦長。'],['過圓心且與弦垂直的直線，必平分此弦',true,'這是弦的性質。'],['一弦的中垂線必通過其所在圓的圓心',true,'這是弦的性質。'],['若兩弦 AB ＜ CD（兩條弦不在等圓中），則 AB 的弦心距一定大於 CD 的弦心距',false,'需要在同圓或等圓中才成立。']];
+function gCTF(){const t=pick(CH_TF);return tf('弦與弦心距：判斷對錯','下列敘述是否正確？「'+t[0]+'」',t[1],t[2])}
+
+/* ---------- 關卡設定 ---------- */
+const STAGES=[
+  {name:'圓的名詞',gens:[gTermsImg,gTermsImg,gTermsTF]},
+  {name:'弧長與扇形面積',gens:[gSecArc,gSecArea,gSecPer,gSecAngA,gSecAngL]},
+  {name:'點與圓的位置',gens:[gA,gB,gC,gD,gE]},
+  {name:'直線與圓的位置',gens:[gL1,gL2,gL3,gL4,gLTF]},
+  {name:'切線與切線段',gens:[gT1,gT2,gT3,gTTF]},
+  {name:'弦與弦心距',gens:[gC1,gC2,gC3,gCTF]}
+];
+function build(i,n){const pool=STAGES[i].gens,list=[];while(list.length<n)list.push(...shuf(pool));return list.slice(0,n).map(g=>{const q=g();q.stage=i;return q})}
+window.__cpg={STAGES,build};
+
+/* ---------- 遊戲流程 ---------- */
+const P={name:'',cls:''};
+function loadProfile(){const p=store.get('cpg-profile');if(p){P.name=p.name||'';P.cls=p.cls||''}$('pname').value=P.name;$('pcls').value=P.cls}
+function readProfile(){P.name=$('pname').value.trim().slice(0,10);P.cls=$('pcls').value.trim().slice(0,8);store.set('cpg-profile',P)}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');window.scrollTo(0,0)}
+function hud(){
+  $('score').textContent=G.score;
+  const max=G.maxLives;let h='';for(let k=0;k<max;k++)h+='<span class="'+(k<G.lives?'':'off')+'">♥</span>';$('hearts').innerHTML=h;
+  $('qinfo').textContent='第 '+(G.i+1)+' / '+G.total+' 題';
+}
+function startTimer(){stopTimer();G.t0=Date.now();G.tk=setInterval(()=>{const f=Math.max(0,1-(Date.now()-G.t0)/30000);$('tbar').style.width=(f*100)+'%';$('tbar').style.background=f>.5?'var(--green)':f>.25?'var(--yellow)':'var(--red)'},100)}
+function stopTimer(){clearInterval(G&&G.tk)}
+function pop(t){const s=document.createElement('div');s.className='pop';s.textContent=t;$('cvwrap').appendChild(s);setTimeout(()=>s.remove(),1000)}
+function shake(){const f=$('frame');f.classList.remove('shake');void f.offsetWidth;f.classList.add('shake')}
+
+function startRun(ranked,stage){
+  readProfile();
+  if(ranked&&!P.name){const w=$('warn');w.textContent='請先輸入暱稱，才能把成績放上排行榜。';w.hidden=false;$('pname').focus();return}
+  $('warn').hidden=true;
+  const list=ranked?[0,1,2,3,4,5].flatMap(i=>build(i,3)):build(stage,8);
+  const lives=ranked?5:3;
+  G={list,i:0,score:0,lives,maxLives:lives,combo:0,correct:0,wrong:[],ranked,stage,total:list.length,done:true};
+  show('game');nextQ();
+}
+function nextQ(){
+  const q=G.list[G.i];cur=q;G.done=false;
+  $('fb').className='fb';$('fb').innerHTML='';$('ctl').innerHTML='';$('ctl').className='ctl';$('next').style.display='none';$('readout').textContent='';
+  $('tag').textContent='第 '+(q.stage+1)+' 關　'+STAGES[q.stage].name+'　'+q.tag;$('tag').className='tag'+(q.warn?' warn':'');
+  $('prompt').textContent=q.prompt;
+  $('cvwrap').hidden=!(q.draw);
+  const ctl=$('ctl');
+  if(q.kind==='mc'){ctl.classList.add(q.cols);
+    q.opts.forEach(t=>{const b=document.createElement('button');b.className='opt';b.textContent=t;
+      b.onclick=()=>{if(G.done)return;sfx('tap');const ok=t===q.ans;[...ctl.children].forEach(x=>{if(x.textContent===q.ans)x.classList.add('right');else if(x===b)x.classList.add('bad')});submit(ok,q.expl)};ctl.appendChild(b)})}
+  else q.mount(ctl);
+  redraw();hud();startTimer();
+}
+function submit(ok,expl){
+  if(G.done)return;G.done=true;stopTimer();const q=cur;
+  const left=Math.max(0,1-(Date.now()-G.t0)/30000);
+  if(ok){G.combo++;G.correct++;const gain=100+q.stage*10+Math.min(G.combo-1,5)*20+Math.round(50*left);G.score+=gain;pop('+'+gain);sfx('ok')}
+  else{G.combo=0;G.lives--;G.wrong.push({s:STAGES[q.stage].name,p:q.prompt,e:expl});sfx('bad');shake()}
+  if(q.after)q.after();redraw();
+  $('ctl').querySelectorAll('button,input').forEach(e=>e.disabled=true);
+  $('fb').className='fb '+(ok?'good':'miss');
+  $('fb').textContent=(ok?'答對了！':'再想想。')+expl+(ok&&G.combo>1?'　連續答對 '+G.combo+' 題':'');
+  hud();
+  const last=G.lives<=0||G.i>=G.total-1;
+  $('next').textContent=last?'查看成績':'下一題';$('next').style.display='block';
+}
+$('next').onclick=()=>{if(G.lives<=0||G.i>=G.total-1)endRun();else{G.i++;nextQ()}};
+/* 拖曳 */
+let dragging=false;
+function cpos(e){const b=cv.getBoundingClientRect();return{x:(e.clientX-b.left)*520/b.width,y:(e.clientY-b.top)*400/b.height}}
+cv.addEventListener('pointerdown',e=>{if(!cur||cur.kind!=='drag'||!G||G.done)return;dragging=true;try{cv.setPointerCapture(e.pointerId)}catch(_){}cur.onmove(cpos(e))});
+cv.addEventListener('pointermove',e=>{if(dragging&&cur&&cur.kind==='drag'&&!G.done)cur.onmove(cpos(e))});
+cv.addEventListener('pointerup',()=>{dragging=false});cv.addEventListener('pointercancel',()=>{dragging=false});
+
+/* ---------- 雲端排行榜（db）與本機備援 ---------- */
+let cloud='off',rows=[],filter='全部';
+function initCloud(){cloud=window._fbSave?'ready':'off';window.addEventListener('load',()=>{cloud=window._fbSave?'ready':'off'})}
+async function loadRows(){
+  if(!window._fbLoad){cloud='off';return}
+  try{
+    const list=await window._fbLoad(),best={};
+    list.forEach(x=>{const k=(x.name||'')+'|'+(x.cls||'');if(!best[k]||x.score>best[k].best)best[k]={name:x.name,cls:x.cls,best:x.score,stars:x.stars||0,id:k}});
+    rows=Object.values(best).sort((a,b)=>b.best-a.best);cloud='ready';
+  }catch(e){cloud='error'}
+}
+function localRows(){return (store.get('cpg-local')||[]).slice().sort((a,b)=>b.best-a.best)}
+function saveLocal(stars){
+  const list=store.get('cpg-local')||[];let me=list.find(x=>x.name===P.name&&x.cls===P.cls);
+  if(!me){me={name:P.name,cls:P.cls,best:0,correct:0,total:G.total,stars:0,plays:0};list.push(me)}
+  me.plays++;if(G.score>me.best){me.best=G.score;me.correct=G.correct;me.total=G.total;me.stars=stars}
+  store.set('cpg-local',list);return me;
+}
+async function pushCloud(stars){
+  await window._fbSave(P.name,G.score,{cls:P.cls,stars,correct:G.correct,total:G.total});return true;
+}
+function renderBoard(){
+  const useCloud=cloud==='ready';
+  const data=useCloud?rows:localRows().map(x=>Object.assign({id:'local'},x));
+  const classes=['全部',...[...new Set(data.map(x=>x.cls).filter(Boolean))].sort()];
+  if(!classes.includes(filter))filter='全部';
+  const chips=$('chips');chips.innerHTML='';
+  classes.forEach(c=>{const b=document.createElement('button');b.textContent=c==='全部'?'全部':c+' 班';b.className=c===filter?'on':'';b.onclick=()=>{filter=c;renderBoard()};chips.appendChild(b)});
+  const shown=data.filter(x=>filter==='全部'||x.cls===filter).slice(0,30);
+  const ol=$('boardList');ol.innerHTML='';
+  if(!shown.length){const li=document.createElement('li');li.className='empty';li.style.display='block';li.textContent='還沒有成績。完成一次闖關，就會出現在這裡。';ol.appendChild(li)}
+  shown.forEach((x,k)=>{
+    const li=document.createElement('li');if(x.name===P.name&&x.cls===P.cls)li.className='me';
+    const no=document.createElement('span');no.className='no';no.textContent=k+1;
+    const nm=document.createElement('span');nm.className='nm';nm.textContent=x.name||'無名';
+    const cl=document.createElement('span');cl.className='cl';cl.textContent=x.cls?x.cls+' 班':'';nm.appendChild(document.createTextNode(' '));nm.appendChild(cl);
+    const sc=document.createElement('span');sc.className='sc';sc.textContent=x.best;
+    const st=document.createElement('span');st.className='st';st.textContent='★'.repeat(x.stars||0)+'☆'.repeat(3-(x.stars||0));
+    li.append(no,nm,sc,st);ol.appendChild(li);
+  });
+  $('boardNote').textContent=useCloud?'每位同學只顯示個人最高分，前 100 筆成績納入統計。':'目前連不上全班排行榜，只顯示這台裝置上的紀錄。';
+}
+function endRun(){
+  stopTimer();
+  const acc=G.correct/G.total,stars=acc>=.9?3:acc>=.7?2:acc>=.4?1:0;
+  const ranks=['再練一次就會了','進步中的射手','神準判官','靶心神射手'];
+  $('endTitle').textContent=G.lives<=0?'彈盡援絕':(G.ranked?'闖關完成':'練習完成');
+  $('stars').textContent='★'.repeat(stars)+'☆'.repeat(3-stars);$('rank').textContent=ranks[stars];
+  $('fScore').textContent=G.score;$('fRight').textContent=G.correct+'/'+G.total;
+  const rv=$('review');rv.innerHTML='';
+  const h=document.createElement('div');h.style.fontWeight='700';
+  if(G.wrong.length){h.style.color='var(--yellow)';h.textContent='錯題回顧';rv.appendChild(h);
+    G.wrong.slice(0,5).forEach(w=>{const d=document.createElement('div');d.className='rev';d.textContent='【'+w.s+'】'+w.p;const e=document.createElement('em');e.textContent=w.e;d.appendChild(document.createElement('br'));d.appendChild(e);rv.appendChild(d)})}
+  else{h.style.color='var(--green)';h.textContent='全部答對，完美！記住口訣：先找出圓心到點（或直線）的距離，再和半徑比大小。';rv.appendChild(h)}
+  const cl=$('cloud');cl.className='cloud';cl.textContent='';
+  if(G.ranked&&G.score===0){const me=(store.get('cpg-local')||[]).find(x=>x.name===P.name&&x.cls===P.cls);$('fBest').textContent=me?me.best:0;cl.textContent='這次是 0 分，不會放上排行榜。再試一次吧。'}
+  else if(G.ranked){
+    const me=saveLocal(stars);$('fBest').textContent=me.best;
+    if(cloud==='ready'){cl.textContent='正在上傳成績⋯';
+      pushCloud(stars).then(()=>{cl.className='cloud ok';cl.textContent='成績已上傳到全班排行榜。'}).catch(()=>{cl.className='cloud no';cl.textContent='暫時無法上傳到全班排行榜，成績只存在這台裝置。'})}
+    else{cl.className='cloud no';cl.textContent='目前連不上全班排行榜，成績只存在這台裝置。'}
+  }else{const me=(store.get('cpg-local')||[]).find(x=>x.name===P.name&&x.cls===P.cls);$('fBest').textContent=me?me.best:0;cl.textContent='關卡練習不計入排行榜。'}
+  show('end');sfx('win');
+}
+
+/* ---------- 事件 ---------- */
+const sb=$('stageBtns');
+STAGES.forEach((s,i)=>{const b=document.createElement('button');b.innerHTML='<b>'+(i+1)+'</b>'+s.name;b.onclick=()=>startRun(false,i);sb.appendChild(b)});
+$('btnRank').onclick=()=>startRun(true);
+$('btnAgain').onclick=()=>{if(G&&G.ranked)startRun(true);else startRun(false,G.stage)};
+$('btnBoard').onclick=$('btnEndBoard').onclick=async()=>{readProfile();renderBoard();show('board');await loadRows();if($('board').classList.contains('active'))renderBoard()};
+$('btnBack').onclick=$('btnHome').onclick=()=>show('start');
+loadProfile();initCloud();
+})();
+</script>
+
+</body>
+</html>
