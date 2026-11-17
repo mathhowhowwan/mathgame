@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>十字交乘・教師後台</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js';
+import {getFirestore,collection,query,orderBy,limit,getDocs} from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
+const app=initializeApp({apiKey:"AIzaSyCHYtmrbMTxQhsSm9qjspiz-OVs2Jwv9jA",authDomain:"my-teaching-tools-ae1ac.firebaseapp.com",projectId:"my-teaching-tools-ae1ac",storageBucket:"my-teaching-tools-ae1ac.firebasestorage.app",messagingSenderId:"817693080761",appId:"1:817693080761:web:27f1226f1f024713fc6f68"});
+const db=getFirestore(app);
+window._fbAll=async()=>(await getDocs(query(collection(db,'factoring-tile-game_scores'),orderBy('timestamp','desc'),limit(2000)))).docs.map(d=>d.data());
+</script>
+<style>
+:root{--bg:#E4ECEA;--card:#F8FBFA;--ink:#16313A;--mute:#5E7580;--line:#C5D3D1;--x2:#2E6FA3;--x1:#3E9B6E;--u:#F0B429;--bad:#D4503A}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 'Noto Sans TC',system-ui,sans-serif;padding:16px}
+main{max-width:980px;margin:0 auto}
+h1{font-weight:900;font-size:1.5rem;margin:6px 0 14px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.st{background:var(--card);border-radius:14px;padding:12px 14px;box-shadow:inset 0 0 0 2px var(--line)}
+.st small{color:var(--mute);display:block}.st b{font-size:1.6rem}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+input,select{font:inherit;padding:.5em .7em;border:2px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+button{font:700 1rem inherit;font-family:inherit;padding:.55em 1em;border-radius:10px;border:0;background:var(--ink);color:#fff;cursor:pointer}
+button.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 2px var(--ink)}
+button.del{background:var(--bad)}
+.tabs{display:flex;gap:8px;margin-bottom:10px}
+.tabs button.on{background:var(--x2)}
+.wrap{overflow-x:auto;background:var(--card);border-radius:14px;box-shadow:inset 0 0 0 2px var(--line)}
+table{border-collapse:collapse;width:100%;min-width:560px}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{background:#DCE7E4;font-size:.9rem}
+td.n{font-variant-numeric:tabular-nums}
+.src{color:var(--mute);font-size:.9rem;margin:8px 2px}
+.empty{padding:26px;text-align:center;color:var(--mute)}
+a{color:var(--x2)}
+</style>
+</head>
+<body>
+<main>
+  <h1>十字交乘・磁磚工坊　教師後台</h1>
+  <div class="stats">
+    <div class="st"><small>總作答次數</small><b id="sN">0</b></div>
+    <div class="st"><small>學生人數</small><b id="sP">0</b></div>
+    <div class="st"><small>平均得分率</small><b id="sA">0%</b></div>
+    <div class="st"><small>三星率</small><b id="sS">0%</b></div>
+  </div>
+  <div class="tabs">
+    <button id="tabB" class="on" type="button">學生總榜</button>
+    <button id="tabR" class="ghost" type="button">全部紀錄</button>
+    <button id="tabG" class="ghost" type="button">各關平均</button>
+  </div>
+  <div class="bar">
+    <input id="q" placeholder="搜尋學生姓名">
+    <input type="date" id="df" aria-label="起始日期"><input type="date" id="dt" aria-label="結束日期">
+    <button id="reload" class="ghost" type="button">重新載入</button>
+    <button id="xls" type="button">匯出 Excel</button>
+    <button id="clr" class="del" type="button">清除本機紀錄</button>
+  </div>
+  <div class="wrap"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div>
+  <p class="src" id="src"></p>
+  <p class="src">雲端排行榜的資料存在 Firebase，清除按鈕只會刪除這台電腦瀏覽器裡的備份。<a href="https://mathhowhowwan.github.io/mathgame/">回遊戲庫</a></p>
+</main>
+<script>
+'use strict';
+const $=s=>document.querySelector(s),KEY='quiz_scores_factoring-tile-game';
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let all=[],tab='b';
+const NAMES=['拼版找長寬','和與積都是正','一次項是負的','常數項是負的','特殊型與大數字','二次項係數大於 1','係數大、又有負號','先提公因式','綜合挑戰'];
+function local(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
+async function load(){
+  let rows=null,from='';
+  if(window._fbAll){try{rows=await Promise.race([window._fbAll(),new Promise((_,j)=>setTimeout(()=>j(new Error('timeout')),6000))]);from='雲端（Firebase）'}catch(e){from='雲端讀取失敗（'+(e.message||'錯誤')+'），改用這台電腦的紀錄'}}
+  else from='未連上雲端，使用這台電腦的紀錄';
+  if(!rows)rows=local();
+  all=rows.map(r=>({name:r.name||'匿名學生',stage:r.stage??0,stageName:r.stageName||NAMES[r.stage]||'',score:r.score||0,max:r.max||15,stars:r.stars||0,total:r.total||0,date:r.date||'',iso:r.playedAt||(r.timestamp&&r.timestamp.toDate?r.timestamp.toDate().toISOString():'')}));
+  all.sort((a,b)=>(b.iso||'').localeCompare(a.iso||''));
+  $('#src').textContent='資料來源：'+from+'，共 '+all.length+' 筆';render();
+}
+function filtered(){
+  const q=$('#q').value.trim(),f=$('#df').value,t=$('#dt').value;
+  return all.filter(r=>(!q||r.name.includes(q))&&(!f||(r.iso||'').slice(0,10)>=f)&&(!t||(r.iso||'').slice(0,10)<=t));
+}
+function perStudent(rows){
+  const m=new Map();
+  rows.forEach(r=>{let o=m.get(r.name);if(!o){o={name:r.name,best:{},n:0,last:''};m.set(r.name,o)}o.n++;o.best[r.stage]=Math.max(o.best[r.stage]||0,r.score);if((r.iso||'')>o.last)o.last=r.iso});
+  return[...m.values()].map(o=>({name:o.name,total:Object.values(o.best).reduce((a,b)=>a+b,0),stages:Object.keys(o.best).length,n:o.n,last:o.last})).sort((a,b)=>b.total-a.total);
+}
+function perStage(rows){
+  return NAMES.map((nm,i)=>{const r=rows.filter(x=>x.stage===i);return{i,nm,n:r.length,avg:r.length?Math.round(r.reduce((a,x)=>a+x.score/x.max,0)/r.length*100):null}});
+}
+const fd=iso=>iso?new Date(iso).toLocaleString('zh-TW',{hour12:false}):'';
+function render(){
+  const rows=filtered(),th=$('#th'),tb=$('#tb');
+  $('#sN').textContent=rows.length;$('#sP').textContent=new Set(rows.map(r=>r.name)).size;
+  $('#sA').textContent=rows.length?Math.round(rows.reduce((a,r)=>a+r.score/r.max,0)/rows.length*100)+'%':'0%';
+  $('#sS').textContent=rows.length?Math.round(rows.filter(r=>r.stars===3).length/rows.length*100)+'%':'0%';
+  let h='',b='';
+  if(tab==='b'){h='<tr><th>名次</th><th>姓名</th><th>總分（各關最佳）</th><th>已玩關卡</th><th>作答次數</th><th>最近遊玩</th></tr>';
+    perStudent(rows).forEach((s,i)=>b+=`<tr><td class="n">${i+1}</td><td>${esc(s.name)}</td><td class="n"><b>${s.total}</b></td><td class="n">${s.stages} / ${NAMES.length}</td><td class="n">${s.n}</td><td>${fd(s.last)}</td></tr>`)}
+  else if(tab==='r'){h='<tr><th>姓名</th><th>關卡</th><th>得分</th><th>星數</th><th>時間</th></tr>';
+    rows.forEach(r=>b+=`<tr><td>${esc(r.name)}</td><td>${r.stage}・${esc(r.stageName)}</td><td class="n">${r.score} / ${r.max}</td><td>${'★'.repeat(r.stars)}${'☆'.repeat(3-r.stars)}</td><td>${fd(r.iso)}</td></tr>`)}
+  else{h='<tr><th>關卡</th><th>作答次數</th><th>平均得分率</th></tr>';
+    perStage(rows).forEach(s=>b+=`<tr><td>${s.i}・${s.nm}</td><td class="n">${s.n}</td><td class="n">${s.avg==null?'—':s.avg+'%'}</td></tr>`)}
+  th.innerHTML=h;tb.innerHTML=b||`<tr><td class="empty" colspan="6">目前沒有符合的紀錄。</td></tr>`;
+}
+function exportExcel(){
+  const rows=filtered();if(!rows.length){alert('目前沒有資料可以匯出。');return}
+  const wb=XLSX.utils.book_new(),ps=perStudent(rows);
+  const s1=XLSX.utils.aoa_to_sheet([['名次','姓名','總分（各關最佳）','已玩關卡數','作答次數','最近遊玩'],...ps.map((s,i)=>[i+1,s.name,s.total,s.stages,s.n,fd(s.last)])]);
+  s1['!cols']=[6,14,16,12,10,22].map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,s1,'學生總榜');
+  const s2=XLSX.utils.aoa_to_sheet([['姓名','關卡','關卡名稱','得分','滿分','星數','時間'],...rows.map(r=>[r.name,r.stage,r.stageName,r.score,r.max,r.stars,fd(r.iso)])]);
+  s2['!cols']=[14,6,20,8,8,8,22].map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,s2,'全部紀錄');
+  const s3=XLSX.utils.aoa_to_sheet([['關卡','關卡名稱','作答次數','平均得分率(%)'],...perStage(rows).map(s=>[s.i,s.nm,s.n,s.avg==null?'':s.avg])]);
+  s3['!cols']=[6,20,10,14].map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,s3,'各關平均');
+  XLSX.writeFile(wb,'十字交乘_成績_'+new Date().toISOString().slice(0,10)+'.xlsx');
+}
+function setTab(t){tab=t;[['b','#tabB'],['r','#tabR'],['g','#tabG']].forEach(([k,id])=>{$(id).classList.toggle('on',k===t);$(id).classList.toggle('ghost',k!==t)});render()}
+$('#tabB').onclick=()=>setTab('b');$('#tabR').onclick=()=>setTab('r');$('#tabG').onclick=()=>setTab('g');
+['#q','#df','#dt'].forEach(s=>$(s).oninput=render);
+$('#reload').onclick=load;$('#xls').onclick=exportExcel;
+$('#clr').onclick=()=>{if(confirm('確定要清除這台電腦瀏覽器裡的成績備份嗎？（雲端資料不會被刪除）')&&confirm('再確認一次：清除後無法復原。')){try{localStorage.removeItem(KEY)}catch(e){}load()}};
+window.addEventListener('load',()=>setTimeout(load,300));
+</script>
+</body>
+</html>

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>十字交乘・磁磚工坊</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=STIX+Two+Text:ital,wght@0,500;0,700;1,500;1,700&display=swap" rel="stylesheet">
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js';
+import {getFirestore,collection,addDoc,query,orderBy,limit,getDocs,serverTimestamp} from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
+const app=initializeApp({apiKey:"AIzaSyCHYtmrbMTxQhsSm9qjspiz-OVs2Jwv9jA",authDomain:"my-teaching-tools-ae1ac.firebaseapp.com",projectId:"my-teaching-tools-ae1ac",storageBucket:"my-teaching-tools-ae1ac.firebasestorage.app",messagingSenderId:"817693080761",appId:"1:817693080761:web:27f1226f1f024713fc6f68"});
+const db=getFirestore(app),COL='factoring-tile-game_scores';
+window._fbSave=e=>addDoc(collection(db,COL),{...e,timestamp:serverTimestamp()});
+window._fbLoad=async()=>(await getDocs(query(collection(db,COL),orderBy('total','desc'),limit(60)))).docs.map(d=>d.data());
+</script>
+<style>
+:root{
+  --bg:#E4ECEA;--card:#F8FBFA;--ink:#16313A;--mute:#5E7580;--line:#C5D3D1;
+  --x2:#2E6FA3;--x1:#3E9B6E;--u:#F0B429;--ut:#B07208;--bad:#D4503A;--good:#2F9E6B;
+  --math:'STIX Two Text','Times New Roman',serif;
+  --ui:'Noto Sans TC','PingFang TC','Microsoft JhengHei',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background-color:var(--bg);color:var(--ink);font:400 16px/1.55 var(--ui);min-height:100dvh;
+  background-image:linear-gradient(rgba(22,49,58,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(22,49,58,.06) 1px,transparent 1px);background-size:44px 44px}
+#app{max-width:600px;margin:0 auto;padding:14px 16px 72px}
+.screen{display:none}.screen.on{display:block}
+i{font-style:italic}sup{font-size:.6em;line-height:0}
+button{font-family:inherit}
+:focus-visible{outline:3px solid var(--x2);outline-offset:2px}
+
+.btn{font:700 1rem var(--ui);padding:.7em 1.2em;border-radius:12px;border:0;background:var(--ink);color:#fff;cursor:pointer;box-shadow:0 3px 0 #091a20;transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #091a20}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 2px var(--ink)}
+.btn.ghost:active{transform:none}
+.btn.sm{padding:.4em .8em;font-size:.9rem}
+.row{display:flex;gap:10px;justify-content:center;margin:14px 0;flex-wrap:wrap}
+.row .btn{flex:1;max-width:220px}
+.card{background:var(--card);border-radius:16px;padding:16px;box-shadow:inset 0 0 0 2px var(--line),0 3px 0 var(--line);margin:12px 0}
+
+.c-x2{color:var(--x2)}.c-x1{color:var(--x1)}.c-u{color:var(--ut)}
+.op{color:var(--mute)}.fac{white-space:nowrap}
+
+/* 首頁 */
+.hero{padding:26px 0 6px}
+.eq{font:500 clamp(1.6rem,7.4vw,2.6rem)/1.25 var(--math)}
+h1{font:900 clamp(1.6rem,7vw,2.1rem)/1.2 var(--ui);margin:14px 0 6px}
+.hero p{color:var(--mute);margin:0}
+.stage{display:flex;align-items:center;gap:14px;width:100%;text-align:left;font:inherit;color:inherit;background:var(--card);border:0;border-radius:16px;padding:12px 14px;margin:10px 0;cursor:pointer;box-shadow:inset 0 0 0 2px var(--line),0 3px 0 var(--line);transition:transform .12s}
+.stage:hover:not(:disabled){transform:translateY(-2px)}
+.stage:disabled{opacity:.55;cursor:not-allowed}
+.badge{flex:none;width:46px;height:46px;border-radius:8px;display:grid;place-items:center;font:700 1.4rem var(--math);color:#fff;box-shadow:inset 0 0 0 3px rgba(255,255,255,.35)}
+.b0{background:var(--x2)}.b1{background:var(--x1)}.b2{background:var(--u);color:#4a3200}
+.si{flex:1;min-width:0}.si b{display:block}.si .m{font:500 1.05rem var(--math)}
+.stars{flex:none;color:var(--u);letter-spacing:.08em;font-size:1.1rem;text-shadow:0 1px 0 rgba(0,0,0,.15)}
+.link{background:none;border:0;color:var(--mute);text-decoration:underline;cursor:pointer;font-size:.85rem;margin-top:10px}
+
+/* 上方列 */
+.bar{display:flex;align-items:center;gap:10px;padding:2px 0 6px}
+.bar[hidden]{display:none}
+.ttl{flex:1;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hud{text-align:right;font-weight:700;font-size:.85rem;line-height:1.3}
+#mute{position:fixed;right:12px;bottom:12px;width:44px;height:44px;border-radius:50%;border:0;background:var(--ink);color:#fff;font-size:1.2rem;cursor:pointer;z-index:20;box-shadow:0 3px 0 #091a20}
+
+/* 題目與回饋 */
+.poly{font:500 clamp(1.8rem,9vw,2.7rem)/1.3 var(--math);text-align:center}
+.poly.sm{font-size:clamp(1.5rem,7vw,2.1rem)}
+.poly .op{margin:0 .12em}
+.legend{text-align:center;color:var(--mute);font-size:.95rem}
+.sw{display:inline-block;width:.9em;height:.9em;border-radius:3px;vertical-align:-.1em;margin-left:.4em}
+.sw.x2{background:var(--x2)}.sw.x1{background:var(--x1)}.sw.u{background:var(--u)}
+.tip{margin:8px 2px;color:var(--mute);font-size:.95rem}
+.msg{margin:10px 0;font-size:1rem}
+.msg.ok{background:#DDF1E6;color:#17573A;padding:12px 14px;border-radius:12px}
+.msg.no{background:#FBE3DD;color:#8B2A18;padding:12px 14px;border-radius:12px}
+.msg.shake{animation:shake .3s}
+.hint{background:#FFF6DB;box-shadow:inset 0 0 0 2px #EBCB78;font-size:.95rem;margin:10px 0}
+.hint[hidden]{display:none}
+#ans{font:500 clamp(1.5rem,7vw,2rem)/1.3 var(--math);text-align:center;margin-top:14px}
+
+/* 數字調整器 */
+.spin{display:flex;flex-direction:column;align-items:center;gap:3px}
+.spin input{width:58px;height:44px;border:2px solid var(--ink);border-radius:10px;background:#fff;font:600 1.5rem var(--math);text-align:center;color:var(--ink);padding:0;-moz-appearance:textfield;appearance:textfield}
+.spin input::-webkit-inner-spin-button,.spin input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.sb{width:58px;height:30px;border:0;border-radius:8px;background:#DCE7E4;color:var(--ink);font-size:.75rem;cursor:pointer}
+.sb:active{background:#C3D6D1}
+.spin.locked input{background:#E7EEEC;border-color:var(--line);color:var(--mute)}
+.spin.locked .sb{visibility:hidden}
+
+/* 十字交乘圖 */
+.cross{display:grid;grid-template-columns:auto minmax(110px,1fr) auto;align-items:stretch;gap:0 4px}
+.cl{display:grid;gap:12px}
+.cell{display:flex;align-items:center;justify-content:center;gap:6px;font:italic 500 1.8rem var(--math)}
+.mid{position:relative}
+.mid svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.mid line{stroke:var(--ink);stroke-width:2.5;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.bd{position:absolute;transform:translate(-50%,-50%);font:700 1rem var(--math);background:var(--card);border:2px solid var(--x1);color:var(--x1);border-radius:99px;min-width:30px;text-align:center;padding:0 7px}
+#bPS{left:76%;top:65%}#bRQ{left:76%;top:35%}
+.live{display:grid;gap:6px;margin-top:16px}
+.lr{display:grid;grid-template-columns:5.6em 1fr auto;gap:8px;align-items:center;padding:6px 10px;border-radius:10px;background:#EEF4F2;border-left:5px solid var(--line)}
+.lr.lr-x2{border-left-color:var(--x2)}.lr.lr-x1{border-left-color:var(--x1)}.lr.lr-u{border-left-color:var(--u)}
+.lr .k{font-size:.85rem;color:var(--mute);line-height:1.3}
+.lr .v{font:500 1.15rem var(--math)}
+.mk{font-size:.85rem;font-weight:700;color:var(--mute)}.mk.y{color:var(--good)}
+
+/* 拼版工作區 */
+#ws{position:relative;max-width:460px;margin:10px auto;background:var(--card);border-radius:16px;box-shadow:inset 0 0 0 2px var(--line);overflow:hidden}
+#ws .sep{position:absolute;left:12px;right:12px;border-top:2px dashed var(--line);pointer-events:none}
+#ws .zone{position:absolute;left:14px;font-size:.8rem;color:var(--mute);pointer-events:none}
+.tile{position:absolute;display:grid;place-items:center;border-radius:4px;color:#fff;font:italic 700 1rem/1 var(--math);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:inset 0 0 0 2px rgba(255,255,255,.35),0 2px 0 rgba(0,0,0,.22)}
+.t-x2{background:var(--x2);font-size:1.5rem}.t-x1{background:var(--x1)}.t-u{background:var(--u);color:#4a3200;font-size:.8rem;font-style:normal}
+.tile.settle{transition:left .2s,top .2s}
+.tile.drag{cursor:grabbing;z-index:9;transform:scale(1.05);box-shadow:inset 0 0 0 2px rgba(255,255,255,.4),0 10px 16px rgba(0,0,0,.28)}
+.tile.bad{outline:3px solid var(--bad);outline-offset:1px}
+.tile.wig{animation:shake .3s}
+.br{position:absolute;border:2px solid var(--ink);pointer-events:none}
+.br.h{border-bottom:0}.br.v{border-right:0}
+.br span{position:absolute;background:#fff;border-radius:8px;padding:0 8px;font:600 1rem var(--math);white-space:nowrap;box-shadow:inset 0 0 0 2px var(--line)}
+.br.h span{left:50%;bottom:calc(100% + 4px);transform:translateX(-50%)}
+.br.v span{right:calc(100% + 4px);top:50%;transform:translateY(-50%)}
+.trow{display:flex;align-items:center;justify-content:center;gap:8px;font:500 1.6rem var(--math);margin:4px 0}
+.trow .lab{font:700 1rem var(--ui);width:3em;color:var(--mute)}
+.trow .par{font-size:3rem;font-weight:400;line-height:1}
+
+/* 結算 */
+.end{text-align:center;padding:26px 16px}
+.big-stars{font-size:3rem;color:var(--u);letter-spacing:.1em;text-shadow:0 2px 0 rgba(0,0,0,.15)}
+.big-stars span{color:var(--line);text-shadow:none}
+.end h2{margin:8px 0;font-size:1.4rem}.sc{font:500 1.4rem var(--math);margin:4px 0}
+
+.name-card label{font-weight:700}
+.name-card input{display:block;width:100%;margin:6px 0 4px;padding:.6em .8em;font:600 1.1rem var(--ui);border:2px solid var(--ink);border-radius:10px;background:#fff;color:var(--ink)}
+.name-card input.shake{animation:shake .3s;border-color:var(--bad)}
+.name-card small{color:var(--mute)}
+.board{margin:8px 0 0;padding:0;list-style:none;display:grid;gap:4px}
+.board li{display:flex;justify-content:space-between;gap:10px;padding:5px 10px;border-radius:8px;background:#EEF4F2;font-size:.95rem}
+.board li b{font:700 1.05rem var(--math)}
+.board li.me{background:#FFF1C9;box-shadow:inset 0 0 0 2px #EBCB78}
+.board-t{font-weight:700;margin-top:12px;font-size:.95rem}
+.gcf{display:flex;align-items:center;justify-content:center;gap:10px;font-weight:700;margin-bottom:14px}
+.gcf[hidden]{display:none}
+.homelink{display:block;text-align:center;margin:18px 0 0;color:var(--mute);font-size:.9rem}
+.cf{position:fixed;top:-14px;width:10px;height:10px;border-radius:2px;z-index:99;pointer-events:none;animation:fall 1.7s ease-in forwards}
+@keyframes fall{to{transform:translate(var(--dx),108vh) rotate(var(--r))}}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.cf{display:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="bar" class="bar" hidden>
+    <button id="back" class="btn ghost sm" type="button">← 關卡</button>
+    <div class="ttl" id="barTtl"></div>
+    <div class="hud"><div id="barQ"></div><div id="barS"></div></div>
+  </div>
+
+  <!-- 首頁 -->
+  <section id="home" class="screen on">
+    <div class="hero">
+      <div class="eq"><span class="c-x2"><i>x</i><sup>2</sup></span> <span class="op">+</span> <span class="c-x1">5<i>x</i></span> <span class="op">+</span> <span class="c-u">6</span> = (<i>x</i> + 2)(<i>x</i> + 3)</div>
+      <h1>十字交乘・磁磚工坊</h1>
+      <p>先用磁磚拼出長方形，再一關一關練到十字交乘。</p>
+    </div>
+    <div class="card name-card">
+      <label for="stuName">你的名字</label>
+      <input id="stuName" maxlength="20" placeholder="輸入姓名，成績會記錄到排行榜" autocomplete="off">
+      <small>輸入姓名後才能選關卡。</small>
+      <div class="board-t">排行榜（總分前 5 名）</div>
+      <ol class="board" id="boardHome"></ol>
+    </div>
+    <div id="stageList"></div>
+    <button id="unlockAll" class="link" type="button">解鎖全部關卡（老師用）</button>
+    <a class="homelink" href="https://mathhowhowwan.github.io/mathgame/">← 回遊戲庫首頁</a>
+  </section>
+
+  <!-- 拼版關 -->
+  <section id="tiles" class="screen">
+    <div class="card"><div id="tPoly" class="poly sm"></div><div id="tLegend" class="legend"></div></div>
+    <p class="tip" id="tTip"></p>
+    <div id="ws"></div>
+    <div class="row">
+      <button id="tReset" class="btn ghost" type="button">重來</button>
+      <button id="tHint" class="btn ghost" type="button">提示</button>
+      <button id="tDone" class="btn" type="button">拼好了</button>
+    </div>
+    <div id="tAns" class="card" hidden>
+      <div class="trow"><span class="lab">橫邊</span><span class="par">(</span><span id="tp"></span><i>x</i><span>+</span><span id="tq"></span><span class="par">)</span></div>
+      <div class="trow"><span class="lab">直邊</span><span class="par">(</span><span id="tr"></span><i>x</i><span>+</span><span id="ts"></span><span class="par">)</span></div>
+      <div class="row"><button id="tCheck" class="btn" type="button">確認長寬</button></div>
+    </div>
+    <div id="tmsg" class="msg"></div>
+    <a class="homelink" href="https://mathhowhowwan.github.io/mathgame/">← 回遊戲庫首頁</a>
+  </section>
+
+  <!-- 十字交乘關 -->
+  <section id="cross" class="screen">
+    <div class="card"><div id="poly" class="poly"></div></div>
+    <div class="card">
+      <div class="gcf" id="gcfRow" hidden>公因數 <span id="ck"></span> ×</div>
+      <div class="cross">
+        <div class="cl"><div class="cell" id="cp"><i>x</i></div><div class="cell" id="cr"><i>x</i></div></div>
+        <div class="mid">
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="6" y1="24" x2="94" y2="76"/><line x1="6" y1="76" x2="94" y2="24"/></svg>
+          <span class="bd" id="bPS"></span><span class="bd" id="bRQ"></span>
+        </div>
+        <div class="cl"><div class="cell" id="cq"></div><div class="cell" id="cs"></div></div>
+      </div>
+      <div class="live" id="live"></div>
+      <div id="ans"></div>
+    </div>
+    <div id="msg" class="msg"></div>
+    <div id="hintBox" class="card hint" hidden></div>
+    <div class="row">
+      <button id="hintBtn" class="btn ghost" type="button">提示</button>
+      <button id="checkBtn" class="btn" type="button">檢查答案</button>
+    </div>
+    <a class="homelink" href="https://mathhowhowwan.github.io/mathgame/">← 回遊戲庫首頁</a>
+  </section>
+
+  <!-- 結算 -->
+  <section id="end" class="screen">
+    <div class="card end" id="endBody"></div>
+    <div class="row">
+      <button id="nextStage" class="btn" type="button">下一關</button>
+      <button id="again" class="btn ghost" type="button">再練一次</button>
+      <button id="toHome" class="btn ghost" type="button">關卡地圖</button>
+    </div>
+    <a class="homelink" href="https://mathhowhowwan.github.io/mathgame/">← 回遊戲庫首頁</a>
+  </section>
+</div>
+<button id="mute" type="button" aria-label="音效開關">🔊</button>
+
+<script>
+'use strict';
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const MINUS='−',X2='<i>x</i><sup>2</sup>',X1='<i>x</i>';
+const gcd=(a,b)=>b?gcd(b,a%b):Math.abs(a);
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[rnd(0,a.length-1)];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const nstr=n=>n<0?MINUS+(-n):String(n);
+const pn=n=>n<0?`(${MINUS}${-n})`:String(n);
+
+/* ---------- 算式顯示（項的顏色 = 磁磚顏色） ---------- */
+function sum(ts){let o='';for(const[c,b,k]of ts){if(!c)continue;const ng=c<0,a=Math.abs(c),n=(a===1&&b)?'':a;
+  o+=(o?` <span class="op">${ng?MINUS:'+'}</span> `:ng?`<span class="op">${MINUS}</span>`:'')+`<span class="${k}">${n}${b}</span>`}return o||'0'}
+const polyH=(a,b,c)=>sum([[a,X2,'c-x2'],[b,X1,'c-x1'],[c,'','c-u']]);
+const lin=(p,q)=>`${p===1?'':p}${X1} ${q<0?MINUS:'+'} ${Math.abs(q)}`;
+const facH=(p,q)=>`<span class="fac">(${lin(p,q)})</span>`;
+const expandH=(p,q,r,s,k=1)=>sum([[k*p*r,X2,'c-x2'],[k*p*s,X1,'c-x1'],[k*r*q,X1,'c-x1'],[k*q*s,'','c-u']]);
+
+/* ---------- 音效與特效 ---------- */
+let AC=null,muted=false;try{muted=localStorage.getItem('cfg-mute')==='1'}catch(e){}
+function beep(f,d,type='sine',v=.07,delay=0){if(muted)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime+delay,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d)}catch(e){}}
+const sfx={tick:()=>beep(560,.06,'triangle',.06),ok:()=>[523,659,784].forEach((f,i)=>beep(f,.18,'sine',.08,i*.1)),bad:()=>beep(170,.25,'sawtooth',.05),win:()=>[523,659,784,1047].forEach((f,i)=>beep(f,.25,'triangle',.08,i*.12))};
+function confetti(){if(window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches)return;const cols=['#2E6FA3','#3E9B6E','#F0B429'];
+  for(let i=0;i<30;i++){const e=document.createElement('i');e.className='cf';e.style.cssText=`left:${rnd(5,95)}vw;background:${pick(cols)};--dx:${rnd(-60,60)}px;--r:${rnd(120,540)}deg;animation-delay:${(Math.random()*.3).toFixed(2)}s`;document.body.appendChild(e);setTimeout(()=>e.remove(),2300)}}
+function say(el,cls,html){el.className='msg '+cls;el.innerHTML=html;if(cls==='no'){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake')}}
+
+/* ---------- 數字調整器 ---------- */
+function makeSpin(o){
+  const el=document.createElement('div');el.className='spin';
+  el.innerHTML='<button type="button" class="sb" aria-label="加一">▲</button><input type="number" inputmode="numeric"><button type="button" class="sb" aria-label="減一">▼</button>';
+  const[up,inp,dn]=el.children;
+  const api={el,get:()=>parseInt(inp.value,10)||0,
+    set(v){inp.value=v;o.onChange&&o.onChange(v)},
+    lock(b){inp.readOnly=b;up.disabled=dn.disabled=b;el.classList.toggle('locked',b)}};
+  up.onclick=()=>{api.set(Math.min(o.max,api.get()+1));sfx.tick()};
+  dn.onclick=()=>{api.set(Math.max(o.min,api.get()-1));sfx.tick()};
+  inp.oninput=()=>o.onChange&&o.onChange(api.get());
+  inp.value=o.val;return api;
+}
+
+/* ---------- 題目產生器 ---------- */
+function mk(p,q,r,s,k=1){return{p,q,r,s,k,a:k*p*r,b:k*(p*s+q*r),c:k*q*s}}
+function g1(){let q,s;do{q=rnd(1,9);s=rnd(1,9)}while(q*s>36);return mk(1,q,1,s)}
+function g2(){const m=g1();return mk(1,-m.q,1,-m.s)}
+function g3(){let q,s;do{q=rnd(1,9);s=rnd(1,9)}while(q===s||q*s>40);return Math.random()<.5?mk(1,q,1,-s):mk(1,-q,1,s)}
+function g4(){const t=Math.random();
+  if(t<.35){const n=rnd(2,9)*pick([1,-1]);return mk(1,n,1,n)}
+  if(t<.7){const n=rnd(2,12);return mk(1,n,1,-n)}
+  let q,s;do{q=pick([1,-1])*rnd(2,12);s=pick([1,-1])*rnd(2,12)}while(Math.abs(q*s)>90||Math.abs(q)===Math.abs(s));return mk(1,q,1,s)}
+function g5(){let p,q,s;do{p=pick([2,3]);q=rnd(1,6);s=rnd(1,6)}while(gcd(p,q)!==1);return mk(p,q,1,s)}
+function g6(){let p,q,r,s;do{p=rnd(1,4);r=rnd(1,4);q=pick([1,-1])*rnd(1,6);s=pick([1,-1])*rnd(1,6)}while(p*r<2||gcd(p,q)!==1||gcd(r,s)!==1);return mk(p,q,r,s)}
+function gk(){let m;do{m=pick([g1,g2,g3,g5,g6])()}while(Math.abs(m.q*m.s)>24||m.a>6);return mk(m.p,m.q,m.r,m.s,pick([2,3,4,5]))}
+function g7(){return pick([g3,g4,g5,g6,g6,gk])()}
+
+/* sc：顯示「目標值與對錯」的引導；lock：左側 x 係數鎖定為 1 */
+const STAGES=[
+  {name:'拼版找長寬',ex:polyH(1,3,2),tiles:true,n:5},
+  {name:'和與積都是正',ex:polyH(1,5,6),gen:g1,sc:1,lock:1,n:5},
+  {name:'一次項是負的',ex:polyH(1,-5,6),gen:g2,sc:1,lock:1,n:5},
+  {name:'常數項是負的',ex:polyH(1,-1,-6),gen:g3,sc:1,lock:1,n:5},
+  {name:'特殊型與大數字',ex:polyH(1,0,-16),gen:g4,sc:0,lock:1,n:5},
+  {name:'二次項係數大於 1',ex:polyH(2,7,3),gen:g5,sc:1,lock:0,n:5},
+  {name:'係數大、又有負號',ex:polyH(3,-5,-2),gen:g6,sc:0,lock:0,n:5},
+  {name:'先提公因式',ex:polyH(2,10,12),gen:gk,sc:1,lock:0,gcf:1,n:5},
+  {name:'綜合挑戰',ex:'混合所有題型，共 8 題',gen:g7,sc:0,lock:0,n:8}
+];
+/* 拼版題 [p,q,r,s] = (px+q)(rx+s) */
+const ROUNDS=[[1,1,1,2],[1,1,1,3],[1,2,1,3],[1,2,1,2],[2,1,1,1]];
+
+/* ---------- 存檔與畫面 ---------- */
+let save={stars:[],open:0,all:false},cur=null;
+try{save=Object.assign(save,JSON.parse(localStorage.getItem('cfg-save')||'{}'))}catch(e){}
+const persist=()=>{try{localStorage.setItem('cfg-save',JSON.stringify(save))}catch(e){}};
+function show(id){$$('.screen').forEach(s=>s.classList.toggle('on',s.id===id));$('#bar').hidden=id==='home';window.scrollTo(0,0)}
+function renderHome(){
+  $('#stageList').innerHTML=STAGES.map((s,i)=>{const lock=i>save.open&&!save.all,st=save.stars[i]||0;
+    return `<button class="stage" type="button" data-i="${i}" ${lock?'disabled':''}><span class="badge b${i%3}">${i}</span><span class="si"><b>${s.name}</b><span class="m">${s.ex}</span></span><span class="stars">${lock?'🔒':'★'.repeat(st)+'☆'.repeat(3-st)}</span></button>`}).join('');
+}
+function hud(){const S=STAGES[cur.si];$('#barQ').textContent=`完成 ${cur.n} / ${S.n} 題`;$('#barS').textContent=`★ ${cur.score} 分`}
+function startStage(i){
+  cur={si:i,n:0,score:0,seen:new Set()};$('#barTtl').textContent=`關卡 ${i}・${STAGES[i].name}`;
+  if(STAGES[i].tiles){show('tiles');nextTiles()}else{show('cross');nextCross()}
+}
+function finish(){
+  const S=STAGES[cur.si],max=S.n*3,ratio=cur.score/max,st=ratio>=.85?3:ratio>=.6?2:1;
+  save.stars[cur.si]=Math.max(save.stars[cur.si]||0,st);save.open=Math.max(save.open,Math.min(cur.si+1,STAGES.length-1));persist();
+  const rec=saveScore({stage:cur.si,stageName:S.name,score:cur.score,max,stars:st});
+  const m=['','有過關，建議用「提示」的方法再練一輪。','不錯，再練一次可以拿到三顆星。','很穩！可以挑戰下一關了。'];
+  $('#endBody').innerHTML=`<div class="big-stars">${'★'.repeat(st)}<span>${'★'.repeat(3-st)}</span></div><h2>${S.name}・完成</h2><p class="sc">${cur.score} / ${max} 分</p><p>${m[st]}</p><p><small>${esc(rec.name)} 的總分：${rec.total}</small></p><div class="board-t">排行榜（總分前 3 名）</div><ol class="board" id="boardEnd" style="text-align:left"></ol>`;
+  $('#nextStage').hidden=cur.si>=STAGES.length-1;sfx.win();confetti();show('end');renderBoard('#boardEnd',3,rec.name);
+}
+
+/* ================= 拼版關 ================= */
+const REC_X=72,REC_Y=46;
+let tiles=[],drag=null,U=20,X=52;
+const ts={p:makeSpin({min:0,max:6,val:1}),q:makeSpin({min:0,max:12,val:0}),r:makeSpin({min:0,max:6,val:1}),s:makeSpin({min:0,max:12,val:0})};
+Object.keys(ts).forEach(k=>$('#t'+k).appendChild(ts[k].el));
+const TIP0='拖曳磁磚，拼成一個沒有縫隙的長方形。點一下長條磁磚可以旋轉。';
+const place=t=>{const s=t.el.style;s.left=t.x+'px';s.top=t.y+'px';s.width=t.w+'px';s.height=t.h+'px'};
+const ovl=(a,b)=>a!==b&&a.x<b.x+b.w-1&&a.x+a.w>b.x+1&&a.y<b.y+b.h-1&&a.y+a.h>b.y+1;
+const overlaps=t=>tiles.some(o=>ovl(t,o));
+const refreshBad=()=>tiles.forEach(t=>t.el.classList.toggle('bad',overlaps(t)));
+
+function nextTiles(){
+  const S=STAGES[cur.si];if(cur.n>=S.n)return finish();
+  let[p,q,r,s]=ROUNDS[cur.n];if(Math.random()<.5)[p,q,r,s]=[r,s,p,q];
+  cur.t={a:p*r,b:p*s+q*r,c:q*s};cur.wrong=0;cur.hints=0;cur.done=false;cur.rect=null;
+  $('#tPoly').innerHTML=polyH(cur.t.a,cur.t.b,cur.t.c);
+  $('#tLegend').innerHTML=[['x2',cur.t.a],['x1',cur.t.b],['u',cur.t.c]].map(([k,n])=>`<span class="sw ${k}"></span>×${n}`).join(' ');
+  $('#tTip').textContent=TIP0;$('#tmsg').className='msg';$('#tmsg').innerHTML='';$('#tCheck').textContent='確認長寬';$('#tAns').hidden=true;
+  ts.p.set(1);ts.r.set(1);ts.q.set(0);ts.s.set(0);
+  buildTiles();hud();
+}
+function buildTiles(){
+  const ws=$('#ws');ws.innerHTML='';const W=ws.clientWidth||340;U=clamp(Math.floor(W/17),16,26);X=Math.round(U*2.6);
+  const{a,b,c}=cur.t,kinds=[...Array(a).fill('x2'),...Array(b).fill('x1'),...Array(c).fill('u')];
+  const areaH=REC_Y+X+3*U+24,trayY=areaH+40;
+  ws.insertAdjacentHTML('beforeend',`<div class="sep" style="top:${areaH+10}px"></div><div class="zone" style="top:${trayY-27}px">磁磚箱</div>`);
+  let x=12,y=trayY,rh=0;
+  tiles=kinds.map(k=>{const t={k,w:k==='u'?U:X,h:k==='x2'?X:U};
+    if(x+t.w>W-12){x=12;y+=rh+8;rh=0}
+    t.x=x;t.y=y;x+=t.w+8;rh=Math.max(rh,t.h);
+    t.el=document.createElement('div');t.el.className='tile t-'+k;t.el.textContent=k==='x2'?'x²':k==='x1'?'x':'1';
+    ws.appendChild(t.el);place(t);return t});
+  ws.style.height=(y+rh+14)+'px';
+}
+function hidePanel(){$$('#ws .br').forEach(e=>e.remove());$('#tAns').hidden=true;if(!cur.done){cur.rect=null;$('#tmsg').className='msg';$('#tmsg').innerHTML=''}}
+function snap(t){
+  const T=10;let bx=t.x,by=t.y,dx=T+1,dy=T+1;
+  for(const o of tiles){if(o===t)continue;
+    if(t.x>o.x+o.w+14||t.x+t.w<o.x-14||t.y>o.y+o.h+14||t.y+t.h<o.y-14)continue;
+    for(const c of[o.x-t.x,o.x+o.w-t.x,o.x-t.w-t.x,o.x+o.w-t.w-t.x])if(Math.abs(c)<dx){dx=Math.abs(c);bx=t.x+c}
+    for(const c of[o.y-t.y,o.y+o.h-t.y,o.y-t.h-t.y,o.y+o.h-t.h-t.y])if(Math.abs(c)<dy){dy=Math.abs(c);by=t.y+c}}
+  return{x:Math.round(bx),y:Math.round(by)};
+}
+function rotate(t){
+  if(t.k!=='x1'){t.el.classList.remove('wig');void t.el.offsetWidth;t.el.classList.add('wig');return}
+  const ws=$('#ws');[t.w,t.h]=[t.h,t.w];t.x=clamp(t.x,0,ws.clientWidth-t.w);t.y=clamp(t.y,0,ws.clientHeight-t.h);
+  place(t);refreshBad();hidePanel();sfx.tick();
+}
+const ws0=$('#ws');
+ws0.addEventListener('pointerdown',e=>{
+  const el=e.target.closest('.tile');if(!el||cur.done)return;
+  const t=tiles.find(t=>t.el===el);el.classList.remove('settle');
+  drag={t,sx:e.clientX,sy:e.clientY,ox:t.x,oy:t.y,moved:false};
+  try{el.setPointerCapture(e.pointerId)}catch(_){}el.classList.add('drag');e.preventDefault();
+});
+ws0.addEventListener('pointermove',e=>{
+  if(!drag)return;const dx=e.clientX-drag.sx,dy=e.clientY-drag.sy;
+  if(!drag.moved&&Math.hypot(dx,dy)>5){drag.moved=true;hidePanel()}
+  if(!drag.moved)return;
+  const t=drag.t;t.x=clamp(drag.ox+dx,0,ws0.clientWidth-t.w);t.y=clamp(drag.oy+dy,0,ws0.clientHeight-t.h);
+  place(t);t.el.classList.toggle('bad',overlaps(t));
+});
+function endDrag(){
+  if(!drag)return;const t=drag.t;t.el.classList.remove('drag');
+  if(!drag.moved)rotate(t);
+  else{const s=snap(t);t.x=s.x;t.y=s.y;t.el.classList.add('settle');
+    if(overlaps(t)){t.x=drag.ox;t.y=drag.oy;sfx.bad()}else sfx.tick();
+    place(t);setTimeout(()=>t.el.classList.remove('settle'),260)}
+  drag=null;refreshBad();
+}
+ws0.addEventListener('pointerup',endDrag);ws0.addEventListener('pointercancel',endDrag);
+
+function checkRect(){
+  if(tiles.some(overlaps))return{err:'有磁磚疊在一起了，把紅框的磁磚移開。'};
+  const x0=Math.min(...tiles.map(t=>t.x)),y0=Math.min(...tiles.map(t=>t.y)),x1=Math.max(...tiles.map(t=>t.x+t.w)),y1=Math.max(...tiles.map(t=>t.y+t.h));
+  const area=tiles.reduce((s,t)=>s+t.w*t.h,0);
+  if(Math.abs((x1-x0)*(y1-y0)-area)>U*U*.3)return{err:'還不是完整的長方形：中間有縫隙，或有磁磚還沒放進來。'};
+  return{x0,y0,w:x1-x0,h:y1-y0};
+}
+function decode(L){let best=null,bd=3;for(let p=0;p<=5;p++)for(let q=0;q<=12;q++){const d=Math.abs(p*X+q*U-L);if(d<bd){bd=d;best=[p,q]}}return best}
+$('#tDone').onclick=()=>{
+  if(cur.done)return;const m=$('#tmsg'),R=checkRect();
+  if(R.err){say(m,'no',R.err);sfx.bad();return}
+  const hw=decode(R.w),hh=decode(R.h);
+  if(!hw||!hh){say(m,'no','邊長不太對勁，把磁磚拆開重新拼一次。');return}
+  cur.rect={W:hw,H:hh};
+  const dx=REC_X-R.x0,dy=REC_Y-R.y0;
+  tiles.forEach(t=>{t.x+=dx;t.y+=dy;t.el.classList.add('settle');place(t)});setTimeout(()=>tiles.forEach(t=>t.el.classList.remove('settle')),260);
+  const ws=$('#ws');
+  [['h',REC_X,REC_Y-10,R.w,6],['v',REC_X-10,REC_Y,6,R.h]].forEach(([c,l,t,w,h])=>{
+    const d=document.createElement('div');d.className='br '+c;Object.assign(d.style,{left:l+'px',top:t+'px',width:w+'px',height:h+'px'});d.innerHTML='<span>?</span>';ws.appendChild(d)});
+  $('#tAns').hidden=false;say(m,'ok','拼成長方形了！數一數橫邊和直邊各是幾個 <i>x</i>、幾個 1。');sfx.ok();
+  $('#tAns').scrollIntoView({behavior:'smooth',block:'nearest'});
+};
+$('#tReset').onclick=()=>{if(cur.done)return;hidePanel();buildTiles()};
+$('#tHint').onclick=()=>{if(cur.done)return;cur.hints=1;$('#tTip').textContent='把大正方形 x² 放在左上角，長條緊貼著它的右邊和下邊（點一下可以旋轉），最後用小方塊填滿右下角。'};
+$('#tCheck').onclick=()=>{
+  if(cur.done){cur.done=false;return nextTiles()}
+  const R=cur.rect;if(!R)return;const v=[ts.p.get(),ts.q.get(),ts.r.get(),ts.s.get()],m=$('#tmsg');
+  const same=(a,b)=>a[0]===b[0]&&a[1]===b[1];
+  if(same([v[0],v[1]],R.W)&&same([v[2],v[3]],R.H)){
+    const pts=Math.max(1,3-cur.wrong-cur.hints);cur.score+=pts;cur.n++;cur.done=true;
+    const labs=$$('#ws .br span');labs[0].innerHTML=lin(...R.W);labs[1].innerHTML=lin(...R.H);
+    say(m,'ok',`<b>答對了！+${pts} 分</b><br>${polyH(cur.t.a,cur.t.b,cur.t.c)} = ${facH(...R.W)}${facH(...R.H)}`);
+    $('#tCheck').textContent=cur.n>=STAGES[cur.si].n?'完成關卡':'下一題 →';hud();sfx.ok();confetti();
+  }else{
+    cur.wrong++;sfx.bad();
+    say(m,'no',same([v[0],v[1]],R.H)&&same([v[2],v[3]],R.W)?'橫邊和直邊顛倒了：橫邊是左右方向那一條。':'再數一次：這一條邊上有幾個 <i>x</i> 的長度、幾個 1 的長度？');
+  }
+};
+
+/* ================= 十字交乘關 ================= */
+const sp={};
+[['p','cp',1],['r','cr',1],['q','cq',0],['s','cs',0]].forEach(([k,id,v])=>{
+  const lead=k==='p'||k==='r';
+  sp[k]=makeSpin({min:lead?1:-15,max:lead?9:15,val:v,onChange:()=>live()});$('#'+id).prepend(sp[k].el)});
+sp.k=makeSpin({min:1,max:12,val:1,onChange:()=>live()});$('#ck').appendChild(sp.k.el);
+
+function nextCross(){
+  const S=STAGES[cur.si];if(cur.n>=S.n)return finish();
+  let q,k,t=0;do{q=S.gen();k=q.a+','+q.b+','+q.c}while(cur.seen.has(k)&&++t<40);cur.seen.add(k);
+  cur.q=q;cur.wrong=0;cur.hints=0;cur.done=false;
+  $('#poly').innerHTML=polyH(q.a,q.b,q.c);
+  ['p','r','q','s','k'].forEach(x=>sp[x].lock(false));sp.k.set(1);$('#gcfRow').hidden=!S.gcf;
+  sp.p.set(1);sp.r.set(1);sp.q.set(0);sp.s.set(0);
+  if(S.lock){sp.p.lock(true);sp.r.lock(true)}
+  $('#msg').className='msg';$('#msg').innerHTML='';$('#hintBox').hidden=true;$('#checkBtn').textContent='檢查答案';
+  hud();live();
+}
+function live(){
+  if(!cur||cur.si==null||!cur.q||STAGES[cur.si].tiles)return;
+  const S=STAGES[cur.si],{a,b,c}=cur.q,p=sp.p.get(),r=sp.r.get(),q=sp.q.get(),s=sp.s.get(),k=sp.k.get(),g=S.gcf;
+  $('#ans').innerHTML=(k>1?k:'')+facH(p,q)+facH(r,s);
+  $('#bPS').textContent=p*s;$('#bRQ').textContent=r*q;
+  const row=(cls,lab,calc,v,tgt)=>`<div class="lr ${cls}"><span class="k">${lab}</span><span class="v">${calc} = ${nstr(v)}</span>${S.sc?`<span class="mk ${v===tgt?'y':''}">${v===tgt?'✓':'目標 '+nstr(tgt)}</span>`:'<span></span>'}</div>`;
+  $('#live').innerHTML=row('lr-x2','x² 項<br>左 × 左',g?`${k} × ${p} × ${r}`:`${p} × ${r}`,k*p*r,a)
+    +row('lr-u','常數項<br>右 × 右',`${g?k+' × ':''}${pn(q)} × ${pn(s)}`,k*q*s,c)
+    +row('lr-x1','x 項<br>交叉相加',g?`${k} × (${pn(p*s)} + ${pn(r*q)})`:`${pn(p*s)} + ${pn(r*q)}`,k*(p*s+r*q),b);
+}
+function hintText(q,lv){
+  if(q.k>1){
+    let h='先看 <i>x</i><sup>2</sup> 項、<i>x</i> 項、常數項有沒有共同的公因數，把它提到括號外面。';
+    if(lv>=2)h+=`<br>最大公因數是 ${q.k}，提出來後剩下 ${polyH(q.a/q.k,q.b/q.k,q.c/q.k)}，再用十字交乘。`;
+    if(lv>=3)h+='<br>'+hintText({a:q.a/q.k,b:q.b/q.k,c:q.c/q.k,k:1},2);
+    return h;
+  }
+  const{a,b,c}=q,ac=Math.abs(c),pairs=n=>{const o=[];for(let d=1;d*d<=n;d++)if(n%d===0)o.push(`${d}×${n/d}`);return o.join('、')};
+  let h=a===1?`先看常數項 ${nstr(c)}：找兩個整數，<b>相乘</b>得 ${nstr(c)}，<b>相加</b>得 ${nstr(b)}。`
+    :`左邊兩數相乘要是 ${a}，右邊兩數相乘要是 ${nstr(c)}，交叉相乘再相加要是 ${nstr(b)}。`;
+  if(lv>=2){
+    if(a===1){const o=[];for(let d=1;d*d<=ac;d++)if(ac%d===0){const e=ac/d;
+      if(c>0){const g=b<0?-1:1;o.push([g*d,g*e])}else{o.push([-d,e]);if(d!==e)o.push([d,-e])}}
+      h+=`<br>相乘得 ${nstr(c)} 的組合與它們的和：${o.map(([m,n])=>`${pn(m)} × ${pn(n)}（和 ${nstr(m+n)}）`).join('、')}。`}
+    else h+=`<br>${a} 可以拆成 ${pairs(a)}；${ac} 可以拆成 ${pairs(ac)}，${c>0?'兩數同號':'兩數一正一負'}。左右順序不同，交叉相加的結果也不同，每種都要試試。`;
+  }
+  return h;
+}
+$('#hintBtn').onclick=()=>{if(cur.done)return;const mx=cur.q.k>1?3:2;cur.hints=Math.min(mx,cur.hints+1);const h=$('#hintBox');h.hidden=false;h.innerHTML=hintText(cur.q,cur.hints)+(cur.hints<mx?'<br><small>再按一次「提示」會顯示更多。</small>':'')};
+$('#checkBtn').onclick=()=>{
+  if(cur.done)return nextCross();
+  const S=STAGES[cur.si],g=S.gcf,{a,b,c}=cur.q,k=sp.k.get(),p=sp.p.get(),r=sp.r.get(),q=sp.q.get(),s=sp.s.get(),m=$('#msg');
+  const no=t=>{cur.wrong++;sfx.bad();say(m,'no',t)};
+  if(p<1||r<1||k<1)return no('公因數和左邊 <i>x</i> 前面的數要是正整數，負號留給右邊的數。');
+  if(g&&k<2&&gcd(gcd(a,b),c)>1)return no('先看看三項有沒有共同的公因數，把它提到括號外面，剩下的才用十字交乘。');
+  if(k*p*r!==a)return no(g?`公因數 × 左 × 左 要等於 <i>x</i><sup>2</sup> 的係數 ${a}，現在是 ${k*p*r}。`:`左邊兩數相乘要等於 <i>x</i><sup>2</sup> 的係數 ${a}，現在是 ${p*r}。`);
+  if(k*q*s!==c)return no(g?`公因數 × 右 × 右 要等於常數項 ${nstr(c)}，現在是 ${nstr(k*q*s)}。`:`右邊兩數相乘要等於常數項 ${nstr(c)}，現在是 ${nstr(q*s)}。`);
+  if(k*(p*s+r*q)!==b)return no(`${g?'公因數 × ':''}交叉相乘再相加要等於 <i>x</i> 的係數 ${nstr(b)}，現在是 ${nstr(k*(p*s+r*q))}。想想正負號，或把右邊兩數對調看看。`);
+  if(gcd(p,q)!==1||gcd(r,s)!==1)return no(g?'括號裡面還有公因數，可以再提出來。':'括號裡面還有公因數，可以再約分。');
+  const pts=Math.max(1,3-cur.wrong-cur.hints);cur.score+=pts;cur.n++;cur.done=true;
+  ['p','r','q','s','k'].forEach(x=>sp[x].lock(true));
+  const kk=k>1?k:'';
+  say(m,'ok',`<b>答對了！+${pts} 分</b><br>驗算：${kk}${facH(p,q)}${facH(r,s)} = ${k>1?`${k}(${expandH(p,q,r,s)}) = `:''}${expandH(p,q,r,s,k)} = ${polyH(a,b,c)}`);
+  $('#checkBtn').textContent=cur.n>=STAGES[cur.si].n?'完成關卡':'下一題 →';hud();sfx.ok();confetti();
+};
+
+/* ---------- 姓名與成績 ---------- */
+const KEY='quiz_scores_factoring-tile-game';
+let myName='';try{myName=localStorage.getItem('cfg-name')||''}catch(e){}
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function readLocal(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
+function totalFor(all,name){const best={};all.forEach(r=>{if(r.name===name)best[r.stage]=Math.max(best[r.stage]||0,r.score)});return Object.values(best).reduce((a,b)=>a+b,0)}
+function saveScore(x){
+  const all=readLocal(),name=myName.trim()||'匿名學生';
+  const rec={id:(window.crypto&&crypto.randomUUID)?crypto.randomUUID():String(Date.now()),name,...x,playedAt:new Date().toISOString(),date:new Date().toLocaleDateString('zh-TW')};
+  all.push(rec);rec.total=totalFor(all,name);
+  try{localStorage.setItem(KEY,JSON.stringify(all))}catch(e){}
+  try{window._fbSave&&window._fbSave(rec).catch(()=>{})}catch(e){}
+  return rec;
+}
+async function loadBoard(){
+  let rows=null;
+  if(window._fbLoad){try{rows=await Promise.race([window._fbLoad(),new Promise((_,j)=>setTimeout(j,4000))])}catch(e){}}
+  if(!rows)rows=readLocal();
+  const best=new Map();rows.forEach(r=>{const v=r.total||0;if(!best.has(r.name)||best.get(r.name)<v)best.set(r.name,v)});
+  return[...best].map(([name,total])=>({name,total})).sort((a,b)=>b.total-a.total);
+}
+async function renderBoard(sel,n,me){
+  const el=$(sel);if(!el)return;el.innerHTML='<li>載入中…</li>';
+  const rows=(await loadBoard()).slice(0,n);
+  el.innerHTML=rows.length?rows.map((r,i)=>`<li class="${r.name===(me||'').trim()?'me':''}"><span>${['🥇','🥈','🥉'][i]||i+1+'.'} ${esc(r.name)}</span><b>${r.total} 分</b></li>`).join(''):'<li>還沒有人上榜，快來挑戰！</li>';
+}
+
+/* ---------- 事件與啟動 ---------- */
+$('#stageList').onclick=e=>{const b=e.target.closest('.stage');if(!b||b.disabled)return;
+  if(!myName.trim()){const i=$('#stuName');i.classList.remove('shake');void i.offsetWidth;i.classList.add('shake');i.focus();return}
+  startStage(+b.dataset.i)};
+$('#stuName').value=myName;
+$('#stuName').oninput=e=>{myName=e.target.value;try{localStorage.setItem('cfg-name',myName.trim())}catch(_){}};
+$('#back').onclick=()=>{renderHome();show('home');renderBoard('#boardHome',5,myName)};
+$('#toHome').onclick=$('#back').onclick;
+$('#again').onclick=()=>startStage(cur.si);
+$('#nextStage').onclick=()=>startStage(cur.si+1);
+$('#unlockAll').onclick=()=>{save.all=true;persist();renderHome()};
+$('#mute').onclick=()=>{muted=!muted;$('#mute').textContent=muted?'🔇':'🔊';try{localStorage.setItem('cfg-mute',muted?'1':'0')}catch(e){}};
+$('#mute').textContent=muted?'🔇':'🔊';
+document.addEventListener('keydown',e=>{if(e.key!=='Enter'||e.target.tagName!=='INPUT')return;
+  if($('#cross').classList.contains('on'))$('#checkBtn').click();
+  else if($('#tiles').classList.contains('on')&&!$('#tAns').hidden)$('#tCheck').click()});
+renderHome();renderBoard('#boardHome',5,myName);
+</script>
+</body>
+</html>
