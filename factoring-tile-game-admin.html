@@ -69,7 +69,9 @@ a{color:var(--x2)}
 const $=s=>document.querySelector(s),KEY='quiz_scores_factoring-tile-game';
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let all=[],tab='b';
-const NAMES=['拼版找長寬','和與積都是正','一次項是負的','常數項是負的','特殊型與大數字','二次項係數大於 1','係數大、又有負號','先提公因式','綜合挑戰'];
+const NAMES=['拼版找長寬','和與積都是正','一次項是負的','常數項是負的','特殊型與大數字','二次項係數大於 1','係數大、又有負號','先提公因式','綜合挑戰','提公因數・拼版','只提數字','只提 x','提公因式・拼版','數字和 x 一起提','提出負號','提出一次式','括號裡剩下的有減法','整個括號被減掉','x−3 與 3−x','提公因式綜合'];
+const UNITS=[['提公因式',[9,10,11,12,13,14,15,16,17,18,19]],['十字交乘',[0,1,2,3,4,5,6,7,8]]];
+const ORDER=UNITS.flatMap(u=>u[1]);
 function local(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
 async function load(){
   let rows=null,from='';
@@ -90,7 +92,7 @@ function perStudent(rows){
   return[...m.values()].map(o=>({name:o.name,total:Object.values(o.best).reduce((a,b)=>a+b,0),stages:Object.keys(o.best).length,n:o.n,last:o.last})).sort((a,b)=>b.total-a.total);
 }
 function perStage(rows){
-  return NAMES.map((nm,i)=>{const r=rows.filter(x=>x.stage===i);return{i,nm,n:r.length,avg:r.length?Math.round(r.reduce((a,x)=>a+x.score/x.max,0)/r.length*100):null}});
+  return ORDER.map(i=>{const nm=NAMES[i],r=rows.filter(x=>x.stage===i);return{i,nm,n:r.length,avg:r.length?Math.round(r.reduce((a,x)=>a+x.score/x.max,0)/r.length*100):null}});
 }
 const fd=iso=>iso?new Date(iso).toLocaleString('zh-TW',{hour12:false}):'';
 function render(){
@@ -100,11 +102,11 @@ function render(){
   $('#sS').textContent=rows.length?Math.round(rows.filter(r=>r.stars===3).length/rows.length*100)+'%':'0%';
   let h='',b='';
   if(tab==='b'){h='<tr><th>名次</th><th>姓名</th><th>總分（各關最佳）</th><th>已玩關卡</th><th>作答次數</th><th>最近遊玩</th></tr>';
-    perStudent(rows).forEach((s,i)=>b+=`<tr><td class="n">${i+1}</td><td>${esc(s.name)}</td><td class="n"><b>${s.total}</b></td><td class="n">${s.stages} / ${NAMES.length}</td><td class="n">${s.n}</td><td>${fd(s.last)}</td></tr>`)}
+    perStudent(rows).forEach((s,i)=>b+=`<tr><td class="n">${i+1}</td><td>${esc(s.name)}</td><td class="n"><b>${s.total}</b></td><td class="n">${s.stages} / ${ORDER.length}</td><td class="n">${s.n}</td><td>${fd(s.last)}</td></tr>`)}
   else if(tab==='r'){h='<tr><th>姓名</th><th>關卡</th><th>得分</th><th>星數</th><th>時間</th></tr>';
-    rows.forEach(r=>b+=`<tr><td>${esc(r.name)}</td><td>${r.stage}・${esc(r.stageName)}</td><td class="n">${r.score} / ${r.max}</td><td>${'★'.repeat(r.stars)}${'☆'.repeat(3-r.stars)}</td><td>${fd(r.iso)}</td></tr>`)}
+    rows.forEach(r=>b+=`<tr><td>${esc(r.name)}</td><td>${ORDER.indexOf(r.stage)+1}・${esc(r.stageName)}</td><td class="n">${r.score} / ${r.max}</td><td>${'★'.repeat(r.stars)}${'☆'.repeat(3-r.stars)}</td><td>${fd(r.iso)}</td></tr>`)}
   else{h='<tr><th>關卡</th><th>作答次數</th><th>平均得分率</th></tr>';
-    perStage(rows).forEach(s=>b+=`<tr><td>${s.i}・${s.nm}</td><td class="n">${s.n}</td><td class="n">${s.avg==null?'—':s.avg+'%'}</td></tr>`)}
+    perStage(rows).forEach(s=>b+=`<tr><td>${ORDER.indexOf(s.i)+1}・${s.nm}</td><td class="n">${s.n}</td><td class="n">${s.avg==null?'—':s.avg+'%'}</td></tr>`)}
   th.innerHTML=h;tb.innerHTML=b||`<tr><td class="empty" colspan="6">目前沒有符合的紀錄。</td></tr>`;
 }
 function exportExcel(){
@@ -112,9 +114,9 @@ function exportExcel(){
   const wb=XLSX.utils.book_new(),ps=perStudent(rows);
   const s1=XLSX.utils.aoa_to_sheet([['名次','姓名','總分（各關最佳）','已玩關卡數','作答次數','最近遊玩'],...ps.map((s,i)=>[i+1,s.name,s.total,s.stages,s.n,fd(s.last)])]);
   s1['!cols']=[6,14,16,12,10,22].map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,s1,'學生總榜');
-  const s2=XLSX.utils.aoa_to_sheet([['姓名','關卡','關卡名稱','得分','滿分','星數','時間'],...rows.map(r=>[r.name,r.stage,r.stageName,r.score,r.max,r.stars,fd(r.iso)])]);
+  const s2=XLSX.utils.aoa_to_sheet([['姓名','關卡','關卡名稱','得分','滿分','星數','時間'],...rows.map(r=>[r.name,ORDER.indexOf(r.stage)+1,r.stageName,r.score,r.max,r.stars,fd(r.iso)])]);
   s2['!cols']=[14,6,20,8,8,8,22].map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,s2,'全部紀錄');
-  const s3=XLSX.utils.aoa_to_sheet([['關卡','關卡名稱','作答次數','平均得分率(%)'],...perStage(rows).map(s=>[s.i,s.nm,s.n,s.avg==null?'':s.avg])]);
+  const s3=XLSX.utils.aoa_to_sheet([['關卡','關卡名稱','作答次數','平均得分率(%)'],...perStage(rows).map(s=>[ORDER.indexOf(s.i)+1,s.nm,s.n,s.avg==null?'':s.avg])]);
   s3['!cols']=[6,20,10,14].map(w=>({wch:w}));XLSX.utils.book_append_sheet(wb,s3,'各關平均');
   XLSX.writeFile(wb,'十字交乘_成績_'+new Date().toISOString().slice(0,10)+'.xlsx');
 }

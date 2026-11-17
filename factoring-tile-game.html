@@ -78,7 +78,7 @@ h1{font:900 clamp(1.6rem,7vw,2.1rem)/1.2 var(--ui);margin:14px 0 6px}
 .msg.shake{animation:shake .3s}
 .hint{background:#FFF6DB;box-shadow:inset 0 0 0 2px #EBCB78;font-size:.95rem;margin:10px 0}
 .hint[hidden]{display:none}
-#ans{font:500 clamp(1.5rem,7vw,2rem)/1.3 var(--math);text-align:center;margin-top:14px}
+#ans,#fmAns{font:500 clamp(1.5rem,7vw,2rem)/1.3 var(--math);text-align:center;margin-top:14px}
 
 /* 數字調整器 */
 .spin{display:flex;flex-direction:column;align-items:center;gap:3px}
@@ -142,6 +142,25 @@ h1{font:900 clamp(1.6rem,7vw,2.1rem)/1.2 var(--ui);margin:14px 0 6px}
 .gcf{display:flex;align-items:center;justify-content:center;gap:10px;font-weight:700;margin-bottom:14px}
 .gcf[hidden]{display:none}
 .homelink{display:block;text-align:center;margin:18px 0 0;color:var(--mute);font-size:.9rem}
+.unit{font:900 1.2rem var(--ui);margin:26px 2px 2px}
+.unit small{font:400 .85rem var(--ui);color:var(--mute);margin-left:8px}
+.seg{display:flex;border-radius:10px;overflow:hidden;box-shadow:inset 0 0 0 2px var(--ink)}
+.seg button{flex:1;min-width:54px;height:44px;border:0;background:#fff;font:600 1.3rem var(--math);color:var(--ink);cursor:pointer}
+.seg button+button{border-left:2px solid var(--ink)}
+.seg button.on{background:var(--x1);color:#fff}
+.seg button:disabled{cursor:not-allowed;opacity:.6}
+.fm-lab{font-weight:700;color:var(--mute);font-size:.9rem;margin:12px 0 6px;text-align:center}
+.fm-line{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.fm-line .par{font:400 3rem/1 var(--math)}
+.fm-rem{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
+.slot{display:flex;align-items:center;gap:7px;margin:0 4px}
+.slx{font:italic 500 1.3rem var(--math);min-width:1.3em}
+.opts{display:grid;gap:8px;margin-top:10px}
+.opts .btn{text-align:left;font:600 1rem var(--math)}
+.step-q{font-weight:700}
+.rew{margin-top:10px;padding-top:10px;border-top:2px dashed var(--line);color:var(--x1);font-size:clamp(1.3rem,6vw,1.8rem)}
+.rew .rl{font:700 .9rem var(--ui);color:var(--mute);margin-bottom:2px}
+.trow.w .lab{width:5.2em;text-align:right}
 .cf{position:fixed;top:-14px;width:10px;height:10px;border-radius:2px;z-index:99;pointer-events:none;animation:fall 1.7s ease-in forwards}
 @keyframes fall{to{transform:translate(var(--dx),108vh) rotate(var(--r))}}
 @keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
@@ -161,7 +180,7 @@ h1{font:900 clamp(1.6rem,7vw,2.1rem)/1.2 var(--ui);margin:14px 0 6px}
     <div class="hero">
       <div class="eq"><span class="c-x2"><i>x</i><sup>2</sup></span> <span class="op">+</span> <span class="c-x1">5<i>x</i></span> <span class="op">+</span> <span class="c-u">6</span> = (<i>x</i> + 2)(<i>x</i> + 3)</div>
       <h1>十字交乘・磁磚工坊</h1>
-      <p>先用磁磚拼出長方形，再一關一關練到十字交乘。</p>
+      <p>先用磁磚看出公因數，再一關一關練到提公因式和十字交乘。</p>
     </div>
     <div class="card name-card">
       <label for="stuName">你的名字</label>
@@ -219,6 +238,50 @@ h1{font:900 clamp(1.6rem,7vw,2.1rem)/1.2 var(--ui);margin:14px 0 6px}
     <a class="homelink" href="https://mathhowhowwan.github.io/mathgame/">← 回遊戲庫首頁</a>
   </section>
 
+  <!-- 提公因式：單項 -->
+  <section id="fm" class="screen">
+    <div class="card"><div id="fmPoly" class="poly"></div></div>
+    <div class="card">
+      <div class="fm-lab">先提出公因式（數字、<i>x</i>）</div>
+      <div class="fm-line"><div id="fmK"></div>
+        <div class="seg" id="fmSeg" role="group" aria-label="公因式裡的 x">
+          <button type="button" data-e="0">無</button><button type="button" data-e="1"><i>x</i></button><button type="button" data-e="2"><i>x</i><sup>2</sup></button>
+        </div></div>
+      <div class="fm-lab">括號裡剩下的</div>
+      <div class="fm-line"><span class="par">(</span><div id="fmRem" class="fm-rem"></div><span class="par">)</span></div>
+      <div class="live" id="fmLive"></div>
+      <div id="fmAns"></div>
+    </div>
+    <div id="fmMsg" class="msg"></div>
+    <div id="fmHintBox" class="card hint" hidden></div>
+    <div class="row">
+      <button id="fmHintBtn" class="btn ghost" type="button">提示</button>
+      <button id="fmCheck" class="btn" type="button">檢查答案</button>
+    </div>
+    <a class="homelink" href="https://mathhowhowwan.github.io/mathgame/">← 回遊戲庫首頁</a>
+  </section>
+
+  <!-- 提公因式：提出一次式 -->
+  <section id="fb" class="screen">
+    <div class="card"><div id="fbPoly" class="poly sm"></div><div id="fbRew" class="poly sm rew" hidden></div></div>
+    <div id="fbStep" class="card" hidden>
+      <div class="step-q" id="fbStepQ"></div>
+      <div class="opts" id="fbOpts"></div>
+    </div>
+    <div class="card" id="fbAnsCard">
+      <div class="trow w"><span class="lab">提出的括號</span><span class="par">(</span><span id="fp1"></span><i>x</i><span>+</span><span id="fq1"></span><span class="par">)</span></div>
+      <div class="trow w"><span class="lab">剩下的括號</span><span class="par">(</span><span id="fp2"></span><i>x</i><span>+</span><span id="fq2"></span><span class="par">)</span></div>
+      <div class="live" id="fbLive"></div>
+    </div>
+    <div id="fbMsg" class="msg"></div>
+    <div id="fbHintBox" class="card hint" hidden></div>
+    <div class="row">
+      <button id="fbHintBtn" class="btn ghost" type="button">提示</button>
+      <button id="fbCheck" class="btn" type="button">檢查答案</button>
+    </div>
+    <a class="homelink" href="https://mathhowhowwan.github.io/mathgame/">← 回遊戲庫首頁</a>
+  </section>
+
   <!-- 結算 -->
   <section id="end" class="screen">
     <div class="card end" id="endBody"></div>
@@ -247,7 +310,18 @@ const pn=n=>n<0?`(${MINUS}${-n})`:String(n);
 function sum(ts){let o='';for(const[c,b,k]of ts){if(!c)continue;const ng=c<0,a=Math.abs(c),n=(a===1&&b)?'':a;
   o+=(o?` <span class="op">${ng?MINUS:'+'}</span> `:ng?`<span class="op">${MINUS}</span>`:'')+`<span class="${k}">${n}${b}</span>`}return o||'0'}
 const polyH=(a,b,c)=>sum([[a,X2,'c-x2'],[b,X1,'c-x1'],[c,'','c-u']]);
-const lin=(p,q)=>`${p===1?'':p}${X1} ${q<0?MINUS:'+'} ${Math.abs(q)}`;
+const lin=(p,q)=>`${p===1?'':p===-1?MINUS:p<0?MINUS+(-p):p}${X1} ${q<0?MINUS:'+'} ${Math.abs(q)}`;
+const linT=(p,q)=>p===0?nstr(q):q===0?`${p===1?'':p}${X1}`:lin(p,q);
+const mono=f=>f[0]===0||f[1]===0;
+const facT=(W,H)=>mono(H)&&!mono(W)?`${linT(...H)}${facH(...W)}`:mono(W)&&!mono(H)?`${linT(...W)}${facH(...H)}`:facH(...W)+facH(...H);
+function dstr(d){return d===0?'':d===1?X1:`<i>x</i><sup>${d}</sup>`}
+const dcls=d=>d>=2?'c-x2':d===1?'c-x1':'c-u';
+function termsH(ts){return sum(ts.map(([c,d])=>[c,dstr(d),dcls(d)]))}
+function kxH(k,e){return(k===1&&e>0?'':k===-1&&e>0?MINUS:nstr(k))+dstr(e)}
+function binH(m,sg){const a=Math.abs(m);return sg===1?`<span class="fac">(${X1} ${m<0?MINUS:'+'} ${a})</span>`:(m<0?`<span class="fac">(${a} ${MINUS} ${X1})</span>`:`<span class="fac">(${MINUS}${X1} ${MINUS} ${a})</span>`)}
+function fbTermsH(ts,m){let o='';ts.forEach((t,i)=>{const ng=(t.a!==0?t.a:t.b)<0,ab=Math.abs(t.a),bb=Math.abs(t.b);
+  const f=t.a!==0?`${ab===1?'':ab}${X1}`:(bb===1?'':String(bb));
+  o+=(i?` <span class="op">${ng?MINUS:'+'}</span> `:ng?`<span class="op">${MINUS}</span>`:'')+f+binH(m,t.s)});return o}
 const facH=(p,q)=>`<span class="fac">(${lin(p,q)})</span>`;
 const expandH=(p,q,r,s,k=1)=>sum([[k*p*r,X2,'c-x2'],[k*p*s,X1,'c-x1'],[k*r*q,X1,'c-x1'],[k*q*s,'','c-u']]);
 
@@ -287,18 +361,74 @@ function g6(){let p,q,r,s;do{p=rnd(1,4);r=rnd(1,4);q=pick([1,-1])*rnd(1,6);s=pic
 function gk(){let m;do{m=pick([g1,g2,g3,g5,g6])()}while(Math.abs(m.q*m.s)>24||m.a>6);return mk(m.p,m.q,m.r,m.s,pick([2,3,4,5]))}
 function g7(){return pick([g3,g4,g5,g6,g6,gk])()}
 
+/* 提公因式：單項。k=公因式係數，e=公因式 x 的次方，terms=原式各項 */
+function genMono(o){
+  for(let t=0;t<300;t++){
+    const k=o.k(),e=pick(o.e),nt=Math.random()<(o.three||0)?3:2,td=nt===3?2:pick([1,2]);
+    const degs=nt===3?[td,1,0]:[td,0];
+    const rem=degs.map((d,i)=>{let c=i===0?rnd(1,o.top||5):rnd(1,9);if(i>0&&Math.random()<(o.neg||0))c=-c;return[c,d]});
+    if(td+e>3||rem.reduce((g,[c])=>gcd(g,c),0)!==1)continue;
+    const terms=rem.map(([c,d])=>({c:k*c,d:d+e}));
+    if(terms.some(x=>Math.abs(x.c)>72))continue;
+    return{type:'mono',k,e,terms,key:'m'+terms.map(x=>x.c+'x'+x.d).join()};
+  }
+}
+const gM1=()=>genMono({k:()=>rnd(2,9),e:[0],neg:.3,three:.2});
+const gM2=()=>genMono({k:()=>1,e:[1,1,2],neg:.3,three:.2,top:4});
+const gM3=()=>genMono({k:()=>rnd(2,6),e:[1,1,2],neg:.35,three:.25,top:4});
+const gM4=()=>genMono({k:()=>-rnd(1,6),e:[0,1,1,2],neg:.5,three:.25,top:4});
+/* 提公因式：提出一次式 (x+m)。兩項：a·x 與常數 c，flip=其中一項的括號寫成 (−m−x) */
+function genBin(o){
+  for(let t=0;t<300;t++){
+    const m=o.m(),a=o.a(),c=o.c(),fl=o.flip?pick([0,1]):-1;
+    let terms=[{a,b:0,s:fl===0?-1:1},{a:0,b:c,s:fl===1?-1:1}];
+    if(Math.random()<.5)terms=[terms[1],terms[0]];
+    const Ra=terms.reduce((z,x)=>z+x.a*x.s,0),Rb=terms.reduce((z,x)=>z+x.b*x.s,0);
+    if(!Ra||!Rb||gcd(Ra,Rb)!==1||Math.abs(Ra)>9||Math.abs(Rb)>20)continue;
+    return{type:'bin',m,terms,Ra,Rb,flip:fl>=0,tgt:[Ra,Rb+Ra*m,m*Rb],key:'b'+m+':'+terms.map(x=>x.a+','+x.b+','+x.s).join(';')};
+  }
+}
+const nz=(a,b)=>{let v;do{v=rnd(a,b)}while(!v);return v};
+const gB5=()=>genBin({m:()=>rnd(1,9)*(Math.random()<.3?-1:1),a:()=>rnd(1,5),c:()=>rnd(1,9)});
+const gB7=()=>genBin({m:()=>rnd(1,9)*(Math.random()<.3?-1:1),a:()=>rnd(1,6),c:()=>pick([-1,-1,1])});
+const gB6b=()=>{for(;;){const q=genBin({m:()=>rnd(1,9)*(Math.random()<.3?-1:1),a:()=>rnd(1,5)*(Math.random()<.4?-1:1),c:()=>rnd(1,9)});
+  const ta=q.terms.find(x=>x.a),tc=q.terms.find(x=>x.b);if(ta.a*tc.b<0)return q}};
+const gB8=()=>genBin({flip:1,m:()=>-rnd(2,9),a:()=>rnd(1,5),c:()=>nz(-9,9)});
+const gMix=()=>pick([gM3,gM4,gM3,gB5,gB6b,gB7,gB8,gB8])();
+
 /* sc：顯示「目標值與對錯」的引導；lock：左側 x 係數鎖定為 1 */
 const STAGES=[
-  {name:'拼版找長寬',ex:polyH(1,3,2),tiles:true,n:5},
-  {name:'和與積都是正',ex:polyH(1,5,6),gen:g1,sc:1,lock:1,n:5},
-  {name:'一次項是負的',ex:polyH(1,-5,6),gen:g2,sc:1,lock:1,n:5},
-  {name:'常數項是負的',ex:polyH(1,-1,-6),gen:g3,sc:1,lock:1,n:5},
-  {name:'特殊型與大數字',ex:polyH(1,0,-16),gen:g4,sc:0,lock:1,n:5},
-  {name:'二次項係數大於 1',ex:polyH(2,7,3),gen:g5,sc:1,lock:0,n:5},
-  {name:'係數大、又有負號',ex:polyH(3,-5,-2),gen:g6,sc:0,lock:0,n:5},
-  {name:'先提公因式',ex:polyH(2,10,12),gen:gk,sc:1,lock:0,gcf:1,n:5},
-  {name:'綜合挑戰',ex:'混合所有題型，共 8 題',gen:g7,sc:0,lock:0,n:8}
+  {unit:'B',name:'拼版找長寬',ex:polyH(1,3,2),tiles:true,n:5},
+  {unit:'B',name:'和與積都是正',ex:polyH(1,5,6),gen:g1,sc:1,lock:1,n:5},
+  {unit:'B',name:'一次項是負的',ex:polyH(1,-5,6),gen:g2,sc:1,lock:1,n:5},
+  {unit:'B',name:'常數項是負的',ex:polyH(1,-1,-6),gen:g3,sc:1,lock:1,n:5},
+  {unit:'B',name:'特殊型與大數字',ex:polyH(1,0,-16),gen:g4,sc:0,lock:1,n:5},
+  {unit:'B',name:'二次項係數大於 1',ex:polyH(2,7,3),gen:g5,sc:1,lock:0,n:5},
+  {unit:'B',name:'係數大、又有負號',ex:polyH(3,-5,-2),gen:g6,sc:0,lock:0,n:5},
+  {unit:'B',name:'先提公因式',ex:polyH(2,10,12),gen:gk,sc:1,lock:0,gcf:1,n:5},
+  {unit:'B',name:'綜合挑戰',ex:'混合所有題型，共 8 題',gen:g7,sc:0,lock:0,n:8},
+  /* ---- 提公因式單元（編號 9～19）---- */
+  {unit:'A',tiles:true,name:'提公因數・拼版',ex:polyH(0,3,6),n:5,rounds:[[0,3,1,2],[0,2,1,2],[0,3,1,3],[0,4,1,1],[0,2,1,3]],
+   tip:'拖曳磁磚，拼成沒有縫隙的長方形，讓每一排都長得一樣。點一下長條磁磚可以旋轉。',
+   hint:'每一排都放同樣的磁磚（一塊 x 加幾個 1），排好幾排。排數就是公因數。',
+   doneMsg:'拼好了！一邊的長度是公因數，另一邊是提出公因數後剩下的部分。'},
+  {unit:'A',kind:'mono',name:'只提數字',ex:termsH([[6,1],[9,0]]),gen:gM1,sc:1,n:5,lockE:1},
+  {unit:'A',kind:'mono',name:'只提 x',ex:termsH([[1,2],[5,1]]),gen:gM2,sc:1,n:5,lockK:1},
+  {unit:'A',tiles:true,name:'提公因式・拼版',ex:polyH(2,4,0),n:5,rounds:[[2,0,1,2],[2,0,1,3],[2,0,1,1],[2,0,1,4],[2,0,1,5]],
+   tip:'拖曳磁磚，拼成沒有縫隙的長方形。這次有 x² 磁磚，公因式會同時有數字和 x。',
+   hint:'把 x² 磁磚疊成一直排，長條緊貼在右邊，再用小方塊補滿。看看一邊的長度是幾個 x。',
+   doneMsg:'拼好了！有一邊是「數字 × x」，那就是公因式。'},
+  {unit:'A',kind:'mono',name:'數字和 x 一起提',ex:termsH([[6,2],[9,1]]),gen:gM3,sc:1,n:5},
+  {unit:'A',kind:'mono',name:'提出負號',ex:termsH([[-2,2],[-4,1]]),gen:gM4,sc:1,n:5},
+  {unit:'A',kind:'bin',name:'提出一次式',ex:fbTermsH([{a:2,b:0,s:1},{a:0,b:5,s:1}],3),gen:gB5,sc:1,n:5,lockP1:1},
+  {unit:'A',kind:'bin',name:'括號裡剩下的有減法',ex:fbTermsH([{a:3,b:0,s:1},{a:0,b:-5,s:1}],3),gen:gB6b,sc:1,n:5,lockP1:1},
+  {unit:'A',kind:'bin',name:'整個括號被減掉',ex:fbTermsH([{a:2,b:0,s:1},{a:0,b:-1,s:1}],3),gen:gB7,sc:1,n:5,lockP1:1},
+  {unit:'A',kind:'bin',name:'x−3 與 3−x',ex:fbTermsH([{a:2,b:0,s:1},{a:0,b:5,s:-1}],-3),gen:gB8,sc:1,n:5},
+  {unit:'A',kind:'mix',name:'提公因式綜合',ex:'混合所有提公因式題型，共 8 題',gen:gMix,sc:0,n:8}
 ];
+const UNITS=[{t:'提公因式',d:'先練提公因式，再學十字交乘',ids:[9,10,11,12,13,14,15,16,17,18,19]},{t:'十字交乘',d:'',ids:[0,1,2,3,4,5,6,7,8]}];
+const posOf=i=>{let n=0;for(const u of UNITS){const k=u.ids.indexOf(i);if(k>=0)return n+k+1;n+=u.ids.length}return i+1};
+const nextOf=i=>{for(const u of UNITS){const k=u.ids.indexOf(i);if(k>=0)return u.ids[k+1]}};
 /* 拼版題 [p,q,r,s] = (px+q)(rx+s) */
 const ROUNDS=[[1,1,1,2],[1,1,1,3],[1,2,1,3],[1,2,1,2],[2,1,1,1]];
 
@@ -308,21 +438,22 @@ try{save=Object.assign(save,JSON.parse(localStorage.getItem('cfg-save')||'{}'))}
 const persist=()=>{try{localStorage.setItem('cfg-save',JSON.stringify(save))}catch(e){}};
 function show(id){$$('.screen').forEach(s=>s.classList.toggle('on',s.id===id));$('#bar').hidden=id==='home';window.scrollTo(0,0)}
 function renderHome(){
-  $('#stageList').innerHTML=STAGES.map((s,i)=>{const lock=i>save.open&&!save.all,st=save.stars[i]||0;
-    return `<button class="stage" type="button" data-i="${i}" ${lock?'disabled':''}><span class="badge b${i%3}">${i}</span><span class="si"><b>${s.name}</b><span class="m">${s.ex}</span></span><span class="stars">${lock?'🔒':'★'.repeat(st)+'☆'.repeat(3-st)}</span></button>`}).join('');
+  $('#stageList').innerHTML=UNITS.map(u=>`<h2 class="unit">${u.t}${u.d?`<small>${u.d}</small>`:''}</h2>`+u.ids.map((i,k)=>{const S=STAGES[i],lock=!save.all&&k>0&&!(save.stars[u.ids[k-1]]>0),st=save.stars[i]||0;
+    return `<button class="stage" type="button" data-i="${i}" ${lock?'disabled':''}><span class="badge b${posOf(i)%3}">${posOf(i)}</span><span class="si"><b>${S.name}</b><span class="m">${S.ex}</span></span><span class="stars">${lock?'🔒':'★'.repeat(st)+'☆'.repeat(3-st)}</span></button>`}).join('')).join('');
 }
 function hud(){const S=STAGES[cur.si];$('#barQ').textContent=`完成 ${cur.n} / ${S.n} 題`;$('#barS').textContent=`★ ${cur.score} 分`}
 function startStage(i){
-  cur={si:i,n:0,score:0,seen:new Set()};$('#barTtl').textContent=`關卡 ${i}・${STAGES[i].name}`;
-  if(STAGES[i].tiles){show('tiles');nextTiles()}else{show('cross');nextCross()}
+  const S=STAGES[i],K=S.kind||(S.tiles?'tiles':'cross');
+  cur={si:i,n:0,score:0,seen:new Set()};$('#barTtl').textContent=`關卡 ${posOf(i)}・${S.name}`;
+  if(K==='tiles'){show('tiles');nextTiles()}else if(K==='cross'){show('cross');nextCross()}else advance();
 }
 function finish(){
   const S=STAGES[cur.si],max=S.n*3,ratio=cur.score/max,st=ratio>=.85?3:ratio>=.6?2:1;
-  save.stars[cur.si]=Math.max(save.stars[cur.si]||0,st);save.open=Math.max(save.open,Math.min(cur.si+1,STAGES.length-1));persist();
+  save.stars[cur.si]=Math.max(save.stars[cur.si]||0,st);persist();
   const rec=saveScore({stage:cur.si,stageName:S.name,score:cur.score,max,stars:st});
   const m=['','有過關，建議用「提示」的方法再練一輪。','不錯，再練一次可以拿到三顆星。','很穩！可以挑戰下一關了。'];
   $('#endBody').innerHTML=`<div class="big-stars">${'★'.repeat(st)}<span>${'★'.repeat(3-st)}</span></div><h2>${S.name}・完成</h2><p class="sc">${cur.score} / ${max} 分</p><p>${m[st]}</p><p><small>${esc(rec.name)} 的總分：${rec.total}</small></p><div class="board-t">排行榜（總分前 3 名）</div><ol class="board" id="boardEnd" style="text-align:left"></ol>`;
-  $('#nextStage').hidden=cur.si>=STAGES.length-1;sfx.win();confetti();show('end');renderBoard('#boardEnd',3,rec.name);
+  $('#nextStage').hidden=nextOf(cur.si)===undefined;sfx.win();confetti();show('end');renderBoard('#boardEnd',3,rec.name);
 }
 
 /* ================= 拼版關 ================= */
@@ -338,11 +469,11 @@ const refreshBad=()=>tiles.forEach(t=>t.el.classList.toggle('bad',overlaps(t)));
 
 function nextTiles(){
   const S=STAGES[cur.si];if(cur.n>=S.n)return finish();
-  let[p,q,r,s]=ROUNDS[cur.n];if(Math.random()<.5)[p,q,r,s]=[r,s,p,q];
+  let[p,q,r,s]=(S.rounds||ROUNDS)[cur.n];if(Math.random()<.5)[p,q,r,s]=[r,s,p,q];
   cur.t={a:p*r,b:p*s+q*r,c:q*s};cur.wrong=0;cur.hints=0;cur.done=false;cur.rect=null;
   $('#tPoly').innerHTML=polyH(cur.t.a,cur.t.b,cur.t.c);
-  $('#tLegend').innerHTML=[['x2',cur.t.a],['x1',cur.t.b],['u',cur.t.c]].map(([k,n])=>`<span class="sw ${k}"></span>×${n}`).join(' ');
-  $('#tTip').textContent=TIP0;$('#tmsg').className='msg';$('#tmsg').innerHTML='';$('#tCheck').textContent='確認長寬';$('#tAns').hidden=true;
+  $('#tLegend').innerHTML=[['x2',cur.t.a],['x1',cur.t.b],['u',cur.t.c]].filter(z=>z[1]).map(([k,n])=>`<span class="sw ${k}"></span>×${n}`).join(' ');
+  $('#tTip').textContent=S.tip||TIP0;$('#tmsg').className='msg';$('#tmsg').innerHTML='';$('#tCheck').textContent='確認長寬';$('#tAns').hidden=true;
   ts.p.set(1);ts.r.set(1);ts.q.set(0);ts.s.set(0);
   buildTiles();hud();
 }
@@ -416,19 +547,19 @@ $('#tDone').onclick=()=>{
   const ws=$('#ws');
   [['h',REC_X,REC_Y-10,R.w,6],['v',REC_X-10,REC_Y,6,R.h]].forEach(([c,l,t,w,h])=>{
     const d=document.createElement('div');d.className='br '+c;Object.assign(d.style,{left:l+'px',top:t+'px',width:w+'px',height:h+'px'});d.innerHTML='<span>?</span>';ws.appendChild(d)});
-  $('#tAns').hidden=false;say(m,'ok','拼成長方形了！數一數橫邊和直邊各是幾個 <i>x</i>、幾個 1。');sfx.ok();
+  $('#tAns').hidden=false;say(m,'ok',STAGES[cur.si].doneMsg||'拼成長方形了！數一數橫邊和直邊各是幾個 <i>x</i>、幾個 1。');sfx.ok();
   $('#tAns').scrollIntoView({behavior:'smooth',block:'nearest'});
 };
 $('#tReset').onclick=()=>{if(cur.done)return;hidePanel();buildTiles()};
-$('#tHint').onclick=()=>{if(cur.done)return;cur.hints=1;$('#tTip').textContent='把大正方形 x² 放在左上角，長條緊貼著它的右邊和下邊（點一下可以旋轉），最後用小方塊填滿右下角。'};
+$('#tHint').onclick=()=>{if(cur.done)return;cur.hints=1;$('#tTip').textContent=STAGES[cur.si].hint||'把大正方形 x² 放在左上角，長條緊貼著它的右邊和下邊（點一下可以旋轉），最後用小方塊填滿右下角。'};
 $('#tCheck').onclick=()=>{
   if(cur.done){cur.done=false;return nextTiles()}
   const R=cur.rect;if(!R)return;const v=[ts.p.get(),ts.q.get(),ts.r.get(),ts.s.get()],m=$('#tmsg');
   const same=(a,b)=>a[0]===b[0]&&a[1]===b[1];
   if(same([v[0],v[1]],R.W)&&same([v[2],v[3]],R.H)){
     const pts=Math.max(1,3-cur.wrong-cur.hints);cur.score+=pts;cur.n++;cur.done=true;
-    const labs=$$('#ws .br span');labs[0].innerHTML=lin(...R.W);labs[1].innerHTML=lin(...R.H);
-    say(m,'ok',`<b>答對了！+${pts} 分</b><br>${polyH(cur.t.a,cur.t.b,cur.t.c)} = ${facH(...R.W)}${facH(...R.H)}`);
+    const labs=$$('#ws .br span');labs[0].innerHTML=linT(...R.W);labs[1].innerHTML=linT(...R.H);
+    say(m,'ok',`<b>答對了！+${pts} 分</b><br>${polyH(cur.t.a,cur.t.b,cur.t.c)} = ${facT(R.W,R.H)}`);
     $('#tCheck').textContent=cur.n>=STAGES[cur.si].n?'完成關卡':'下一題 →';hud();sfx.ok();confetti();
   }else{
     cur.wrong++;sfx.bad();
@@ -455,7 +586,7 @@ function nextCross(){
   hud();live();
 }
 function live(){
-  if(!cur||cur.si==null||!cur.q||STAGES[cur.si].tiles)return;
+  if(!cur||cur.si==null||!cur.q)return;
   const S=STAGES[cur.si],{a,b,c}=cur.q,p=sp.p.get(),r=sp.r.get(),q=sp.q.get(),s=sp.s.get(),k=sp.k.get(),g=S.gcf;
   $('#ans').innerHTML=(k>1?k:'')+facH(p,q)+facH(r,s);
   $('#bPS').textContent=p*s;$('#bRQ').textContent=r*q;
@@ -500,6 +631,119 @@ $('#checkBtn').onclick=()=>{
   $('#checkBtn').textContent=cur.n>=STAGES[cur.si].n?'完成關卡':'下一題 →';hud();sfx.ok();confetti();
 };
 
+/* ================= 提公因式（共用流程） ================= */
+function advance(){
+  const S=STAGES[cur.si];if(cur.n>=S.n)return finish();
+  let q,t=0;do{q=S.gen()}while(cur.seen.has(q.key)&&++t<40);cur.seen.add(q.key);
+  if(q.type==='mono'){show('fm');nextFm(q)}else{show('fb');nextFb(q)}
+}
+const pts3=()=>Math.max(1,3-cur.wrong-cur.hints);
+
+/* ---------- 單項公因式 ---------- */
+const fm={k:makeSpin({min:-12,max:12,val:1,onChange:()=>fmLive()}),slots:[],labs:[],e:0};
+$('#fmK').appendChild(fm.k.el);
+$$('#fmSeg button').forEach(b=>b.onclick=()=>{if(b.disabled)return;fm.e=+b.dataset.e;sfx.tick();fmLive()});
+function nextFm(q){
+  const S=STAGES[cur.si];cur.m=q;cur.b=null;cur.q=null;cur.wrong=0;cur.hints=0;cur.done=false;
+  $('#fmPoly').innerHTML=termsH(q.terms.map(x=>[x.c,x.d]));
+  fm.slots=[];fm.labs=[];const box=$('#fmRem');box.innerHTML='';
+  q.terms.forEach((t,i)=>{
+    if(i){const o=document.createElement('span');o.className='op';o.textContent='+';box.appendChild(o)}
+    const w=document.createElement('div'),sl=makeSpin({min:-40,max:40,val:0,onChange:()=>fmLive()}),lb=document.createElement('span');
+    w.className='slot';lb.className='slx';w.append(sl.el,lb);box.appendChild(w);fm.slots.push(sl);fm.labs.push(lb)});
+  fm.e=0;$$('#fmSeg button').forEach(b=>b.disabled=!!S.lockE);
+  fm.k.lock(false);fm.k.set(1);if(S.lockK)fm.k.lock(true);
+  $('#fmMsg').className='msg';$('#fmMsg').innerHTML='';$('#fmHintBox').hidden=true;$('#fmCheck').textContent='檢查答案';
+  hud();fmLive();
+}
+function fmRem(){const q=cur.m;return termsH(q.terms.map((t,i)=>[fm.slots[i].get(),Math.max(0,t.d-fm.e)]))}
+function fmLive(){
+  const q=cur&&cur.m;if(!q||fm.slots.length!==q.terms.length)return;
+  const S=STAGES[cur.si],k=fm.k.get(),e=fm.e;
+  $$('#fmSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.e===e));
+  q.terms.forEach((t,i)=>{fm.labs[i].innerHTML=t.d-e<0?'⚠':dstr(t.d-e)});
+  $('#fmLive').innerHTML=q.terms.map((t,i)=>{const sv=fm.slots[i].get(),v=k*sv,ok=v===t.c&&t.d-e>=0,cls=t.d>=2?'lr-x2':t.d===1?'lr-x1':'lr-u';
+    return `<div class="lr ${cls}"><span class="k">${t.d===0?'常數項':t.d===1?'<i>x</i> 項':`<i>x</i><sup>${t.d}</sup> 項`}</span><span class="v">${pn(k)} × ${pn(sv)} = ${nstr(v)}</span>${S.sc?`<span class="mk ${ok?'y':''}">${ok?'✓':'目標 '+nstr(t.c)}</span>`:'<span></span>'}</div>`}).join('');
+  $('#fmAns').innerHTML=`${kxH(k,e)}<span class="fac">(${fmRem()})</span>`;
+}
+function fmHint(q,lv){
+  const g=q.terms.reduce((z,t)=>gcd(z,t.c),0),ml=Math.min(...q.terms.map(t=>t.d));
+  let h='找出每一項都有的數字和 <i>x</i>，把它們提到括號外面。';
+  if(lv>=2)h+=`<br>係數 ${q.terms.map(t=>nstr(t.c)).join('、')} 的最大公因數是 ${g}；<i>x</i> 最少出現 ${ml} 次。${q.k<0?'最高次項是負的，負號也一起提。':''}`;
+  if(lv>=3)h+=`<br>公因式是 ${kxH(q.k,q.e)}，括號裡剩下 ${termsH(q.terms.map(t=>[t.c/q.k,t.d-q.e]))}。`;
+  return h;
+}
+$('#fmHintBtn').onclick=()=>{if(cur.done)return;cur.hints=Math.min(3,cur.hints+1);const h=$('#fmHintBox');h.hidden=false;h.innerHTML=fmHint(cur.m,cur.hints)+(cur.hints<3?'<br><small>再按一次「提示」會顯示更多。</small>':'')};
+$('#fmCheck').onclick=()=>{
+  if(cur.done)return advance();
+  const q=cur.m,k=fm.k.get(),e=fm.e,m=$('#fmMsg'),no=t=>{cur.wrong++;sfx.bad();say(m,'no',t)};
+  if(k===0)return no('公因式的數字不能是 0。');
+  if(e>Math.min(...q.terms.map(t=>t.d)))return no('提出的 <i>x</i> 太多了：有一項沒有那麼多個 <i>x</i>。');
+  for(let i=0;i<q.terms.length;i++){const sv=fm.slots[i].get(),v=k*sv;
+    if(v!==q.terms[i].c)return no(`把公因式乘回去：${pn(k)} × ${pn(sv)} = ${nstr(v)}，但原式這一項是 ${nstr(q.terms[i].c)}。`)}
+  if(e<q.e)return no('每一項還有共同的 <i>x</i>，可以再提出來。');
+  if(Math.abs(k)!==Math.abs(q.k))return no('數字的公因數還沒提到最大，括號裡的係數還能再約。');
+  if(k!==q.k)return no(q.k<0?'最高次項是負的，要把負號一起提出來，讓括號裡第一項是正的。':'公因式的數字取正數就好，這樣括號裡第一項是正的。');
+  const pts=pts3();cur.score+=pts;cur.n++;cur.done=true;
+  fm.k.lock(true);fm.slots.forEach(x=>x.lock(true));$$('#fmSeg button').forEach(b=>b.disabled=true);
+  say(m,'ok',`<b>答對了！+${pts} 分</b><br>${termsH(q.terms.map(t=>[t.c,t.d]))} = ${kxH(k,e)}<span class="fac">(${fmRem()})</span>`);
+  $('#fmCheck').textContent=cur.n>=STAGES[cur.si].n?'完成關卡':'下一題 →';hud();sfx.ok();confetti();
+};
+
+/* ---------- 提出一次式 ---------- */
+const fb={p1:makeSpin({min:-9,max:9,val:1,onChange:()=>fbLive()}),q1:makeSpin({min:-20,max:20,val:0,onChange:()=>fbLive()}),
+  p2:makeSpin({min:-9,max:9,val:1,onChange:()=>fbLive()}),q2:makeSpin({min:-20,max:20,val:0,onChange:()=>fbLive()})};
+Object.keys(fb).forEach(k=>$('#f'+k).appendChild(fb[k].el));
+const fbExp=(p1,q1,p2,q2)=>[p1*p2,p1*q2+q1*p2,q1*q2];
+const fbV=()=>[fb.p1.get(),fb.q1.get(),fb.p2.get(),fb.q2.get()];
+function nextFb(q){
+  const S=STAGES[cur.si];cur.b=q;cur.m=null;cur.q=null;cur.wrong=0;cur.hints=0;cur.done=false;cur.stepDone=!q.flip;
+  $('#fbPoly').innerHTML=fbTermsH(q.terms,q.m);$('#fbRew').hidden=true;$('#fbRew').innerHTML='';
+  $('#fbStep').hidden=!q.flip;$('#fbAnsCard').hidden=!!q.flip;
+  if(q.flip){const B1=binH(q.m,1),B2=binH(q.m,-1);
+    $('#fbStepQ').innerHTML=`${B1} 和 ${B2} 差一個負號，不能直接提。怎麼處理？`;
+    $('#fbOpts').innerHTML=[`把 ${B2} 改寫成 −${B1}`,`把 ${B1} 改寫成 −${B2}`,'不用改，直接提公因式'].map((t,i)=>`<button type="button" class="btn ghost" data-o="${i}">${t}</button>`).join('')}
+  Object.values(fb).forEach(x=>x.lock(false));fb.p1.set(1);fb.q1.set(0);fb.p2.set(1);fb.q2.set(0);if(S.lockP1)fb.p1.lock(true);
+  $('#fbMsg').className='msg';$('#fbMsg').innerHTML='';$('#fbHintBox').hidden=true;$('#fbCheck').textContent='檢查答案';
+  hud();fbLive();
+}
+$('#fbOpts').onclick=e=>{
+  const b=e.target.closest('button');if(!b||!cur.b||cur.stepDone)return;const q=cur.b,o=+b.dataset.o,m=$('#fbMsg');
+  if(o===2){cur.wrong++;sfx.bad();return say(m,'no','兩個括號長得不一樣，不能直接提。想想 3 − <i>x</i> 和 <i>x</i> − 3 的關係。')}
+  const rew=q.terms.map(t=>o===0?{a:t.a*t.s,b:t.b*t.s,s:1}:{a:-t.a*t.s,b:-t.b*t.s,s:-1});
+  $('#fbRew').hidden=false;$('#fbRew').innerHTML='<div class="rl">改寫後</div>'+fbTermsH(rew,q.m);
+  cur.stepDone=true;$('#fbStep').hidden=true;$('#fbAnsCard').hidden=false;sfx.ok();say(m,'ok','改寫完成，現在兩個括號一樣了，把它提出來。');fbLive();
+};
+function fbLive(){
+  const q=cur&&cur.b;if(!q)return;const S=STAGES[cur.si],v=fbExp(...fbV()),eq=v.every((x,i)=>x===q.tgt[i]);
+  $('#fbLive').innerHTML=`<div class="lr lr-x1"><span class="k">你的答案乘開</span><span class="v">${polyH(...v)}</span>${S.sc?`<span class="mk ${eq?'y':''}">${eq?'✓':''}</span>`:'<span></span>'}</div>`
+    +(S.sc?`<div class="lr"><span class="k">原式乘開</span><span class="v">${polyH(...q.tgt)}</span><span></span></div>`:'');
+}
+function fbHint(q,lv){
+  const g=q.terms.map(t=>{const v=t.a?{a:t.a*t.s,b:0}:{a:0,b:t.b*t.s};return v.a?`${nstr(v.a)}${X1}`:nstr(v.b)});
+  let h='先找兩項都有的括號，把它整個提到最前面。';
+  if(q.flip)h+=' 兩個括號差一個負號，要先改寫其中一個。';
+  if(lv>=2)h+=`<br>提出括號後，兩項前面剩下的部分是 ${g[0]} 和 ${g[1]}（連正負號一起看），把它們相加就是剩下的括號。${q.terms.some(t=>!t.a&&Math.abs(t.b)===1)?'只有括號的那一項，前面其實有一個 1（或 −1）。':''}`;
+  if(lv>=3)h+=`<br>剩下的括號是 ${facH(q.Ra,q.Rb)}。`;
+  return h;
+}
+$('#fbHintBtn').onclick=()=>{if(cur.done)return;cur.hints=Math.min(3,cur.hints+1);const h=$('#fbHintBox');h.hidden=false;h.innerHTML=fbHint(cur.b,cur.hints)+(cur.hints<3?'<br><small>再按一次「提示」會顯示更多。</small>':'')};
+$('#fbCheck').onclick=()=>{
+  if(cur.done)return advance();
+  const q=cur.b,m=$('#fbMsg'),no=t=>{cur.wrong++;sfx.bad();say(m,'no',t)};
+  if(!cur.stepDone)return say(m,'no','先選一個處理括號的方法。');
+  const[p1,q1,p2,q2]=fbV(),v=fbExp(p1,q1,p2,q2);
+  if(!v.every((x,i)=>x===q.tgt[i])){
+    const isC=(p,qq)=>Math.abs(p)===1&&qq===p*q.m;
+    if(isC(p1,q1)||isC(p2,q2))return no('提出的括號對了，但剩下的括號不對：把每一項提出括號後前面剩下的部分相加，注意正負號。'+(q.terms.some(t=>!t.a&&Math.abs(t.b)===1)?' 只有括號的那一項，前面有一個 1（或 −1）。':''));
+    return no('乘開後和原式不一樣。先找出兩項共同的括號，把它填在第一列。');
+  }
+  if(gcd(p1,q1)!==1||gcd(p2,q2)!==1)return no('括號裡面還有公因數，可以再提出來。');
+  const pts=pts3();cur.score+=pts;cur.n++;cur.done=true;Object.values(fb).forEach(x=>x.lock(true));
+  say(m,'ok',`<b>答對了！+${pts} 分</b><br>${fbTermsH(q.terms,q.m)} = ${facH(p1,q1)}${facH(p2,q2)}`);
+  $('#fbCheck').textContent=cur.n>=STAGES[cur.si].n?'完成關卡':'下一題 →';hud();sfx.ok();confetti();
+};
+
 /* ---------- 姓名與成績 ---------- */
 const KEY='quiz_scores_factoring-tile-game';
 let myName='';try{myName=localStorage.getItem('cfg-name')||''}catch(e){}
@@ -536,12 +780,14 @@ $('#stuName').oninput=e=>{myName=e.target.value;try{localStorage.setItem('cfg-na
 $('#back').onclick=()=>{renderHome();show('home');renderBoard('#boardHome',5,myName)};
 $('#toHome').onclick=$('#back').onclick;
 $('#again').onclick=()=>startStage(cur.si);
-$('#nextStage').onclick=()=>startStage(cur.si+1);
+$('#nextStage').onclick=()=>{const n=nextOf(cur.si);if(n!==undefined)startStage(n)};
 $('#unlockAll').onclick=()=>{save.all=true;persist();renderHome()};
 $('#mute').onclick=()=>{muted=!muted;$('#mute').textContent=muted?'🔇':'🔊';try{localStorage.setItem('cfg-mute',muted?'1':'0')}catch(e){}};
 $('#mute').textContent=muted?'🔇':'🔊';
 document.addEventListener('keydown',e=>{if(e.key!=='Enter'||e.target.tagName!=='INPUT')return;
   if($('#cross').classList.contains('on'))$('#checkBtn').click();
+  else if($('#fm').classList.contains('on'))$('#fmCheck').click();
+  else if($('#fb').classList.contains('on')&&!$('#fbAnsCard').hidden)$('#fbCheck').click();
   else if($('#tiles').classList.contains('on')&&!$('#tAns').hidden)$('#tCheck').click()});
 renderHome();renderBoard('#boardHome',5,myName);
 </script>
