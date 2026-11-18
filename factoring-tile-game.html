@@ -165,7 +165,16 @@ h1{font:900 clamp(1.6rem,7vw,2.1rem)/1.2 var(--ui);margin:14px 0 6px}
 .step-q{font-weight:700}
 .rew{margin-top:10px;padding-top:10px;border-top:2px dashed var(--line);color:var(--x1);font-size:clamp(1.3rem,6vw,1.8rem)}
 .rew .rl{font:700 .9rem var(--ui);color:var(--mute);margin-bottom:2px}
-.trow.w .lab{width:5.2em;text-align:right}
+.trow.w{flex-wrap:wrap}
+.trow.w .lab{width:100%;text-align:center;font-size:.9rem}
+.fb-flow{padding:10px 14px}
+.fl{display:flex;align-items:baseline;gap:4px 10px;flex-wrap:wrap;font:500 clamp(1.2rem,5.4vw,1.55rem)/1.5 var(--math)}
+.fl small{font:700 .85rem var(--ui);color:var(--mute);flex:none;min-width:5.6em}
+.fl.dim{color:var(--mute);font:400 .95rem var(--ui)}
+.fl+.fl{border-top:1px dashed var(--line);margin-top:6px;padding-top:6px}
+.fl.done{color:var(--good)}
+.fl[hidden]{display:none}
+@media (max-width:360px){.spin input,.sb{width:50px}.trow{gap:5px}.trow .par{font-size:2.4rem}#app{padding-left:12px;padding-right:12px}}
 .cf{position:fixed;top:-14px;width:10px;height:10px;border-radius:2px;z-index:99;pointer-events:none;animation:fall 1.7s ease-in forwards}
 @keyframes fall{to{transform:translate(var(--dx),108vh) rotate(var(--r))}}
 @keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
@@ -274,6 +283,7 @@ h1{font:900 clamp(1.6rem,7vw,2.1rem)/1.2 var(--ui);margin:14px 0 6px}
       <div class="step-q" id="fbStepQ"></div>
       <div class="opts" id="fbOpts"></div>
     </div>
+    <div class="card fb-flow" id="fbFlow"><div class="fl" id="fbFlowA"></div><div class="fl done" id="fbFlowB" hidden></div></div>
     <div class="card" id="fbAnsCard">
       <div class="trow w"><span class="lab">提出的括號</span><span class="par">(</span><span id="fp1"></span><i>x</i><span>+</span><span id="fq1"></span><span class="par">)</span></div>
       <div class="trow w"><span class="lab">剩下的括號</span><span class="par">(</span><span id="fp2"></span><i>x</i><span>+</span><span id="fq2"></span><span class="par">)</span></div>
@@ -698,7 +708,8 @@ $('#fmCheck').onclick=()=>{
   if(k!==q.k)return no(q.k<0?'最高次項是負的，要把負號一起提出來，讓括號裡第一項是正的。':'公因式的數字取正數就好，這樣括號裡第一項是正的。');
   const pts=pts3();cur.score+=pts;cur.n++;cur.done=true;
   fm.k.lock(true);fm.slots.forEach(x=>x.lock(true));$$('#fmSeg button').forEach(b=>b.disabled=true);
-  say(m,'ok',`<b>答對了！+${pts} 分</b><br>${termsH(q.terms.map(t=>[t.c,t.d]))} = ${kxH(k,e)}<span class="fac">(${fmRem()})</span>`);
+  const parts=q.terms.map((t,i)=>`${kxH(k,e)}·<span class="fac">(${termsH([[fm.slots[i].get(),Math.max(0,t.d-e)]])})</span>`).join(' <span class="op">+</span> ');
+  say(m,'ok',`<b>答對了！+${pts} 分</b><br>原式 ${termsH(q.terms.map(t=>[t.c,t.d]))}<br>＝ ${parts}<br>＝ ${kxH(k,e)}<span class="fac">(${fmRem()})</span>`);
   $('#fmCheck').textContent=cur.n>=STAGES[cur.si].n?'完成關卡':'下一題 →';hud();sfx.ok();confetti();
 };
 
@@ -711,7 +722,7 @@ const fbV=()=>[fb.p1.get(),fb.q1.get(),fb.p2.get(),fb.q2.get()];
 function nextFb(q){
   const S=STAGES[cur.si];cur.b=q;cur.m=null;cur.q=null;cur.wrong=0;cur.hints=0;cur.done=false;cur.stepDone=!q.flip;
   $('#fbPoly').innerHTML=fbTermsH(q.terms,q.m);$('#fbRew').hidden=true;$('#fbRew').innerHTML='';
-  $('#fbStep').hidden=!q.flip;$('#fbAnsCard').hidden=!!q.flip;
+  $('#fbStep').hidden=!q.flip;$('#fbAnsCard').hidden=!!q.flip;$('#fbFlow').hidden=!!q.flip;$('#fbFlowB').hidden=true;
   if(q.flip){const B1=binH(q.m,1),B2=binH(q.m,-1);
     $('#fbStepQ').innerHTML=`${B1} 和 ${B2} 差一個負號，不能直接提。怎麼處理？`;
     $('#fbOpts').innerHTML=[`把 ${B2} 改寫成 −${B1}`,`把 ${B1} 改寫成 −${B2}`,'不用改，直接提公因式'].map((t,i)=>`<button type="button" class="btn ghost" data-o="${i}">${t}</button>`).join('')}
@@ -724,12 +735,21 @@ $('#fbOpts').onclick=e=>{
   if(o===2){cur.wrong++;sfx.bad();return say(m,'no','兩個括號長得不一樣，不能直接提。想想 3 − <i>x</i> 和 <i>x</i> − 3 的關係。')}
   const rew=q.terms.map(t=>o===0?{a:t.a*t.s,b:t.b*t.s,s:1}:{a:-t.a*t.s,b:-t.b*t.s,s:-1});
   $('#fbRew').hidden=false;$('#fbRew').innerHTML='<div class="rl">改寫後</div>'+fbTermsH(rew,q.m);
-  cur.stepDone=true;$('#fbStep').hidden=true;$('#fbAnsCard').hidden=false;sfx.ok();say(m,'ok','改寫完成，現在兩個括號一樣了，把它提出來。');fbLive();
+  cur.stepDone=true;$('#fbStep').hidden=true;$('#fbAnsCard').hidden=false;$('#fbFlow').hidden=false;sfx.ok();say(m,'ok','改寫完成，現在兩個括號一樣了，把它提出來。');fbLive();
 };
 function fbLive(){
   const q=cur&&cur.b;if(!q)return;const S=STAGES[cur.si],v=fbExp(...fbV()),eq=v.every((x,i)=>x===q.tgt[i]);
   $('#fbLive').innerHTML=`<div class="lr lr-x1"><span class="k">你的答案乘開</span><span class="v">${polyH(...v)}</span>${S.sc?`<span class="mk ${eq?'y':''}">${eq?'✓':''}</span>`:'<span></span>'}</div>`
     +(S.sc?`<div class="lr"><span class="k">原式乘開</span><span class="v">${polyH(...q.tgt)}</span><span></span></div>`:'');
+  fbFlowA();
+}
+function brkH(ps){let o='';ps.forEach((t,i)=>{const v=t.a||t.b,ab=Math.abs(v),ng=v<0,body=t.a?`${ab===1?'':ab}${X1}`:String(ab);
+  o+=(i?` ${ng?MINUS:'+'} `:(ng?MINUS:''))+body});return `<span class="fac">[ ${o} ]</span>`}
+function fbSigma(q,p1,q1){return Math.abs(p1)===1&&q1===p1*q.m?p1:0}
+function fbFlowA(){
+  const q=cur&&cur.b;if(!q)return;const[p1,q1]=fbV(),sg=fbSigma(q,p1,q1),el=$('#fbFlowA');
+  if(!sg){el.className='fl dim';el.innerHTML='先在下面填「提出的括號」，填對後這裡會顯示提出後的算式。';return}
+  el.className='fl';el.innerHTML=`<small>提出 ${facH(p1,q1)}</small><span>＝ ${facH(p1,q1)}${brkH(q.terms.map(t=>({a:t.a*t.s*sg,b:t.b*t.s*sg})))}</span>`;
 }
 function fbHint(q,lv){
   const g=q.terms.map(t=>{const v=t.a?{a:t.a*t.s,b:0}:{a:0,b:t.b*t.s};return v.a?`${nstr(v.a)}${X1}`:nstr(v.b)});
@@ -753,6 +773,7 @@ $('#fbCheck').onclick=()=>{
   if(gcd(p1,q1)!==1||gcd(p2,q2)!==1)return no('括號裡面還有公因數，可以再提出來。');
   const pts=pts3();cur.score+=pts;cur.n++;cur.done=true;Object.values(fb).forEach(x=>x.lock(true));
   say(m,'ok',`<b>答對了！+${pts} 分</b><br>${fbTermsH(q.terms,q.m)} = ${facH(p1,q1)}${facH(p2,q2)}`);
+  {const sg=fbSigma(q,p1,q1)||fbSigma(q,p2,q2),B=$('#fbFlowB');B.hidden=false;B.innerHTML=`<small>括號裡整理</small><span>＝ ${facH(p1,q1)}${facH(p2,q2)}</span>`}
   $('#fbCheck').textContent=cur.n>=STAGES[cur.si].n?'完成關卡':'下一題 →';hud();sfx.ok();confetti();
 };
 
