@@ -141,6 +141,11 @@ h1{font:900 clamp(1.6rem,7vw,2.1rem)/1.2 var(--ui);margin:14px 0 6px}
 .board-t{font-weight:700;margin-top:12px;font-size:.95rem}
 .gcf{display:flex;align-items:center;justify-content:center;gap:10px;font-weight:700;margin-bottom:14px}
 .gcf[hidden]{display:none}
+.gcf-res{text-align:center;margin:-4px 0 14px;padding:8px 12px;border-radius:10px;background:#EEF4F2;font:500 1.25rem/1.4 var(--math)}
+.gcf-res[hidden]{display:none}
+.gcf-res.ok{background:#DDF1E6}
+.gcf-res.no{background:#FBE3DD;color:#8B2A18;font:700 1rem var(--ui)}
+.gcf-res small{font:700 .9rem var(--ui);color:var(--mute);margin-right:6px}
 .homelink{display:block;text-align:center;margin:18px 0 0;color:var(--mute);font-size:.9rem}
 .unit{font:900 1.2rem var(--ui);margin:26px 2px 2px}
 .unit small{font:400 .85rem var(--ui);color:var(--mute);margin-left:8px}
@@ -218,6 +223,7 @@ h1{font:900 clamp(1.6rem,7vw,2.1rem)/1.2 var(--ui);margin:14px 0 6px}
     <div class="card"><div id="poly" class="poly"></div></div>
     <div class="card">
       <div class="gcf" id="gcfRow" hidden>公因數 <span id="ck"></span> ×</div>
+      <div class="gcf-res" id="gcfRes" hidden></div>
       <div class="cross">
         <div class="cl"><div class="cell" id="cp"><i>x</i></div><div class="cell" id="cr"><i>x</i></div></div>
         <div class="mid">
@@ -589,6 +595,12 @@ function live(){
   if(!cur||cur.si==null||!cur.q)return;
   const S=STAGES[cur.si],{a,b,c}=cur.q,p=sp.p.get(),r=sp.r.get(),q=sp.q.get(),s=sp.s.get(),k=sp.k.get(),g=S.gcf;
   $('#ans').innerHTML=(k>1?k:'')+facH(p,q)+facH(r,s);
+  const gr=$('#gcfRes');gr.hidden=!g;
+  if(g){
+    if(k<=1){gr.className='gcf-res';gr.innerHTML='<small>提出公因數後</small>還沒提公因數'}
+    else if(a%k||b%k||c%k){gr.className='gcf-res no';gr.innerHTML=`提出 ${k} 不能提：不是每一項都能被 ${k} 整除`}
+    else{gr.className='gcf-res ok';gr.innerHTML=`<small>提出 ${k} 後剩下</small>${polyH(a/k,b/k,c/k)}`}
+  }
   $('#bPS').textContent=p*s;$('#bRQ').textContent=r*q;
   const row=(cls,lab,calc,v,tgt)=>`<div class="lr ${cls}"><span class="k">${lab}</span><span class="v">${calc} = ${nstr(v)}</span>${S.sc?`<span class="mk ${v===tgt?'y':''}">${v===tgt?'✓':'目標 '+nstr(tgt)}</span>`:'<span></span>'}</div>`;
   $('#live').innerHTML=row('lr-x2','x² 項<br>左 × 左',g?`${k} × ${p} × ${r}`:`${p} × ${r}`,k*p*r,a)
