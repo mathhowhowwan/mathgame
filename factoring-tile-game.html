@@ -221,6 +221,7 @@ h1{font:900 clamp(1.6rem,7vw,2.1rem)/1.2 var(--ui);margin:14px 0 6px}
     <div id="tAns" class="card" hidden>
       <div class="trow"><span class="lab">橫邊</span><span class="par">(</span><span id="tp"></span><i>x</i><span>+</span><span id="tq"></span><span class="par">)</span></div>
       <div class="trow"><span class="lab">直邊</span><span class="par">(</span><span id="tr"></span><i>x</i><span>+</span><span id="ts"></span><span class="par">)</span></div>
+      <div id="tLive" class="fb-flow"></div>
       <div class="row"><button id="tCheck" class="btn" type="button">確認長寬</button></div>
     </div>
     <div id="tmsg" class="msg"></div>
@@ -475,8 +476,11 @@ function finish(){
 /* ================= 拼版關 ================= */
 const REC_X=72,REC_Y=46;
 let tiles=[],drag=null,U=20,X=52;
-const ts={p:makeSpin({min:0,max:6,val:1}),q:makeSpin({min:0,max:12,val:0}),r:makeSpin({min:0,max:6,val:1}),s:makeSpin({min:0,max:12,val:0})};
-Object.keys(ts).forEach(k=>$('#t'+k).appendChild(ts[k].el));
+const tLive=()=>{const el=$('#tLive');if(!el||!ts.s)return;const[p,q,r,s]=[ts.p.get(),ts.q.get(),ts.r.get(),ts.s.get()];
+  const par=(a,b)=>`<span class="fac">(${linT(a,b)})</span>`;
+  el.innerHTML=`<div class="fl"><small>你選的長寬</small><span>${par(p,q)}${par(r,s)}</span></div><div class="fl"><small>乘開</small><span>${polyH(p*r,p*s+q*r,q*s)}</span></div>`};
+const ts={p:makeSpin({min:0,max:6,val:1,onChange:tLive}),q:makeSpin({min:0,max:12,val:0,onChange:tLive}),r:makeSpin({min:0,max:6,val:1,onChange:tLive}),s:makeSpin({min:0,max:12,val:0,onChange:tLive})};
+Object.keys(ts).forEach(k=>$('#t'+k).appendChild(ts[k].el));tLive();
 const TIP0='拖曳磁磚，拼成一個沒有縫隙的長方形。點一下長條磁磚可以旋轉。';
 const place=t=>{const s=t.el.style;s.left=t.x+'px';s.top=t.y+'px';s.width=t.w+'px';s.height=t.h+'px'};
 const ovl=(a,b)=>a!==b&&a.x<b.x+b.w-1&&a.x+a.w>b.x+1&&a.y<b.y+b.h-1&&a.y+a.h>b.y+1;
