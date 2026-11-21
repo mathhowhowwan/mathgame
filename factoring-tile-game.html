@@ -175,6 +175,11 @@ h1{font:900 clamp(1.6rem,7vw,2.1rem)/1.2 var(--ui);margin:14px 0 6px}
 .fl+.fl{border-top:1px dashed var(--line);margin-top:6px;padding-top:6px}
 .fl.done{color:var(--good)}
 .fl[hidden]{display:none}
+@media (min-width:820px){
+  #app:has(#tiles.on){max-width:920px}
+  #tiles .tcols{display:grid;grid-template-columns:460px minmax(0,1fr);gap:0 24px;align-items:start}
+  #tiles .tr #tAns{margin-top:10px}
+}
 @media (max-width:360px){.spin input,.sb{width:50px}.trow{gap:5px}.trow .par{font-size:2.4rem}#app{padding-left:12px;padding-right:12px}}
 .cf{position:fixed;top:-14px;width:10px;height:10px;border-radius:2px;z-index:99;pointer-events:none;animation:fall 1.7s ease-in forwards}
 @keyframes fall{to{transform:translate(var(--dx),108vh) rotate(var(--r))}}
@@ -211,6 +216,7 @@ h1{font:900 clamp(1.6rem,7vw,2.1rem)/1.2 var(--ui);margin:14px 0 6px}
 
   <!-- 拼版關 -->
   <section id="tiles" class="screen">
+   <div class="tcols"><div class="tl">
     <div class="card"><div id="tPoly" class="poly sm"></div><div id="tLegend" class="legend"></div></div>
     <p class="tip" id="tTip"></p>
     <div id="ws"></div>
@@ -219,6 +225,7 @@ h1{font:900 clamp(1.6rem,7vw,2.1rem)/1.2 var(--ui);margin:14px 0 6px}
       <button id="tHint" class="btn ghost" type="button">提示</button>
       <button id="tDone" class="btn" type="button">拼好了</button>
     </div>
+   </div><div class="tr">
     <div id="tAns" class="card" hidden>
       <div class="trow"><span class="lab">橫邊</span><span class="par">(</span><span id="tp"></span><i>x</i><span>+</span><span id="tq"></span><span class="par">)</span></div>
       <div class="trow"><span class="lab">直邊</span><span class="par">(</span><span id="tr"></span><i>x</i><span>+</span><span id="ts"></span><span class="par">)</span></div>
@@ -226,6 +233,7 @@ h1{font:900 clamp(1.6rem,7vw,2.1rem)/1.2 var(--ui);margin:14px 0 6px}
       <div class="row"><button id="tCheck" class="btn" type="button">確認長寬</button></div>
     </div>
     <div id="tmsg" class="msg"></div>
+   </div></div>
     <a class="homelink" href="https://mathhowhowwan.github.io/mathgame/">← 回遊戲庫首頁</a>
   </section>
 
